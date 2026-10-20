@@ -2,14 +2,12 @@ import Link from 'next/link'
 
 export default function NotFound() {
   return (
-    <main className="shell">
-      <section className="card hero-404">
-        <span className="pill">404</span>
-        <h1 className="display">This page doesn’t exist.</h1>
-        <Link href="/" className="btn btn-primary">
-          Back home <span aria-hidden>→</span>
-        </Link>
-      </section>
+    <main className="not-found">
+      <h1 className="wordmark">404</h1>
+      <p className="label">This page doesn’t exist.</p>
+      <Link href="/" className="btn btn-primary">
+        Back home <span aria-hidden>→</span>
+      </Link>
     </main>
   )
 }

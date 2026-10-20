@@ -1,13 +1,12 @@
 import type {Metadata} from 'next'
-import {Instrument_Serif, Inter_Tight, JetBrains_Mono} from 'next/font/google'
+import {Gloock, Inter_Tight} from 'next/font/google'
 import {SanityLive} from '@/sanity/live'
 import {sanityFetch} from '@/sanity/live'
 import {SETTINGS_QUERY} from '@/sanity/queries'
 import './globals.css'
 
 const sans = Inter_Tight({subsets: ['latin'], variable: '--font-sans'})
-const serif = Instrument_Serif({subsets: ['latin'], weight: '400', style: ['normal', 'italic'], variable: '--font-serif'})
-const mono = JetBrains_Mono({subsets: ['latin'], variable: '--font-mono'})
+const display = Gloock({subsets: ['latin'], weight: '400', variable: '--font-display'})
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
@@ -27,8 +26,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en-GB" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
-      <body>
+    <html lang="en-GB" className={`${sans.variable} ${display.variable}`}>
+      <body id="top">
         {children}
         <SanityLive />
       </body>

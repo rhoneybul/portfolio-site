@@ -7,10 +7,11 @@ import {sanityFetch} from '@/sanity/live'
 import {PROJECT_QUERY, PROJECT_SLUGS_QUERY} from '@/sanity/queries'
 import {getSettings} from '@/sanity/settings'
 import {urlFor} from '@/sanity/image'
-import {SiteHeader} from '@/components/site-header'
+import {TopBar} from '@/components/top-bar'
 import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {RichText} from '@/components/rich-text'
+import {Marquee} from '@/components/marquee'
 
 type Props = {params: Promise<{slug: string}>}
 
@@ -34,46 +35,45 @@ export default async function ProjectPage({params}: Props) {
   const next = project.next ?? project.first
 
   return (
-    <div className="shell">
-      <SiteHeader settings={settings} />
+    <>
+      <TopBar settings={settings} active="work" />
       <main>
-        <article
-          className="card case"
-          style={{'--accent': project.accent ?? '#ECEAE3'} as React.CSSProperties}
-        >
-          <Link href="/#work" className="mono muted back">
+        <article className="case">
+          <Link href="/#work" className="label back">
             ← All work
           </Link>
-          <span className="mono muted">{project.sector}</span>
           <h1 className="case__title">{project.title}</h1>
-          <p className="lead">{project.summary}</p>
+          <Marquee items={[project.sector ?? '', project.sector ?? '']} className="marquee-role" />
 
-          <dl className="case__meta">
-            {project.role && (
-              <div>
-                <dt className="mono muted">Role</dt>
-                <dd>{project.role}</dd>
-              </div>
-            )}
-            {project.period && (
-              <div>
-                <dt className="mono muted">When</dt>
-                <dd>{project.period}</dd>
-              </div>
-            )}
-            {project.url && (
-              <div>
-                <dt className="mono muted">Website</dt>
-                <dd>
-                  <a href={project.url} target="_blank" rel="noreferrer">
-                    {project.url.replace(/^https?:\/\/(www\.)?/, '')} ↗
-                  </a>
-                </dd>
-              </div>
-            )}
-          </dl>
+          <div className="case__intro">
+            <p className="case__summary">{project.summary}</p>
+            <dl className="case__meta">
+              {project.role && (
+                <div>
+                  <dt className="label">Role</dt>
+                  <dd>{project.role}</dd>
+                </div>
+              )}
+              {project.period && (
+                <div>
+                  <dt className="label">When</dt>
+                  <dd>{project.period}</dd>
+                </div>
+              )}
+              {project.url && (
+                <div>
+                  <dt className="label">Website</dt>
+                  <dd>
+                    <a href={project.url} target="_blank" rel="noreferrer">
+                      {project.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')} ↗
+                    </a>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
 
-          {project.coverImage?.asset ? (
+          {project.coverImage?.asset && (
             <Image
               src={urlFor(project.coverImage).width(1800).height(1000).url()}
               alt={project.coverImage.alt ?? project.title ?? ''}
@@ -82,20 +82,16 @@ export default async function ProjectPage({params}: Props) {
               className="case__cover"
               priority
             />
-          ) : (
-            <div className="case__cover case__cover--blank" aria-hidden>
-              <span>{project.title}</span>
-            </div>
           )}
 
           <div className="case__content">
-            <div className="prose case__body">
+            <div className="case__body">
               <RichText value={project.body} />
             </div>
             <aside>
               {!!project.outcomes?.length && (
                 <>
-                  <h2 className="mono muted">Outcomes</h2>
+                  <h2 className="label">● Outcomes</h2>
                   <ul className="outcomes">
                     {project.outcomes.map((o) => (
                       <li key={o}>{o}</li>
@@ -104,27 +100,24 @@ export default async function ProjectPage({params}: Props) {
                 </>
               )}
               {!!project.tags?.length && (
-                <ul className="tags">
-                  {project.tags.map((t) => (
-                    <li key={t} className="pill mono">
-                      {t}
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <h2 className="label">● Stack</h2>
+                  <p>{project.tags.join(', ')}</p>
+                </>
               )}
             </aside>
           </div>
 
           {next?.slug && (
             <Link href={`/work/${next.slug}`} className="next-project">
-              <span className="mono muted">Next project</span>
-              <span className="next-project__title">{next.title} →</span>
+              <span className="label">Next project</span>
+              <span className="next-project__title">{next.title} ↗</span>
             </Link>
           )}
         </article>
         <ContactSection settings={settings} />
       </main>
       <SiteFooter settings={settings} />
-    </div>
+    </>
   )
 }

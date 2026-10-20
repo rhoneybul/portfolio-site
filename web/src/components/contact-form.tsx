@@ -1,59 +1,62 @@
 'use client'
 
-import {useActionState} from 'react'
-import {sendEnquiry, type ContactState} from '@/app/actions'
+import {useState} from 'react'
 
-const initial: ContactState = {status: 'idle'}
+// Sends the enquiry as a pre-filled WhatsApp message, so there's no backend or form service to run.
+export function ContactForm({whatsapp}: {whatsapp: string}) {
+  const [error, setError] = useState<string | null>(null)
 
-export function ContactForm() {
-  const [state, action, pending] = useActionState(sendEnquiry, initial)
-
-  if (state.status === 'success') {
-    return (
-      <div className="form-success">
-        <p className="display-sm">Thanks, message received.</p>
-        <p className="muted">I’ll get back to you within one working day.</p>
-      </div>
-    )
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const data = new FormData(e.currentTarget)
+    const get = (key: string) => String(data.get(key) ?? '').trim()
+    const name = get('name')
+    const message = get('message')
+    if (!name || !message) {
+      setError('Please add your name and a short message.')
+      return
+    }
+    setError(null)
+    const engagement = get('engagement')
+    const text = [
+      `Hi Rob, I'm ${name}${get('company') ? ` from ${get('company')}` : ''}.`,
+      ...(engagement ? [`Looking for: ${engagement}`] : []),
+      '',
+      message,
+    ].join('\n')
+    window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
   }
 
   return (
-    <form action={action} className="contact-form">
+    <form onSubmit={onSubmit} className="contact-form">
       <div className="field-row">
         <label className="field">
-          <span className="mono">Name</span>
+          <span>Name</span>
           <input name="name" required autoComplete="name" />
         </label>
         <label className="field">
-          <span className="mono">Email</span>
-          <input name="email" type="email" required autoComplete="email" />
-        </label>
-      </div>
-      <div className="field-row">
-        <label className="field">
-          <span className="mono">Company</span>
+          <span>Company</span>
           <input name="company" autoComplete="organization" />
-        </label>
-        <label className="field">
-          <span className="mono">Engagement</span>
-          <select name="budget" defaultValue="">
-            <option value="" disabled>Select…</option>
-            <option>Advisory / a few hours a month</option>
-            <option>Fractional CTO (1–3 days a week)</option>
-            <option>Project build</option>
-            <option>Not sure yet</option>
-          </select>
         </label>
       </div>
       <label className="field">
-        <span className="mono">What are you working on?</span>
+        <span>Engagement</span>
+        <select name="engagement" defaultValue="">
+          <option value="">Select…</option>
+          <option>Advisory / a few hours a month</option>
+          <option>Fractional CTO (1–3 days a week)</option>
+          <option>Project build</option>
+          <option>Not sure yet</option>
+        </select>
+      </label>
+      <label className="field">
+        <span>What are you working on?</span>
         <textarea name="message" rows={4} required />
       </label>
-      <input type="text" name="company_website" tabIndex={-1} autoComplete="off" className="hp" aria-hidden />
       <div className="form-footer">
-        {state.status === 'error' && <p className="form-error">{state.message}</p>}
-        <button type="submit" className="btn btn-light" disabled={pending}>
-          {pending ? 'Sending…' : 'Send message'} <span aria-hidden>→</span>
+        {error && <p className="form-error">{error}</p>}
+        <button type="submit" className="btn btn-primary">
+          Send on WhatsApp <span aria-hidden>↗</span>
         </button>
       </div>
     </form>

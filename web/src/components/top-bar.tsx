@@ -1,0 +1,39 @@
+import Link from 'next/link'
+import type {Settings} from '@/sanity/settings'
+
+const STATUS_TITLE: Record<string, string> = {
+  available: 'Available for new work',
+  limited: 'Taking on select engagements',
+  booked: 'Fully booked',
+}
+
+export function TopBar({settings, active}: {settings: Settings; active?: 'work'}) {
+  const status = settings?.availability?.status ?? 'available'
+  const role = settings?.role?.toLowerCase()
+  return (
+    <header className="top-bar">
+      <Link href="/" className="top-bar__intro">
+        <strong>
+          <span
+            className={`dot dot-${status}`}
+            title={settings?.availability?.label ?? STATUS_TITLE[status]}
+            aria-hidden
+          />
+          {settings?.name}
+        </strong>
+        <span>
+          is a {role ? `${role} consultant` : 'consultant'}
+          {settings?.location && <> based in {settings.location}</>}.
+        </span>
+        {settings?.availability?.label && <span className="top-bar__status">{settings.availability.label}.</span>}
+      </Link>
+      <nav className="top-bar__nav" aria-label="Main">
+        <Link href="/#work" className={active === 'work' ? 'is-active' : undefined}>
+          Work
+        </Link>
+        ,<Link href="/#services">Services</Link>,<Link href="/#experience">Experience</Link>,
+        <Link href="/#contact">Let’s talk</Link>
+      </nav>
+    </header>
+  )
+}

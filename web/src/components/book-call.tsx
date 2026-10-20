@@ -5,7 +5,7 @@ import {useRef} from 'react'
 export function BookCall({url, label = 'Book a call', variant = 'primary'}: {
   url: string
   label?: string
-  variant?: 'primary' | 'ghost' | 'light'
+  variant?: 'primary' | 'outline'
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
 
@@ -21,12 +21,12 @@ export function BookCall({url, label = 'Book a call', variant = 'primary'}: {
         onClick={(e) => e.target === dialog.current && dialog.current?.close()}
       >
         <div className="booking-dialog__bar">
-          <span className="mono">Book an intro call</span>
+          <span>Book a 15 or 30-minute call</span>
           <div className="booking-dialog__actions">
-            <a href={url} target="_blank" rel="noreferrer" className="mono">
+            <a href={url} target="_blank" rel="noreferrer">
               Open in new tab ↗
             </a>
-            <button type="button" className="mono" onClick={() => dialog.current?.close()}>
+            <button type="button" onClick={() => dialog.current?.close()}>
               Close ✕
             </button>
           </div>

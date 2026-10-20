@@ -7,6 +7,7 @@ export default defineCliConfig({
   },
   studioHost: 'rob-honeybul',
   deployment: {
+    appId: 'ybp5h36sln7zk7q84y9ovlkh',
     autoUpdates: true,
   },
   typegen: {

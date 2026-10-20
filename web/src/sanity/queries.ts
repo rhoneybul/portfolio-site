@@ -21,6 +21,11 @@ export const HOME_QUERY = defineQuery(`{
   },
   "experience": *[_type == "experience"] | order(startDate desc){
     _id, role, company, descriptor, location, period, badge, summary, highlights, tags
+  },
+  "certifications": *[_type == "certification"] | order(order asc){
+    _id, title, issuer, accreditation, issued, description, credentialUrl,
+    image{asset, alt},
+    "certificateUrl": certificate.asset->url
   }
 }`)
 

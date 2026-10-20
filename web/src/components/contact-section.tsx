@@ -1,70 +1,56 @@
 import type {Settings} from '@/sanity/settings'
 import {BookCall} from './book-call'
 import {ContactForm} from './contact-form'
+import {Marquee} from './marquee'
 
 export function ContactSection({settings}: {settings: Settings}) {
   const whatsapp = settings?.whatsapp
+  const links = [
+    settings?.cvUrl && {label: 'Get CV', href: `${settings.cvUrl}?dl=Rob_Honeybul_CV.pdf`},
+    ...(settings?.socials ?? []).map((s) => ({label: s.label ?? '', href: s.url ?? '#'})),
+    whatsapp && {label: 'WhatsApp', href: `https://wa.me/${whatsapp}`},
+  ].filter(Boolean) as {label: string; href: string}[]
+
   return (
-    <section id="contact" className="card card-dark contact">
-      <div className="contact__intro">
-        <span className="pill pill-dark">Contact</span>
-        <h2 className="display">
-          {settings?.contactHeading ?? 'Let’s build something that matters.'}
-        </h2>
-        <p className="muted-dark">
-          Tell me what you’re working on. I reply to every message within one working day.
-        </p>
-        <div className="contact__actions">
-          {settings?.bookingUrl && <BookCall url={settings.bookingUrl} variant="light" label="Book a 30-min intro call" />}
-          {whatsapp && (
-            <a
-              className="btn btn-outline-dark"
-              href={`https://wa.me/${whatsapp}?text=${encodeURIComponent('Hi Rob, I found you through your website.')}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              WhatsApp <span aria-hidden>↗</span>
+    <section id="contact" className="contact">
+      <h2 className="contact__wordmark">Let’s talk</h2>
+      <Marquee items={[settings?.contactHeading ?? 'Let’s build something that matters.']} className="marquee-light" />
+
+      <div className="contact__grid">
+        <div className="contact__info">
+          <p className="contact__lead">
+            Tell me what you’re working on. I reply to every message within one working day.
+          </p>
+          {settings?.email && (
+            <a className="contact__email" href={`mailto:${settings.email}`}>
+              {settings.email}
             </a>
           )}
+          <div className="contact__actions">
+            {settings?.bookingUrl && <BookCall url={settings.bookingUrl} label="Book a call" />}
+            {whatsapp && (
+              <a
+                className="btn btn-outline"
+                href={`https://wa.me/${whatsapp}?text=${encodeURIComponent('Hi Rob, I found you through your website.')}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Message on WhatsApp <span aria-hidden>↗</span>
+              </a>
+            )}
+          </div>
+          <ul className="text-links">
+            {links.map((l) => (
+              <li key={l.label}>
+                <a href={l.href} target="_blank" rel="noreferrer">
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
-        <dl className="contact__list">
-          {settings?.email && (
-            <div>
-              <dt className="mono">Email</dt>
-              <dd className="mono">
-                <a href={`mailto:${settings.email}`}>{settings.email}</a>
-              </dd>
-            </div>
-          )}
-          {whatsapp && (
-            <div>
-              <dt className="mono">WhatsApp</dt>
-              <dd className="mono">
-                <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">
-                  Message me ↗
-                </a>
-              </dd>
-            </div>
-          )}
-          {settings?.location && (
-            <div>
-              <dt className="mono">Location</dt>
-              <dd className="mono">{settings.location}</dd>
-            </div>
-          )}
-          {settings?.socials?.map((s) => (
-            <div key={s._key}>
-              <dt className="mono">{s.label}</dt>
-              <dd className="mono">
-                <a href={s.url ?? '#'} target="_blank" rel="noreferrer">
-                  {s.url?.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')} ↗
-                </a>
-              </dd>
-            </div>
-          ))}
-        </dl>
+        {whatsapp && <ContactForm whatsapp={whatsapp} />}
       </div>
-      <ContactForm />
     </section>
   )
 }
