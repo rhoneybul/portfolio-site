@@ -1,0 +1,10 @@
+{
+  "name": "rob-honeybul",
+  "private": true,
+  "scripts": {
+    "dev:web": "npm --prefix web run dev",
+    "dev:studio": "npm --prefix studio run dev",
+    "build:web": "npm --prefix web run build",
+    "typegen": "npm --prefix studio run typegen"
+  }
+}
