@@ -13,6 +13,14 @@ import {BookCall} from '@/components/book-call'
 import {Marquee} from '@/components/marquee'
 import {ScrollBadge} from '@/components/scroll-badge'
 import {SocialIcon} from '@/components/icons'
+import {ToolIcon, brandColor} from '@/components/tool-icon'
+
+const TOOL_CATEGORIES = [
+  {value: 'ai', title: 'AI'},
+  {value: 'build', title: 'Build & ship'},
+  {value: 'cloud', title: 'Cloud & data'},
+  {value: 'product', title: 'Product & team'},
+]
 
 // Lower-case a leading word for mid-sentence use, but keep acronyms like "AI".
 function sentenceCase(text?: string | null) {
@@ -139,18 +147,19 @@ export default async function HomePage() {
                 sizes="(max-width: 860px) 90vw, 36vw"
               />
             )}
-            <span className="badge-float badge-float--1" aria-hidden>
-              AI
-            </span>
-            <span className="badge-float badge-float--2" aria-hidden>
-              {'</>'}
-            </span>
-            <span className="badge-float badge-float--3" aria-hidden>
-              ∑
-            </span>
-            <figcaption>
-              {firstName}, {settings?.location}
-            </figcaption>
+            {settings?.tools
+              ?.filter((t) => t.featured)
+              .slice(0, 4)
+              .map((tool, i) => (
+                <span
+                  key={tool._key}
+                  className={`badge-float badge-float--${i + 1}`}
+                  title={tool.name ?? undefined}
+                  style={{'--brand': brandColor(tool.icon) ?? 'var(--accent)'} as React.CSSProperties}
+                >
+                  <ToolIcon name={tool.name ?? ''} slug={tool.icon} size={24} />
+                </span>
+              ))}
           </figure>
         </section>
 
@@ -346,6 +355,31 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
+          {!!settings?.tools?.length && (
+            <div className="tools">
+              {TOOL_CATEGORIES.map((cat) => {
+                const tools = settings.tools?.filter((t) => (t.category ?? 'build') === cat.value) ?? []
+                if (!tools.length) return null
+                return (
+                  <div key={cat.value} className="tools__group">
+                    <h3 className="label">{cat.title}</h3>
+                    <ul className="tools__grid">
+                      {tools.map((tool) => (
+                        <li
+                          key={tool._key}
+                          className="tool"
+                          style={{'--brand': brandColor(tool.icon) ?? 'var(--accent)'} as React.CSSProperties}
+                        >
+                          <ToolIcon name={tool.name ?? ''} slug={tool.icon} />
+                          <span>{tool.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              })}
+            </div>
+          )}
           <div className="toolkit__groups">
             {settings?.skillGroups?.map((group) => (
               <div key={group._key}>

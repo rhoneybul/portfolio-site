@@ -146,6 +146,45 @@ export const siteSettings = defineType({
       ],
     }),
     defineField({
+      name: 'tools',
+      title: 'Tools I use',
+      description: 'Shown as an icon grid. Featured tools also float around your portrait.',
+      type: 'array',
+      group: 'credentials',
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'tool',
+          fields: [
+            defineField({name: 'name', type: 'string', validation: (rule) => rule.required()}),
+            defineField({
+              name: 'icon',
+              type: 'string',
+              description:
+                'Simple Icons slug, e.g. "supabase" or "nextdotjs" (search at simpleicons.org). Leave empty to show initials.',
+            }),
+            defineField({
+              name: 'category',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'AI', value: 'ai'},
+                  {title: 'Build & ship', value: 'build'},
+                  {title: 'Cloud & data', value: 'cloud'},
+                  {title: 'Product & team', value: 'product'},
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'build',
+            }),
+            defineField({name: 'url', type: 'url'}),
+            defineField({name: 'featured', type: 'boolean', initialValue: false}),
+          ],
+          preview: {select: {title: 'name', subtitle: 'category'}},
+        }),
+      ],
+    }),
+    defineField({
       name: 'education',
       type: 'array',
       group: 'credentials',

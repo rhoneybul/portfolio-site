@@ -9,6 +9,7 @@ export const HOME_QUERY = defineQuery(`{
     process[]{_key, title, description},
     skillLevels[]{_key, name, level},
     skillGroups[]{_key, title, items},
+    tools[]{_key, name, icon, category, url, featured},
     education[]{_key, qualification, institution, field, period, description},
     contactHeading, email, whatsapp, bookingUrl,
     "cvUrl": cv.asset->url,

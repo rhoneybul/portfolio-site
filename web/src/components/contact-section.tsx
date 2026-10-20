@@ -1,6 +1,5 @@
 import type {Settings} from '@/sanity/settings'
 import {BookCall} from './book-call'
-import {ContactForm} from './contact-form'
 import {Marquee} from './marquee'
 
 export function ContactSection({settings}: {settings: Settings}) {
@@ -18,9 +17,7 @@ export function ContactSection({settings}: {settings: Settings}) {
 
       <div className="contact__grid">
         <div className="contact__info">
-          <p className="contact__lead">
-            Tell me what you’re working on. I reply to every message within one working day.
-          </p>
+          <p className="contact__lead">Tell me what you’re working on.</p>
           {settings?.email && (
             <a className="contact__email" href={`mailto:${settings.email}`}>
               {settings.email}
@@ -49,7 +46,6 @@ export function ContactSection({settings}: {settings: Settings}) {
             ))}
           </ul>
         </div>
-        {whatsapp && <ContactForm whatsapp={whatsapp} />}
       </div>
     </section>
   )

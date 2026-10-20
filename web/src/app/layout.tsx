@@ -1,3 +1,4 @@
+import {siteUrl} from '@/site-url'
 import type {Metadata} from 'next'
 import {Gloock, Inter_Tight} from 'next/font/google'
 import {SanityLive} from '@/sanity/live'
@@ -7,8 +8,6 @@ import './globals.css'
 
 const sans = Inter_Tight({subsets: ['latin'], variable: '--font-sans'})
 const display = Gloock({subsets: ['latin'], weight: '400', variable: '--font-display'})
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
 export async function generateMetadata(): Promise<Metadata> {
   const {data: settings} = await sanityFetch({query: SETTINGS_QUERY, stega: false})

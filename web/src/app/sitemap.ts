@@ -1,8 +1,7 @@
+import {siteUrl} from '@/site-url'
 import type {MetadataRoute} from 'next'
 import {client} from '@/sanity/client'
 import {PROJECT_SLUGS_QUERY} from '@/sanity/queries'
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const projects = await client.fetch(PROJECT_SLUGS_QUERY)

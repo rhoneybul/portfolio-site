@@ -211,6 +211,15 @@ export type SiteSettings = {
     _type: "skillGroup";
     _key: string;
   }>;
+  tools?: Array<{
+    name?: string;
+    icon?: string;
+    category?: "ai" | "build" | "cloud" | "product";
+    url?: string;
+    featured?: boolean;
+    _type: "tool";
+    _key: string;
+  }>;
   education?: Array<{
     qualification?: string;
     institution?: string;
@@ -361,7 +370,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: HOME_QUERY
-// Query: {  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{    name, role, location, availability, headline, headlineAccent, intro,    portrait{asset, hotspot, crop, alt},    about,    stats[]{_key, value, label},    process[]{_key, title, description},    skillLevels[]{_key, name, level},    skillGroups[]{_key, title, items},    education[]{_key, qualification, institution, field, period, description},    contactHeading, email, whatsapp, bookingUrl,    "cvUrl": cv.asset->url,    socials[]{_key, label, url}  },  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,    coverImage{asset, hotspot, crop, alt}  },  "experience": *[_type == "experience"] | order(startDate desc){    _id, role, company, descriptor, location, period, badge, summary, highlights, tags  },  "certifications": *[_type == "certification"] | order(order asc){    _id, title, issuer, accreditation, issued, description, credentialUrl,    image{asset, alt},    "certificateUrl": certificate.asset->url  }}
+// Query: {  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{    name, role, location, availability, headline, headlineAccent, intro,    portrait{asset, hotspot, crop, alt},    about,    stats[]{_key, value, label},    process[]{_key, title, description},    skillLevels[]{_key, name, level},    skillGroups[]{_key, title, items},    tools[]{_key, name, icon, category, url, featured},    education[]{_key, qualification, institution, field, period, description},    contactHeading, email, whatsapp, bookingUrl,    "cvUrl": cv.asset->url,    socials[]{_key, label, url}  },  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,    coverImage{asset, hotspot, crop, alt}  },  "experience": *[_type == "experience"] | order(startDate desc){    _id, role, company, descriptor, location, period, badge, summary, highlights, tags  },  "certifications": *[_type == "certification"] | order(order asc){    _id, title, issuer, accreditation, issued, description, credentialUrl,    image{asset, alt},    "certificateUrl": certificate.asset->url  }}
 export type HOME_QUERY_RESULT = {
   settings: {
     name: string | null;
@@ -400,6 +409,14 @@ export type HOME_QUERY_RESULT = {
       _key: string;
       title: string | null;
       items: Array<string> | null;
+    }> | null;
+    tools: Array<{
+      _key: string;
+      name: string | null;
+      icon: string | null;
+      category: "ai" | "build" | "cloud" | "product" | null;
+      url: string | null;
+      featured: boolean | null;
     }> | null;
     education: Array<{
       _key: string;
@@ -540,7 +557,7 @@ export type PROJECT_SLUGS_QUERY_RESULT = Array<{
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    '{\n  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{\n    name, role, location, availability, headline, headlineAccent, intro,\n    portrait{asset, hotspot, crop, alt},\n    about,\n    stats[]{_key, value, label},\n    process[]{_key, title, description},\n    skillLevels[]{_key, name, level},\n    skillGroups[]{_key, title, items},\n    education[]{_key, qualification, institution, field, period, description},\n    contactHeading, email, whatsapp, bookingUrl,\n    "cvUrl": cv.asset->url,\n    socials[]{_key, label, url}\n  },\n  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},\n  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){\n    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,\n    coverImage{asset, hotspot, crop, alt}\n  },\n  "experience": *[_type == "experience"] | order(startDate desc){\n    _id, role, company, descriptor, location, period, badge, summary, highlights, tags\n  },\n  "certifications": *[_type == "certification"] | order(order asc){\n    _id, title, issuer, accreditation, issued, description, credentialUrl,\n    image{asset, alt},\n    "certificateUrl": certificate.asset->url\n  }\n}': HOME_QUERY_RESULT;
+    '{\n  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{\n    name, role, location, availability, headline, headlineAccent, intro,\n    portrait{asset, hotspot, crop, alt},\n    about,\n    stats[]{_key, value, label},\n    process[]{_key, title, description},\n    skillLevels[]{_key, name, level},\n    skillGroups[]{_key, title, items},\n    tools[]{_key, name, icon, category, url, featured},\n    education[]{_key, qualification, institution, field, period, description},\n    contactHeading, email, whatsapp, bookingUrl,\n    "cvUrl": cv.asset->url,\n    socials[]{_key, label, url}\n  },\n  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},\n  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){\n    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,\n    coverImage{asset, hotspot, crop, alt}\n  },\n  "experience": *[_type == "experience"] | order(startDate desc){\n    _id, role, company, descriptor, location, period, badge, summary, highlights, tags\n  },\n  "certifications": *[_type == "certification"] | order(order asc){\n    _id, title, issuer, accreditation, issued, description, credentialUrl,\n    image{asset, alt},\n    "certificateUrl": certificate.asset->url\n  }\n}': HOME_QUERY_RESULT;
     '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,\n  "cvUrl": cv.asset->url,\n  socials[]{_key, label, url},\n  seo,\n  "portraitUrl": portrait.asset->url\n}': SETTINGS_QUERY_RESULT;
     '*[_type == "project" && slug.current == $slug][0]{\n  _id, title, sector, role, period, url, summary, body, outcomes, tags, accent,\n  coverImage{asset, hotspot, crop, alt},\n  "next": *[_type == "project" && defined(slug.current) && order > ^.order] | order(order asc)[0]{title, "slug": slug.current},\n  "first": *[_type == "project" && defined(slug.current)] | order(order asc)[0]{title, "slug": slug.current}\n}': PROJECT_QUERY_RESULT;
     '*[_type == "project" && defined(slug.current)]{"slug": slug.current}': PROJECT_SLUGS_QUERY_RESULT;
