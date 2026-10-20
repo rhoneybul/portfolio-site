@@ -5,7 +5,6 @@ import {Marquee} from './marquee'
 export function ContactSection({settings}: {settings: Settings}) {
   const whatsapp = settings?.whatsapp
   const links = [
-    settings?.cvUrl && {label: 'Get CV', href: `${settings.cvUrl}?dl=Rob_Honeybul_CV.pdf`},
     ...(settings?.socials ?? []).map((s) => ({label: s.label ?? '', href: s.url ?? '#'})),
     whatsapp && {label: 'WhatsApp', href: `https://wa.me/${whatsapp}`},
   ].filter(Boolean) as {label: string; href: string}[]

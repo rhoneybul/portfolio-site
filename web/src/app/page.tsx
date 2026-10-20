@@ -15,13 +15,6 @@ import {ScrollBadge} from '@/components/scroll-badge'
 import {SocialIcon} from '@/components/icons'
 import {ToolIcon, brandColor} from '@/components/tool-icon'
 
-const TOOL_CATEGORIES = [
-  {value: 'ai', title: 'AI'},
-  {value: 'build', title: 'Build & ship'},
-  {value: 'cloud', title: 'Cloud & data'},
-  {value: 'product', title: 'Product & team'},
-]
-
 // Lower-case a leading word for mid-sentence use, but keep acronyms like "AI".
 function sentenceCase(text?: string | null) {
   if (!text) return ''
@@ -42,7 +35,7 @@ function Headline({text, accent}: {text: string; accent?: string | null}) {
 
 export default async function HomePage() {
   const [{data}, settingsMeta] = await Promise.all([sanityFetch({query: HOME_QUERY}), getSettings()])
-  const {settings, services, projects, experience, certifications} = data
+  const {settings, services, projects, experience} = data
   const surname = settings?.name?.split(' ').slice(-1)[0] ?? 'Honeybul'
   const firstName = settings?.name?.split(' ')[0] ?? 'Rob'
   const socials = [
@@ -105,11 +98,9 @@ export default async function HomePage() {
                   Get in touch <span aria-hidden>↗</span>
                 </a>
               )}
-              {settings?.cvUrl && (
-                <a href={`${settings.cvUrl}?dl=Rob_Honeybul_CV.pdf`} className="text-btn">
-                  Download CV <span aria-hidden>↓</span>
-                </a>
-              )}
+              <Link href="/pricing" className="text-btn">
+                See pricing <span aria-hidden>→</span>
+              </Link>
             </div>
             {!!socials.length && (
               <div className="find-me">
@@ -148,8 +139,7 @@ export default async function HomePage() {
               />
             )}
             {settings?.tools
-              ?.filter((t) => t.featured)
-              .slice(0, 4)
+              ?.slice(0, 4)
               .map((tool, i) => (
                 <span
                   key={tool._key}
@@ -295,107 +285,6 @@ export default async function HomePage() {
               </li>
             ))}
           </ol>
-        </section>
-
-        {/* Certifications */}
-        {!!certifications.length && (
-          <section id="certifications" className="section">
-            <header className="section__head">
-              <span className="label">● Certifications</span>
-              <h2 className="section__title">Certified</h2>
-            </header>
-            <ul className="certs">
-              {certifications.map((cert) => {
-                const href = cert.credentialUrl ?? cert.certificateUrl
-                return (
-                  <li key={cert._id} className="cert">
-                    {cert.image?.asset && (
-                      <a href={href ?? undefined} target="_blank" rel="noreferrer" className="cert__image">
-                        <Image
-                          src={urlFor(cert.image).width(1000).url()}
-                          alt={cert.image.alt ?? cert.title ?? ''}
-                          width={1000}
-                          height={707}
-                          sizes="(max-width: 900px) 90vw, 40vw"
-                        />
-                      </a>
-                    )}
-                    <div className="cert__body">
-                      <span className="label">
-                        {cert.issuer}
-                        {cert.accreditation && ` · ${cert.accreditation}`}
-                        {cert.issued && ` · ${new Date(cert.issued).getFullYear()}`}
-                      </span>
-                      <h3 className="cert__title">{cert.title}</h3>
-                      {cert.description && <p>{cert.description}</p>}
-                      {href && (
-                        <a href={href} target="_blank" rel="noreferrer" className="text-btn">
-                          {cert.credentialUrl ? 'Verify certificate' : 'View certificate'} <span aria-hidden>↗</span>
-                        </a>
-                      )}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          </section>
-        )}
-
-        {/* Toolkit + Education */}
-        <section className="section toolkit">
-          <header className="section__head">
-            <span className="label">● Toolkit</span>
-            <h2 className="section__title">Skills</h2>
-          </header>
-          <div className="toolkit__grid">
-            {settings?.skillLevels?.map((s) => (
-              <div key={s._key} className="skill">
-                <span>{s.name}</span>
-                <span className="skill__level">{s.level}</span>
-              </div>
-            ))}
-          </div>
-          {!!settings?.tools?.length && (
-            <div className="tools">
-              {TOOL_CATEGORIES.map((cat) => {
-                const tools = settings.tools?.filter((t) => (t.category ?? 'build') === cat.value) ?? []
-                if (!tools.length) return null
-                return (
-                  <div key={cat.value} className="tools__group">
-                    <h3 className="label">{cat.title}</h3>
-                    <ul className="tools__grid">
-                      {tools.map((tool) => (
-                        <li
-                          key={tool._key}
-                          className="tool"
-                          style={{'--brand': brandColor(tool.icon) ?? 'var(--accent)'} as React.CSSProperties}
-                        >
-                          <ToolIcon name={tool.name ?? ''} slug={tool.icon} />
-                          <span>{tool.name}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-          <div className="toolkit__groups">
-            {settings?.skillGroups?.map((group) => (
-              <div key={group._key}>
-                <h3 className="label">{group.title}</h3>
-                <p>{group.items?.join(', ')}</p>
-              </div>
-            ))}
-            {settings?.education?.map((e) => (
-              <div key={e._key}>
-                <h3 className="label">Education · {e.period}</h3>
-                <p>
-                  <strong>{e.qualification}</strong>, {e.institution}. {e.field}. {e.description}
-                </p>
-              </div>
-            ))}
-          </div>
         </section>
 
         <ContactSection settings={settingsMeta} />

@@ -40,7 +40,7 @@ npx sanity schema deploy # keeps the Sanity MCP / AI tools in sync
 | --- | --- | --- |
 | Book a call | [Cal.com](https://cal.com) (free) | **Site settings → Contact → Booking link** (currently your Cal.com profile, which offers the 15 and 30-minute calls). Opens in an embedded scheduler. |
 | Contact form | WhatsApp | The form opens WhatsApp with the visitor's message pre-filled to **Site settings → Contact → WhatsApp number**. No backend or keys. |
-| Certifications | Sanity | **Certifications** in the Studio: certificate image, PDF and optional verification link. |
+| Pricing | Sanity | **Site settings → Pricing**: the plans on `/pricing` (price, unit, description, button). |
 
 ## Deploying to Vercel
 

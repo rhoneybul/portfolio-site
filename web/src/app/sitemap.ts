@@ -7,6 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const projects = await client.fetch(PROJECT_SLUGS_QUERY)
   return [
     {url: siteUrl, changeFrequency: 'weekly', priority: 1},
+    {url: `${siteUrl}/pricing`, changeFrequency: 'monthly'},
     ...projects.map((p) => ({url: `${siteUrl}/work/${p.slug}`, changeFrequency: 'monthly' as const})),
   ]
 }

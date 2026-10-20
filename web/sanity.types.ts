@@ -229,6 +229,19 @@ export type SiteSettings = {
     _type: "qualification";
     _key: string;
   }>;
+  pricingIntro?: string;
+  pricingPlans?: Array<{
+    name?: string;
+    price?: string;
+    unit?: string;
+    description?: string;
+    includes?: Array<string>;
+    action?: "book" | "whatsapp";
+    actionLabel?: string;
+    bookingUrl?: string;
+    _type: "pricingPlan";
+    _key: string;
+  }>;
   contactHeading?: string;
   email?: string;
   whatsapp?: string;
@@ -370,7 +383,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: HOME_QUERY
-// Query: {  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{    name, role, location, availability, headline, headlineAccent, intro,    portrait{asset, hotspot, crop, alt},    about,    stats[]{_key, value, label},    process[]{_key, title, description},    skillLevels[]{_key, name, level},    skillGroups[]{_key, title, items},    tools[]{_key, name, icon, category, url, featured},    education[]{_key, qualification, institution, field, period, description},    contactHeading, email, whatsapp, bookingUrl,    "cvUrl": cv.asset->url,    socials[]{_key, label, url}  },  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,    coverImage{asset, hotspot, crop, alt}  },  "experience": *[_type == "experience"] | order(startDate desc){    _id, role, company, descriptor, location, period, badge, summary, highlights, tags  },  "certifications": *[_type == "certification"] | order(order asc){    _id, title, issuer, accreditation, issued, description, credentialUrl,    image{asset, alt},    "certificateUrl": certificate.asset->url  }}
+// Query: {  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{    name, role, location, availability, headline, headlineAccent, intro,    portrait{asset, hotspot, crop, alt},    about,    stats[]{_key, value, label},    process[]{_key, title, description},    "tools": tools[featured == true]{_key, name, icon},    contactHeading, email, whatsapp, bookingUrl,    socials[]{_key, label, url}  },  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,    coverImage{asset, hotspot, crop, alt}  },  "experience": *[_type == "experience"] | order(startDate desc){    _id, role, company, descriptor, location, period, badge, summary, highlights, tags  }}
 export type HOME_QUERY_RESULT = {
   settings: {
     name: string | null;
@@ -400,37 +413,15 @@ export type HOME_QUERY_RESULT = {
       title: string | null;
       description: string | null;
     }> | null;
-    skillLevels: Array<{
-      _key: string;
-      name: string | null;
-      level: "advanced" | "expert" | "proficient" | null;
-    }> | null;
-    skillGroups: Array<{
-      _key: string;
-      title: string | null;
-      items: Array<string> | null;
-    }> | null;
     tools: Array<{
       _key: string;
       name: string | null;
       icon: string | null;
-      category: "ai" | "build" | "cloud" | "product" | null;
-      url: string | null;
-      featured: boolean | null;
-    }> | null;
-    education: Array<{
-      _key: string;
-      qualification: string | null;
-      institution: string | null;
-      field: string | null;
-      period: string | null;
-      description: string | null;
     }> | null;
     contactHeading: string | null;
     email: string | null;
     whatsapp: string | null;
     bookingUrl: string | null;
-    cvUrl: string | null;
     socials: Array<{
       _key: string;
       label: string | null;
@@ -472,25 +463,11 @@ export type HOME_QUERY_RESULT = {
     highlights: Array<string> | null;
     tags: Array<string> | null;
   }>;
-  certifications: Array<{
-    _id: string;
-    title: string | null;
-    issuer: string | null;
-    accreditation: string | null;
-    issued: string | null;
-    description: string | null;
-    credentialUrl: string | null;
-    image: {
-      asset: SanityImageAssetReference | null;
-      alt: string | null;
-    } | null;
-    certificateUrl: string | null;
-  }>;
 };
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: SETTINGS_QUERY
-// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,  "cvUrl": cv.asset->url,  socials[]{_key, label, url},  seo,  "portraitUrl": portrait.asset->url}
+// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,  socials[]{_key, label, url},  seo,  "portraitUrl": portrait.asset->url}
 export type SETTINGS_QUERY_RESULT = {
   name: string | null;
   role: string | null;
@@ -503,7 +480,6 @@ export type SETTINGS_QUERY_RESULT = {
   whatsapp: string | null;
   bookingUrl: string | null;
   contactHeading: string | null;
-  cvUrl: string | null;
   socials: Array<{
     _key: string;
     label: string | null;
@@ -554,13 +530,32 @@ export type PROJECT_SLUGS_QUERY_RESULT = Array<{
   slug: string | null;
 }>;
 
+// Source: ../web/src/sanity/queries.ts
+// Variable: PRICING_QUERY
+// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  pricingIntro,  pricingPlans[]{_key, name, price, unit, description, includes, action, actionLabel, bookingUrl}}
+export type PRICING_QUERY_RESULT = {
+  pricingIntro: string | null;
+  pricingPlans: Array<{
+    _key: string;
+    name: string | null;
+    price: string | null;
+    unit: string | null;
+    description: string | null;
+    includes: Array<string> | null;
+    action: "book" | "whatsapp" | null;
+    actionLabel: string | null;
+    bookingUrl: string | null;
+  }> | null;
+} | null;
+
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    '{\n  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{\n    name, role, location, availability, headline, headlineAccent, intro,\n    portrait{asset, hotspot, crop, alt},\n    about,\n    stats[]{_key, value, label},\n    process[]{_key, title, description},\n    skillLevels[]{_key, name, level},\n    skillGroups[]{_key, title, items},\n    tools[]{_key, name, icon, category, url, featured},\n    education[]{_key, qualification, institution, field, period, description},\n    contactHeading, email, whatsapp, bookingUrl,\n    "cvUrl": cv.asset->url,\n    socials[]{_key, label, url}\n  },\n  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},\n  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){\n    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,\n    coverImage{asset, hotspot, crop, alt}\n  },\n  "experience": *[_type == "experience"] | order(startDate desc){\n    _id, role, company, descriptor, location, period, badge, summary, highlights, tags\n  },\n  "certifications": *[_type == "certification"] | order(order asc){\n    _id, title, issuer, accreditation, issued, description, credentialUrl,\n    image{asset, alt},\n    "certificateUrl": certificate.asset->url\n  }\n}': HOME_QUERY_RESULT;
-    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,\n  "cvUrl": cv.asset->url,\n  socials[]{_key, label, url},\n  seo,\n  "portraitUrl": portrait.asset->url\n}': SETTINGS_QUERY_RESULT;
+    '{\n  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{\n    name, role, location, availability, headline, headlineAccent, intro,\n    portrait{asset, hotspot, crop, alt},\n    about,\n    stats[]{_key, value, label},\n    process[]{_key, title, description},\n    "tools": tools[featured == true]{_key, name, icon},\n    contactHeading, email, whatsapp, bookingUrl,\n    socials[]{_key, label, url}\n  },\n  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},\n  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){\n    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,\n    coverImage{asset, hotspot, crop, alt}\n  },\n  "experience": *[_type == "experience"] | order(startDate desc){\n    _id, role, company, descriptor, location, period, badge, summary, highlights, tags\n  }\n}': HOME_QUERY_RESULT;
+    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,\n  socials[]{_key, label, url},\n  seo,\n  "portraitUrl": portrait.asset->url\n}': SETTINGS_QUERY_RESULT;
     '*[_type == "project" && slug.current == $slug][0]{\n  _id, title, sector, role, period, url, summary, body, outcomes, tags, accent,\n  coverImage{asset, hotspot, crop, alt},\n  "next": *[_type == "project" && defined(slug.current) && order > ^.order] | order(order asc)[0]{title, "slug": slug.current},\n  "first": *[_type == "project" && defined(slug.current)] | order(order asc)[0]{title, "slug": slug.current}\n}': PROJECT_QUERY_RESULT;
     '*[_type == "project" && defined(slug.current)]{"slug": slug.current}': PROJECT_SLUGS_QUERY_RESULT;
+    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  pricingIntro,\n  pricingPlans[]{_key, name, price, unit, description, includes, action, actionLabel, bookingUrl}\n}': PRICING_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

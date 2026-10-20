@@ -7,12 +7,8 @@ export const HOME_QUERY = defineQuery(`{
     about,
     stats[]{_key, value, label},
     process[]{_key, title, description},
-    skillLevels[]{_key, name, level},
-    skillGroups[]{_key, title, items},
-    tools[]{_key, name, icon, category, url, featured},
-    education[]{_key, qualification, institution, field, period, description},
+    "tools": tools[featured == true]{_key, name, icon},
     contactHeading, email, whatsapp, bookingUrl,
-    "cvUrl": cv.asset->url,
     socials[]{_key, label, url}
   },
   "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},
@@ -22,17 +18,11 @@ export const HOME_QUERY = defineQuery(`{
   },
   "experience": *[_type == "experience"] | order(startDate desc){
     _id, role, company, descriptor, location, period, badge, summary, highlights, tags
-  },
-  "certifications": *[_type == "certification"] | order(order asc){
-    _id, title, issuer, accreditation, issued, description, credentialUrl,
-    image{asset, alt},
-    "certificateUrl": certificate.asset->url
   }
 }`)
 
 export const SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0]{
   name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,
-  "cvUrl": cv.asset->url,
   socials[]{_key, label, url},
   seo,
   "portraitUrl": portrait.asset->url
@@ -48,3 +38,8 @@ export const PROJECT_QUERY = defineQuery(`*[_type == "project" && slug.current =
 export const PROJECT_SLUGS_QUERY = defineQuery(
   `*[_type == "project" && defined(slug.current)]{"slug": slug.current}`,
 )
+
+export const PRICING_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0]{
+  pricingIntro,
+  pricingPlans[]{_key, name, price, unit, description, includes, action, actionLabel, bookingUrl}
+}`)

@@ -925,159 +925,12 @@ main {
   opacity: 0.7;
 }
 
-/* ---------- Certifications ---------- */
-
-.certs {
-  display: grid;
-  gap: 48px;
-  border-top: 1.5px solid var(--accent);
-  padding-top: 40px;
-}
-
-.cert {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(32px, 5vw, 72px);
-  align-items: center;
-}
-
-.cert__image img {
-  width: 100%;
-  box-shadow: 12px 12px 0 var(--ink);
-  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
-}
-
-.cert__image:hover img {
-  transform: translate(4px, 4px);
-  box-shadow: 8px 8px 0 var(--accent);
-}
-
-.cert__body {
-  display: grid;
-  gap: 14px;
-  justify-items: start;
-  color: var(--muted);
-}
-
-.cert__title {
-  font-size: clamp(28px, 3vw, 44px);
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
-  color: var(--ink);
-}
-
-/* ---------- Toolkit ---------- */
-
-.toolkit__grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1.5px solid var(--accent);
-}
-
-.skill {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px 24px 18px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
-
-.skill__level {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--accent);
-  padding-top: 4px;
-}
-
-.toolkit__groups {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 40px 64px;
-  margin-top: 48px;
-}
-
-.toolkit__groups .label {
-  margin-bottom: 8px;
-}
-
-.toolkit__groups p {
-  color: var(--muted);
-}
-
-.toolkit__groups strong {
-  color: var(--ink);
-}
-
-/* Tools */
-.tools {
-  display: grid;
-  gap: 32px;
-  margin-top: 48px;
-}
-
-.tools__group .label {
-  margin-bottom: 14px;
-}
-
-.tools__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
-}
-
-.tool {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border: 1.5px solid var(--line);
-  background: #fff;
-  font-weight: 500;
-  font-size: 15px;
-  transition: border-color 0.2s, box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
-}
-
-.tool svg,
-.tool .tool-initials {
-  flex: none;
-  transition: color 0.2s;
-}
-
-.tool:hover {
-  border-color: var(--ink);
-  box-shadow: 5px 5px 0 var(--accent);
-  transform: translate(-2px, -2px);
-}
-
-.tool:hover svg {
-  color: var(--brand);
-}
-
+/* Initials for tools without a brand icon (portrait badges) */
 .tool-initials {
   display: inline-grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: currentColor;
   font-weight: 700;
   line-height: 1;
-}
-
-.tool .tool-initials {
-  background: var(--ink);
-  color: #fff;
-}
-
-.badge-float .tool-initials {
-  width: auto;
-  height: auto;
-  background: none;
   color: #fff;
 }
 
@@ -1224,6 +1077,64 @@ main {
   flex: 1;
   width: 100%;
   border: 0;
+}
+
+/* ---------- Pricing ---------- */
+
+.pricing {
+  padding-top: clamp(48px, 7vw, 100px);
+}
+
+.plans {
+  margin: clamp(48px, 6vw, 88px) var(--gutter) 0 calc(var(--gutter) + var(--indent));
+  border-top: 1.5px solid var(--accent);
+}
+
+.plan {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  padding: clamp(32px, 4vw, 56px) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.plan__index {
+  color: var(--accent);
+  font-weight: 600;
+  padding-top: 10px;
+}
+
+.plan__name {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.plan__price {
+  font-family: var(--display);
+  font-size: clamp(64px, 9vw, 150px);
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.plan__unit {
+  font-family: var(--sans);
+  font-size: clamp(18px, 1.6vw, 22px);
+  font-weight: 500;
+  text-transform: none;
+  color: var(--muted);
+}
+
+.plan__body {
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+  align-content: start;
+  color: var(--muted);
+  font-size: clamp(17px, 1.4vw, 19px);
+  padding-top: 10px;
 }
 
 /* ---------- Case study ---------- */
@@ -1397,10 +1308,6 @@ main {
   .work-row__preview {
     display: none;
   }
-
-  .toolkit__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 900px) {
@@ -1410,8 +1317,7 @@ main {
 
   .intro,
   .case__intro,
-  .case__content,
-  .cert {
+  .case__content {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1513,9 +1419,7 @@ main {
     height: 46px;
   }
 
-  .toolkit__grid,
-  .toolkit__groups,
-  .cert {
+  .plan {
     grid-template-columns: minmax(0, 1fr);
   }
 
