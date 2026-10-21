@@ -15,6 +15,30 @@ export const service = defineType({
       of: [defineArrayMember({type: 'string'})],
     }),
     defineField({
+      name: 'proof',
+      title: 'Proof',
+      description: 'Work that shows this service in action, cited under it on the site',
+      type: 'array',
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'proofPoint',
+          fields: [
+            defineField({name: 'title', type: 'string', validation: (rule) => rule.required()}),
+            defineField({name: 'detail', type: 'text', rows: 2}),
+            defineField({
+              name: 'project',
+              title: 'Case study',
+              type: 'reference',
+              to: [{type: 'project'}],
+            }),
+            defineField({name: 'url', title: 'External link', type: 'url'}),
+          ],
+          preview: {select: {title: 'title', subtitle: 'detail'}},
+        }),
+      ],
+    }),
+    defineField({
       name: 'order',
       type: 'number',
       description: 'Lower numbers appear first',

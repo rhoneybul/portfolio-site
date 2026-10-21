@@ -47,6 +47,49 @@ export type SanityImageAssetReference = {
   [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
+export type Post = {
+  _id: string;
+  _type: "post";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  slug?: Slug;
+  publishedAt?: string;
+  excerpt?: string;
+  coverImage?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  body?: RichText;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x?: number;
+  y?: number;
+  height?: number;
+  width?: number;
+};
+
+export type Slug = {
+  _type: "slug";
+  current?: string;
+  source?: string;
+};
+
 export type SanityFileAssetReference = {
   _ref: string;
   _type: "reference";
@@ -82,22 +125,6 @@ export type Certification = {
   order?: number;
 };
 
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x?: number;
-  y?: number;
-  height?: number;
-  width?: number;
-};
-
 export type Experience = {
   _id: string;
   _type: "experience";
@@ -114,6 +141,33 @@ export type Experience = {
   summary?: RichText;
   highlights?: Array<string>;
   tags?: Array<string>;
+};
+
+export type ProjectReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "project";
+};
+
+export type Service = {
+  _id: string;
+  _type: "service";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  summary?: string;
+  deliverables?: Array<string>;
+  proof?: Array<{
+    title?: string;
+    detail?: string;
+    project?: ProjectReference;
+    url?: string;
+    _type: "proofPoint";
+    _key: string;
+  }>;
+  order?: number;
 };
 
 export type Project = {
@@ -141,24 +195,6 @@ export type Project = {
     _type: "image";
   };
   accent?: string;
-  order?: number;
-};
-
-export type Slug = {
-  _type: "slug";
-  current?: string;
-  source?: string;
-};
-
-export type Service = {
-  _id: string;
-  _type: "service";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: string;
-  summary?: string;
-  deliverables?: Array<string>;
   order?: number;
 };
 
@@ -363,14 +399,16 @@ export type AllSanitySchemaTypes =
   | Link
   | RichText
   | SanityImageAssetReference
-  | SanityFileAssetReference
-  | Certification
+  | Post
   | SanityImageCrop
   | SanityImageHotspot
-  | Experience
-  | Project
   | Slug
+  | SanityFileAssetReference
+  | Certification
+  | Experience
+  | ProjectReference
   | Service
+  | Project
   | SiteSettings
   | SanityImagePaletteSwatch
   | SanityImagePalette
@@ -383,7 +421,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: HOME_QUERY
-// Query: {  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{    name, role, location, availability, headline, headlineAccent, intro,    portrait{asset, hotspot, crop, alt},    about,    stats[]{_key, value, label},    process[]{_key, title, description},    "tools": tools[featured == true]{_key, name, icon},    contactHeading, email, whatsapp, bookingUrl,    socials[]{_key, label, url}  },  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,    coverImage{asset, hotspot, crop, alt}  },  "experience": *[_type == "experience"] | order(startDate desc){    _id, role, company, descriptor, location, period, badge, summary, highlights, tags  }}
+// Query: {  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{    name, role, location, availability, headline, headlineAccent, intro,    portrait{asset, hotspot, crop, alt},    about,    stats[]{_key, value, label},    process[]{_key, title, description},    "tools": tools[featured == true]{_key, name, icon},    contactHeading, email, whatsapp, bookingUrl,    socials[]{_key, label, url}  },  "services": *[_type == "service"] | order(order asc){    _id, title, summary, deliverables,    proof[]{_key, title, detail, url, "slug": project->slug.current}  },  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,    coverImage{asset, hotspot, crop, alt}  }}
 export type HOME_QUERY_RESULT = {
   settings: {
     name: string | null;
@@ -433,6 +471,13 @@ export type HOME_QUERY_RESULT = {
     title: string | null;
     summary: string | null;
     deliverables: Array<string> | null;
+    proof: Array<{
+      _key: string;
+      title: string | null;
+      detail: string | null;
+      url: string | null;
+      slug: string | null;
+    }> | null;
   }>;
   projects: Array<{
     _id: string;
@@ -450,18 +495,6 @@ export type HOME_QUERY_RESULT = {
       crop: SanityImageCrop | null;
       alt: string | null;
     } | null;
-  }>;
-  experience: Array<{
-    _id: string;
-    role: string | null;
-    company: string | null;
-    descriptor: string | null;
-    location: string | null;
-    period: string | null;
-    badge: string | null;
-    summary: RichText | null;
-    highlights: Array<string> | null;
-    tags: Array<string> | null;
   }>;
 };
 
@@ -548,14 +581,52 @@ export type PRICING_QUERY_RESULT = {
   }> | null;
 } | null;
 
+// Source: ../web/src/sanity/queries.ts
+// Variable: POSTS_QUERY
+// Query: *[_type == "post" && defined(slug.current)] | order(publishedAt desc){  _id, title, "slug": slug.current, publishedAt, excerpt}
+export type POSTS_QUERY_RESULT = Array<{
+  _id: string;
+  title: string | null;
+  slug: string | null;
+  publishedAt: string | null;
+  excerpt: string | null;
+}>;
+
+// Source: ../web/src/sanity/queries.ts
+// Variable: POST_QUERY
+// Query: *[_type == "post" && slug.current == $slug][0]{  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt}}
+export type POST_QUERY_RESULT = {
+  _id: string;
+  title: string | null;
+  publishedAt: string | null;
+  excerpt: string | null;
+  body: RichText | null;
+  coverImage: {
+    asset: SanityImageAssetReference | null;
+    hotspot: SanityImageHotspot | null;
+    crop: SanityImageCrop | null;
+    alt: string | null;
+  } | null;
+} | null;
+
+// Source: ../web/src/sanity/queries.ts
+// Variable: POST_SLUGS_QUERY
+// Query: *[_type == "post" && defined(slug.current)]{"slug": slug.current}
+export type POST_SLUGS_QUERY_RESULT = Array<{
+  slug: string | null;
+}>;
+
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    '{\n  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{\n    name, role, location, availability, headline, headlineAccent, intro,\n    portrait{asset, hotspot, crop, alt},\n    about,\n    stats[]{_key, value, label},\n    process[]{_key, title, description},\n    "tools": tools[featured == true]{_key, name, icon},\n    contactHeading, email, whatsapp, bookingUrl,\n    socials[]{_key, label, url}\n  },\n  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},\n  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){\n    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,\n    coverImage{asset, hotspot, crop, alt}\n  },\n  "experience": *[_type == "experience"] | order(startDate desc){\n    _id, role, company, descriptor, location, period, badge, summary, highlights, tags\n  }\n}': HOME_QUERY_RESULT;
+    '{\n  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{\n    name, role, location, availability, headline, headlineAccent, intro,\n    portrait{asset, hotspot, crop, alt},\n    about,\n    stats[]{_key, value, label},\n    process[]{_key, title, description},\n    "tools": tools[featured == true]{_key, name, icon},\n    contactHeading, email, whatsapp, bookingUrl,\n    socials[]{_key, label, url}\n  },\n  "services": *[_type == "service"] | order(order asc){\n    _id, title, summary, deliverables,\n    proof[]{_key, title, detail, url, "slug": project->slug.current}\n  },\n  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){\n    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,\n    coverImage{asset, hotspot, crop, alt}\n  }\n}': HOME_QUERY_RESULT;
     '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,\n  socials[]{_key, label, url},\n  seo,\n  "portraitUrl": portrait.asset->url\n}': SETTINGS_QUERY_RESULT;
     '*[_type == "project" && slug.current == $slug][0]{\n  _id, title, sector, role, period, url, summary, body, outcomes, tags, accent,\n  coverImage{asset, hotspot, crop, alt},\n  "next": *[_type == "project" && defined(slug.current) && order > ^.order] | order(order asc)[0]{title, "slug": slug.current},\n  "first": *[_type == "project" && defined(slug.current)] | order(order asc)[0]{title, "slug": slug.current}\n}': PROJECT_QUERY_RESULT;
     '*[_type == "project" && defined(slug.current)]{"slug": slug.current}': PROJECT_SLUGS_QUERY_RESULT;
     '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  pricingIntro,\n  pricingPlans[]{_key, name, price, unit, description, includes, action, actionLabel, bookingUrl}\n}': PRICING_QUERY_RESULT;
+    '*[_type == "post" && defined(slug.current)] | order(publishedAt desc){\n  _id, title, "slug": slug.current, publishedAt, excerpt\n}': POSTS_QUERY_RESULT;
+    '*[_type == "post" && slug.current == $slug][0]{\n  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt}\n}': POST_QUERY_RESULT;
+    '*[_type == "post" && defined(slug.current)]{"slug": slug.current}': POST_SLUGS_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

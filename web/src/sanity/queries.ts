@@ -11,13 +11,13 @@ export const HOME_QUERY = defineQuery(`{
     contactHeading, email, whatsapp, bookingUrl,
     socials[]{_key, label, url}
   },
-  "services": *[_type == "service"] | order(order asc){_id, title, summary, deliverables},
+  "services": *[_type == "service"] | order(order asc){
+    _id, title, summary, deliverables,
+    proof[]{_key, title, detail, url, "slug": project->slug.current}
+  },
   "projects": *[_type == "project" && defined(slug.current)] | order(order asc){
     _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,
     coverImage{asset, hotspot, crop, alt}
-  },
-  "experience": *[_type == "experience"] | order(startDate desc){
-    _id, role, company, descriptor, location, period, badge, summary, highlights, tags
   }
 }`)
 
@@ -43,3 +43,13 @@ export const PRICING_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "s
   pricingIntro,
   pricingPlans[]{_key, name, price, unit, description, includes, action, actionLabel, bookingUrl}
 }`)
+
+export const POSTS_QUERY = defineQuery(`*[_type == "post" && defined(slug.current)] | order(publishedAt desc){
+  _id, title, "slug": slug.current, publishedAt, excerpt
+}`)
+
+export const POST_QUERY = defineQuery(`*[_type == "post" && slug.current == $slug][0]{
+  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt}
+}`)
+
+export const POST_SLUGS_QUERY = defineQuery(`*[_type == "post" && defined(slug.current)]{"slug": slug.current}`)

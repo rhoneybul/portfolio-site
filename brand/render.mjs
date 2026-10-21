@@ -13,9 +13,11 @@ mkdirSync(pngDir, {recursive: true})
 // name -> list of [output suffix, width] ; default renders at 2x the SVG's own size
 const sizes = {
   'ion-app-icon.svg': [['512', 512], ['180', 180], ['192', 192]],
-  'ion-monogram-paper-on-signal.svg': [['512', 512], ['32', 32]],
-  'ion-monogram-signal-on-paper.svg': [['512', 512], ['32', 32]],
-  'ion-monogram-signal-on-night.svg': [['512', 512]],
+  'ion-icon-paper-on-signal.svg': [['512', 512]],
+  'ion-icon-signal-on-paper.svg': [['512', 512]],
+  'ion-icon-signal-on-night.svg': [['512', 512]],
+  'ion-favicon.svg': [['32', 32], ['48', 48], ['512', 512]],
+  'ion-linkedin-avatar.svg': [['', 400]],
   'ion-og-image.svg': [['', 1200]],
   'ion-og-image-night.svg': [['', 1200]],
   'ion-linkedin-banner.svg': [['', 1584]],

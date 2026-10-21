@@ -157,21 +157,16 @@ def logo_horizontal(color, bg=None, sub=None, dot=None):
     return svg(w, h, body + rule + sub_path, bg)
 
 
-def monogram(fg, bg, rounded=False, size=512):
-    """The 'O' of ION with its charge dot, centred in a square: favicons, avatars, app icons."""
-    s = size * 0.66
-    x0, _, x1, y1 = ink_bounds(DISPLAY, 'O', s)
-    r = s * 0.1
-    gap = s * 0.03
-    total = (x1 - x0) + gap + 2 * r
-    left = (size - total) / 2 - x0
-    base = (size + y1) / 2
-    path, _ = text(DISPLAY, 'O', s, left, base, fg)
-    cx = left + x1 + gap + r
-    cy = base - y1 + r
+def icon(fg, bg, rounded=False, size=512, fill=0.74):
+    """The logo, ION with its charge dot, centred in a square: favicons, avatars, app icons."""
+    _, (x0, top, x1, base) = wordmark(0, 0, 100, fg)
+    scale = size * fill / (x1 - x0)
+    w, h = (x1 - x0) * scale, (base - top) * scale
+    left = (size - w) / 2 - x0 * scale
+    baseline = (size + h) / 2
+    mark, _ = wordmark(left, baseline, 100 * scale, fg)
     rx = size * 0.18 if rounded else 0
-    body = f'<rect width="{size}" height="{size}" rx="{rx:g}" fill="{bg}"/>{path}<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r:.2f}" fill="{fg}"/>'
-    return svg(size, size, body)
+    return svg(size, size, f'<rect width="{size}" height="{size}" rx="{rx:g}" fill="{bg}"/>{mark}')
 
 
 # ---------- Applications ----------
@@ -260,11 +255,13 @@ def build():
         'ion-logo-horizontal-signal.svg': logo_horizontal(SIGNAL),
         'ion-logo-horizontal-ink.svg': logo_horizontal(INK, dot=SIGNAL),
         'ion-logo-horizontal-paper.svg': logo_horizontal(PAPER),
-        # monograms / icons
-        'ion-monogram-signal-on-paper.svg': monogram(SIGNAL, PAPER),
-        'ion-monogram-paper-on-signal.svg': monogram(PAPER, SIGNAL),
-        'ion-monogram-signal-on-night.svg': monogram(SIGNAL, NIGHT),
-        'ion-app-icon.svg': monogram(PAPER, SIGNAL, rounded=True),
+        # icons: the logo in a square
+        'ion-icon-signal-on-paper.svg': icon(SIGNAL, PAPER),
+        'ion-icon-paper-on-signal.svg': icon(PAPER, SIGNAL),
+        'ion-icon-signal-on-night.svg': icon(SIGNAL, NIGHT),
+        'ion-favicon.svg': icon(SIGNAL, PAPER, fill=0.9),
+        'ion-app-icon.svg': icon(PAPER, SIGNAL, rounded=True),
+        'ion-linkedin-avatar.svg': icon(PAPER, SIGNAL, size=400, fill=0.62),
         # applications
         'ion-og-image.svg': og_image(),
         'ion-og-image-night.svg': og_image(NIGHT, SIGNAL),

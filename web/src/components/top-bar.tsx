@@ -8,7 +8,7 @@ const STATUS_TITLE: Record<string, string> = {
   booked: 'Fully booked',
 }
 
-export function TopBar({settings, active}: {settings: Settings; active?: 'work' | 'pricing'}) {
+export function TopBar({settings, active}: {settings: Settings; active?: 'work' | 'pricing' | 'blog'}) {
   const status = settings?.availability?.status ?? 'available'
   const role = settings?.role?.toLowerCase()
   return (
@@ -33,9 +33,13 @@ export function TopBar({settings, active}: {settings: Settings; active?: 'work' 
         <Link href="/#work" className={active === 'work' ? 'is-active' : undefined}>
           Work
         </Link>
-        ,<Link href="/#services">Services</Link>,<Link href="/#experience">Experience</Link>,
+        ,<Link href="/#services">Services</Link>,
         <Link href="/pricing" className={active === 'pricing' ? 'is-active' : undefined}>
           Pricing
+        </Link>
+        ,
+        <Link href="/blog" className={active === 'blog' ? 'is-active' : undefined}>
+          Blog <sup className="soon">soon</sup>
         </Link>
         ,
         <Link href="/#contact">Let’s talk</Link>

@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import {Fragment} from 'react'
 import {sanityFetch} from '@/sanity/live'
 import {HOME_QUERY} from '@/sanity/queries'
 import {getSettings} from '@/sanity/settings'
@@ -16,12 +15,6 @@ import {ScrollBadge} from '@/components/scroll-badge'
 import {SocialIcon} from '@/components/icons'
 import {ToolIcon, brandColor} from '@/components/tool-icon'
 
-// Lower-case a leading word for mid-sentence use, but keep acronyms like "AI".
-function sentenceCase(text?: string | null) {
-  if (!text) return ''
-  return /^[A-Z][a-z]/.test(text) ? text[0].toLowerCase() + text.slice(1) : text
-}
-
 function Headline({text, accent}: {text: string; accent?: string | null}) {
   if (!accent || !text.includes(accent)) return <>{text}</>
   const [before, after] = text.split(accent)
@@ -36,7 +29,7 @@ function Headline({text, accent}: {text: string; accent?: string | null}) {
 
 export default async function HomePage() {
   const [{data}, settingsMeta] = await Promise.all([sanityFetch({query: HOME_QUERY}), getSettings()])
-  const {settings, services, projects, experience} = data
+  const {settings, services, projects} = data
   const firstName = settings?.name?.split(' ')[0] ?? 'Rob'
   const socials = [
     ...(settings?.socials ?? []).map((s) => ({key: s._key, label: s.label ?? '', url: s.url ?? '#'})),
@@ -54,7 +47,7 @@ export default async function HomePage() {
             {BRAND_MARK}
             <span className="charge" aria-hidden />
           </h1>
-          <Marquee items={['Consulting', settings?.role ?? '', 'Consulting', settings?.role ?? '']} separator="●" className="marquee-role" />
+          <Marquee items={[...services, ...services].map((s) => s.title ?? '')} separator="●" className="marquee-role" />
           <div className="wordmark-hero__foot">
             <a href="#about" className="scroll-down">
               Scroll down
@@ -76,21 +69,20 @@ export default async function HomePage() {
             <h2 className="intro__headline">
               <Headline text={settings?.headline ?? ''} accent={settings?.headlineAccent} />
             </h2>
-            <p className="intro__lead">
-              {settings?.intro}{' '}
-              {!!services.length && (
-                <>
-                  I can help you with{' '}
-                  {services.map((s, i) => (
-                    <Fragment key={s._id}>
-                      <a href="#services">{sentenceCase(s.title)}</a>
-                      {i < services.length - 2 ? ', ' : i === services.length - 2 ? ' and ' : '. '}
-                    </Fragment>
-                  ))}
-                  <a href="#contact">How can I help you?</a>
-                </>
-              )}
-            </p>
+            <p className="intro__lead">{settings?.intro}</p>
+            {!!services.length && (
+              <ol className="focus-list">
+                {services.map((s, i) => (
+                  <li key={s._id}>
+                    <a href={`#service-${i + 1}`}>
+                      <span className="focus-list__index">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="focus-list__title">{s.title}</span>
+                      <span aria-hidden>↓</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            )}
             <div className="intro__actions">
               {settings?.bookingUrl ? (
                 <BookCall url={settings.bookingUrl} label="Book a call" />
@@ -161,21 +153,51 @@ export default async function HomePage() {
           </div>
         )}
 
-        {/* Services */}
+        {/* Services: the three focus areas */}
         <section id="services" className="section">
           <header className="section__head">
-            <span className="label">● Services</span>
-            <h2 className="section__title">What I do</h2>
+            <span className="label">● What I do</span>
+            <h2 className="section__title">Three things</h2>
           </header>
           <ol className="services">
             {services.map((service, i) => (
-              <li key={service._id} className="service">
+              <li key={service._id} id={`service-${i + 1}`} className="service">
                 <span className="service__index">{String(i + 1).padStart(2, '0')}</span>
-                <h3 className="service__title">{service.title}</h3>
-                <div className="service__body">
-                  <p>{service.summary}</p>
-                  <p className="service__deliverables">{service.deliverables?.join(', ')}</p>
+                <div className="service__main">
+                  <h3 className="service__title">{service.title}</h3>
+                  <p className="service__summary">{service.summary}</p>
+                  <p className="service__deliverables">{service.deliverables?.join(' · ')}</p>
                 </div>
+                {!!service.proof?.length && (
+                  <div className="service__proof">
+                    <span className="label">Proof</span>
+                    <ul>
+                      {service.proof.map((p) => {
+                        const href = p.slug ? `/work/${p.slug}` : p.url
+                        const inner = (
+                          <>
+                            <span className="proof__title">
+                              {p.title}
+                              {href && <span aria-hidden> ↗</span>}
+                            </span>
+                            {p.detail && <span className="proof__detail">{p.detail}</span>}
+                          </>
+                        )
+                        return (
+                          <li key={p._key}>
+                            {href ? (
+                              <Link href={href} className="proof" {...(p.slug ? {} : {target: '_blank', rel: 'noreferrer'})}>
+                                {inner}
+                              </Link>
+                            ) : (
+                              <div className="proof">{inner}</div>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )}
               </li>
             ))}
           </ol>
@@ -241,48 +263,6 @@ export default async function HomePage() {
                     />
                   )}
                 </Link>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        {/* About + Experience */}
-        <section id="experience" className="section">
-          <header className="section__head">
-            <span className="label">● Experience</span>
-            <h2 className="section__title">About</h2>
-          </header>
-          <div className="about">
-            <div className="about__body">
-              <RichText value={settings?.about} />
-            </div>
-          </div>
-          <ol className="timeline">
-            {experience.map((job) => (
-              <li key={job._id} className="job">
-                <div className="job__meta">
-                  <span>{job.period}</span>
-                  <span>{job.location}</span>
-                  {job.badge && <span className="job__badge">{job.badge}</span>}
-                </div>
-                <div className="job__body">
-                  <span className="job__company">
-                    {job.company}
-                    {job.descriptor && ` · ${job.descriptor}`}
-                  </span>
-                  <h3 className="job__role">{job.role}</h3>
-                  <div className="job__summary">
-                    <RichText value={job.summary} />
-                  </div>
-                  {!!job.highlights?.length && (
-                    <ul className="highlights">
-                      {job.highlights.map((h) => (
-                        <li key={h}>{h}</li>
-                      ))}
-                    </ul>
-                  )}
-                  {!!job.tags?.length && <p className="job__tags">{job.tags.join(', ')}</p>}
-                </div>
               </li>
             ))}
           </ol>

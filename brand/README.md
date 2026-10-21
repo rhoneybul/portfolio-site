@@ -36,4 +36,4 @@ brand/sync.sh                     # copies the kit to web/public/brand
 
 The website's favicon (`web/src/app/icon.svg`), Apple icon and social image
 (`web/src/app/opengraph-image.png`, `twitter-image.png`) are copies of
-`ion-monogram-signal-on-paper.svg`, `ion-app-icon-180.png` and `ion-og-image.png`.
+`ion-favicon.svg`, `ion-app-icon-180.png` and `ion-og-image.png`.
