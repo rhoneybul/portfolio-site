@@ -6,6 +6,7 @@ import {HOME_QUERY} from '@/sanity/queries'
 import {getSettings} from '@/sanity/settings'
 import {urlFor} from '@/sanity/image'
 import {TopBar} from '@/components/top-bar'
+import {BRAND, BRAND_MARK} from '@/brand'
 import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {RichText} from '@/components/rich-text'
@@ -36,7 +37,6 @@ function Headline({text, accent}: {text: string; accent?: string | null}) {
 export default async function HomePage() {
   const [{data}, settingsMeta] = await Promise.all([sanityFetch({query: HOME_QUERY}), getSettings()])
   const {settings, services, projects, experience} = data
-  const surname = settings?.name?.split(' ').slice(-1)[0] ?? 'Honeybul'
   const firstName = settings?.name?.split(' ')[0] ?? 'Rob'
   const socials = [
     ...(settings?.socials ?? []).map((s) => ({key: s._key, label: s.label ?? '', url: s.url ?? '#'})),
@@ -50,10 +50,11 @@ export default async function HomePage() {
       <main>
         {/* Wordmark hero */}
         <section className="wordmark-hero">
-          <h1 className="wordmark" aria-label={settings?.name ?? undefined}>
-            {surname}
+          <h1 className="wordmark" aria-label={BRAND}>
+            {BRAND_MARK}
+            <span className="charge" aria-hidden />
           </h1>
-          <Marquee items={[settings?.role ?? '', settings?.role ?? '']} className="marquee-role" />
+          <Marquee items={['Consulting', settings?.role ?? '', 'Consulting', settings?.role ?? '']} separator="●" className="marquee-role" />
           <div className="wordmark-hero__foot">
             <a href="#about" className="scroll-down">
               Scroll down

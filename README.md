@@ -1,4 +1,7 @@
-# Rob Honeybul: portfolio & consulting site
+# ION Consulting website
+
+The site for ION Consulting, Rob Honeybul's technical leadership and AI engineering practice.
+Brand kit (logo, colours, type, social and print assets): [`brand/`](brand/README.md), also served at `/brand/index.html`.
 
 Design follows the ANDSAVU portfolio (off-white, one red-orange ink, giant serif wordmark, marquee),
 with the greeting tag, offset-shadow buttons, portrait and services band from the David shot, and the
@@ -9,6 +12,7 @@ Monorepo with a standalone Sanity Studio and a Next.js site.
 ```
 studio/   Sanity Studio (project 9q3oqv8p, dataset production)
 web/      Next.js 16 App Router site, reads content from Sanity
+brand/    ION Consulting brand kit and its generators
 ```
 
 ## Editing content

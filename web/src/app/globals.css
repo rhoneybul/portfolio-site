@@ -234,7 +234,7 @@ main {
   font-weight: 400;
   color: var(--accent);
   text-transform: uppercase;
-  font-size: clamp(64px, 14.2vw, 250px);
+  font-size: clamp(96px, 30vw, 480px);
   line-height: 0.78;
   letter-spacing: -0.02em;
   padding-left: calc(var(--gutter) + var(--indent));
@@ -274,6 +274,17 @@ main {
   }
 }
 
+.wordmark .charge {
+  display: inline-block;
+  width: 0.16em;
+  height: 0.16em;
+  margin-left: 0.06em;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: top;
+  transform: translateY(-0.02em);
+}
+
 .marquee-role {
   color: var(--accent);
   text-transform: uppercase;
@@ -283,6 +294,12 @@ main {
   letter-spacing: -0.02em;
   padding-left: calc(var(--gutter) + var(--indent));
   margin-top: 0.12em;
+}
+
+.marquee-role .marquee__sep {
+  font-size: 0.28em;
+  margin: 0 1.1em;
+  vertical-align: middle;
 }
 
 .marquee-role .marquee__item {
@@ -1402,7 +1419,7 @@ main {
   }
 
   .wordmark {
-    font-size: 16.5vw;
+    font-size: 38vw;
   }
 
   .marquee-role {

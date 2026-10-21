@@ -4,6 +4,7 @@ import {Gloock, Inter_Tight} from 'next/font/google'
 import {SanityLive} from '@/sanity/live'
 import {sanityFetch} from '@/sanity/live'
 import {SETTINGS_QUERY} from '@/sanity/queries'
+import {BRAND} from '@/brand'
 import './globals.css'
 
 const sans = Inter_Tight({subsets: ['latin'], variable: '--font-sans'})
@@ -11,14 +12,14 @@ const display = Gloock({subsets: ['latin'], weight: '400', variable: '--font-dis
 
 export async function generateMetadata(): Promise<Metadata> {
   const {data: settings} = await sanityFetch({query: SETTINGS_QUERY, stega: false})
-  const title = settings?.seo?.title || settings?.name || 'Rob Honeybul'
+  const title = settings?.seo?.title || BRAND
   const description = settings?.seo?.description || undefined
-  const image = settings?.portraitUrl ? `${settings.portraitUrl}?w=1200&h=630&fit=crop` : undefined
   return {
     metadataBase: new URL(siteUrl),
-    title: {default: title, template: `%s · ${settings?.name ?? 'Rob Honeybul'}`},
+    title: {default: title, template: `%s · ${BRAND}`},
+    applicationName: BRAND,
     description,
-    openGraph: {title, description, type: 'website', images: image ? [image] : undefined},
+    openGraph: {title, description, type: 'website', siteName: BRAND},
     twitter: {card: 'summary_large_image', title, description},
   }
 }

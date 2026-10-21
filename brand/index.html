@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ION Consulting · Brand</title>
+<meta name="description" content="Logo, colours, type and assets for ION Consulting.">
+<link rel="icon" href="svg/ion-monogram-signal-on-paper.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --signal: #F4401B; --paper: #F6F6F6; --ink: #161616; --night: #111315; --muted: #5f5f5f; --line: #dedede;
+    --gutter: clamp(16px, 4vw, 56px);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 'Inter Tight', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  img { display: block; max-width: 100%; height: auto; }
+  header { display: flex; justify-content: space-between; gap: 24px; padding: var(--gutter); color: var(--signal); text-transform: uppercase; font-size: 15px; }
+  header strong { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  header strong::before { content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--signal); }
+  .hero { padding: 48px var(--gutter) 64px; }
+  .hero img { width: min(720px, 100%); }
+  .hero p { margin: 24px 0 0; max-width: 48ch; font-size: clamp(19px, 2vw, 24px); color: var(--muted); }
+  section { padding: 72px var(--gutter) 0; }
+  .label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; text-transform: uppercase; color: var(--signal); }
+  h2 { margin: 0 0 32px; font: 400 clamp(48px, 8vw, 120px)/0.85 Gloock, serif; color: var(--signal); text-transform: uppercase; }
+  .lead { max-width: 60ch; color: var(--muted); margin: 0 0 32px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; border-top: 1.5px solid var(--signal); padding-top: 24px; }
+  .tile { display: grid; gap: 12px; align-content: start; }
+  .tile .art { display: grid; place-items: center; aspect-ratio: 16 / 10; padding: 32px; border: 1px solid var(--line); background: #fff; }
+  .tile .art.paper { background: var(--paper); }
+  .tile .art.night { background: var(--night); border-color: var(--night); }
+  .tile .art.signal { background: var(--signal); border-color: var(--signal); }
+  .tile .art img { max-height: 100%; }
+  .tile .art.square { aspect-ratio: 1; padding: 0; }
+  .tile .art.full { padding: 0; aspect-ratio: auto; }
+  .tile h3 { margin: 0; font-size: 18px; font-weight: 500; }
+  .tile .dl { display: flex; gap: 16px; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+  .tile .dl a { text-underline-offset: 3px; }
+  .tile .dl a:hover { color: var(--signal); }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 12px; border-top: 1.5px solid var(--signal); padding-top: 24px; }
+  .swatch { display: grid; grid-template-rows: 180px auto; }
+  .swatch span { border-bottom: 1px solid var(--line); }
+  .swatch { border: 1px solid var(--line); background: #fff; }
+  .swatch div { padding: 16px; }
+  .swatch strong { display: block; font-weight: 600; }
+  .swatch code { font: 14px ui-monospace, monospace; color: var(--muted); }
+  .type { display: grid; gap: 32px; border-top: 1.5px solid var(--signal); padding-top: 24px; }
+  .type .display { font: 400 clamp(40px, 12vw, 180px)/0.85 Gloock, serif; overflow-wrap: anywhere; color: var(--signal); text-transform: uppercase; }
+  .type .sans { font-size: clamp(28px, 4vw, 56px); font-weight: 300; text-transform: uppercase; color: var(--signal); }
+  .type .body { max-width: 60ch; color: var(--muted); }
+  .rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 24px 48px; border-top: 1.5px solid var(--signal); padding-top: 24px; margin: 0; padding-left: 0; list-style: none; }
+  .rules li { padding-left: 26px; position: relative; color: var(--muted); }
+  .rules li::before { content: '—'; position: absolute; left: 0; color: var(--signal); font-weight: 600; }
+  .rules strong { color: var(--ink); font-weight: 600; }
+  footer { margin-top: 96px; padding: 24px var(--gutter) 32px; border-top: 1.5px solid var(--signal); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; color: var(--signal); font-size: 13px; font-weight: 600; text-transform: uppercase; }
+  footer a { text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <strong>ION Consulting</strong>
+  <a href="/">Back to the site</a>
+</header>
+
+<div class="hero">
+  <img src="svg/ion-logo-stacked-signal.svg" alt="ION Consulting logo">
+  <p>Logo, colour and type for ION Consulting: technical leadership and AI engineering by Rob Honeybul. An ion is an atom with a charge; the dot is ours.</p>
+</div>
+
+<section>
+  <span class="label">● Logo</span>
+  <h2>The mark</h2>
+  <p class="lead">The wordmark is ION set in Gloock with a solid charge dot at its top right. Use the stacked logo where there is room, the horizontal one in narrow bars, and the wordmark alone once the name is already clear.</p>
+  <div class="grid">
+    <div class="tile"><div class="art"><img src="svg/ion-logo-stacked-signal.svg" alt=""></div><h3>Stacked · Signal</h3><p class="dl"><a href="svg/ion-logo-stacked-signal.svg" download>SVG</a><a href="png/ion-logo-stacked-signal.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art"><img src="svg/ion-logo-stacked-ink.svg" alt=""></div><h3>Stacked · Ink</h3><p class="dl"><a href="svg/ion-logo-stacked-ink.svg" download>SVG</a><a href="png/ion-logo-stacked-ink.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art night"><img src="svg/ion-logo-stacked-paper.svg" alt=""></div><h3>Stacked · Paper</h3><p class="dl"><a href="svg/ion-logo-stacked-paper.svg" download>SVG</a><a href="png/ion-logo-stacked-paper.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art"><img src="svg/ion-logo-horizontal-signal.svg" alt=""></div><h3>Horizontal · Signal</h3><p class="dl"><a href="svg/ion-logo-horizontal-signal.svg" download>SVG</a><a href="png/ion-logo-horizontal-signal.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art"><img src="svg/ion-logo-horizontal-ink.svg" alt=""></div><h3>Horizontal · Ink</h3><p class="dl"><a href="svg/ion-logo-horizontal-ink.svg" download>SVG</a><a href="png/ion-logo-horizontal-ink.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art signal"><img src="svg/ion-logo-horizontal-paper.svg" alt=""></div><h3>Horizontal · Paper</h3><p class="dl"><a href="svg/ion-logo-horizontal-paper.svg" download>SVG</a><a href="png/ion-logo-horizontal-paper.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art"><img src="svg/ion-wordmark-signal.svg" alt=""></div><h3>Wordmark · Signal</h3><p class="dl"><a href="svg/ion-wordmark-signal.svg" download>SVG</a><a href="png/ion-wordmark-signal.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art"><img src="svg/ion-wordmark-ink.svg" alt=""></div><h3>Wordmark · Ink</h3><p class="dl"><a href="svg/ion-wordmark-ink.svg" download>SVG</a><a href="png/ion-wordmark-ink.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art night"><img src="svg/ion-wordmark-paper.svg" alt=""></div><h3>Wordmark · Paper</h3><p class="dl"><a href="svg/ion-wordmark-paper.svg" download>SVG</a><a href="png/ion-wordmark-paper.png" download>PNG</a></p></div>
+  </div>
+</section>
+
+<section>
+  <span class="label">● Icon</span>
+  <h2>The charge</h2>
+  <p class="lead">For small spaces (favicons, avatars, app icons) use the O of ION with its charge dot. It is a symbol, not a letter: never set other words beside it.</p>
+  <div class="grid">
+    <div class="tile"><div class="art square"><img src="svg/ion-app-icon.svg" alt=""></div><h3>App icon</h3><p class="dl"><a href="svg/ion-app-icon.svg" download>SVG</a><a href="png/ion-app-icon-512.png" download>PNG 512</a><a href="png/ion-app-icon-180.png" download>PNG 180</a></p></div>
+    <div class="tile"><div class="art square"><img src="svg/ion-monogram-signal-on-paper.svg" alt=""></div><h3>Signal on paper</h3><p class="dl"><a href="svg/ion-monogram-signal-on-paper.svg" download>SVG</a><a href="png/ion-monogram-signal-on-paper-512.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art square"><img src="svg/ion-monogram-paper-on-signal.svg" alt=""></div><h3>Paper on signal · avatar</h3><p class="dl"><a href="svg/ion-monogram-paper-on-signal.svg" download>SVG</a><a href="png/ion-monogram-paper-on-signal-512.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art square"><img src="svg/ion-monogram-signal-on-night.svg" alt=""></div><h3>Signal on night</h3><p class="dl"><a href="svg/ion-monogram-signal-on-night.svg" download>SVG</a><a href="png/ion-monogram-signal-on-night-512.png" download>PNG</a></p></div>
+  </div>
+</section>
+
+<section>
+  <span class="label">● Colour</span>
+  <h2>One ink</h2>
+  <p class="lead">Signal orange carries the brand. Use it for the mark, headings and labels; keep body copy in ink. Paper is the page, night is for dark blocks.</p>
+  <div class="swatches">
+    <div class="swatch"><span style="background:#F4401B"></span><div><strong>Signal</strong><code>#F4401B · rgb(244 64 27)</code></div></div>
+    <div class="swatch"><span style="background:#F6F6F6"></span><div><strong>Paper</strong><code>#F6F6F6 · rgb(246 246 246)</code></div></div>
+    <div class="swatch"><span style="background:#161616"></span><div><strong>Ink</strong><code>#161616 · rgb(22 22 22)</code></div></div>
+    <div class="swatch"><span style="background:#111315"></span><div><strong>Night</strong><code>#111315 · rgb(17 19 21)</code></div></div>
+  </div>
+</section>
+
+<section>
+  <span class="label">● Type</span>
+  <h2>Two faces</h2>
+  <div class="type">
+    <div><span class="label">Display · Gloock</span><div class="display">ION Consulting</div></div>
+    <div><span class="label">Labels & marquee · Inter Tight, uppercase</span><div class="sans">Technical leadership & AI engineering</div></div>
+    <div><span class="label">Body · Inter Tight</span><p class="body">Both are free (SIL Open Font License) on Google Fonts. Gloock is for the wordmark and very large headings only, always in capitals. Inter Tight does everything else: semibold uppercase for labels, light uppercase for marquees, regular for reading.</p></div>
+  </div>
+</section>
+
+<section>
+  <span class="label">● Applications</span>
+  <h2>In use</h2>
+  <div class="grid">
+    <div class="tile"><div class="art full"><img src="png/ion-og-image.png" alt="Social sharing image"></div><h3>Social sharing image · 1200×630</h3><p class="dl"><a href="png/ion-og-image.png" download>PNG</a><a href="svg/ion-og-image.svg" download>SVG</a></p></div>
+    <div class="tile"><div class="art full"><img src="png/ion-og-image-night.png" alt="Social sharing image, dark"></div><h3>Social image, night · 1200×630</h3><p class="dl"><a href="png/ion-og-image-night.png" download>PNG</a><a href="svg/ion-og-image-night.svg" download>SVG</a></p></div>
+    <div class="tile"><div class="art full"><img src="png/ion-linkedin-banner.png" alt="LinkedIn banner"></div><h3>LinkedIn banner · 1584×396</h3><p class="dl"><a href="png/ion-linkedin-banner.png" download>PNG</a><a href="svg/ion-linkedin-banner.svg" download>SVG</a></p></div>
+    <div class="tile"><div class="art full"><img src="png/ion-business-card-front.png" alt="Business card front"></div><h3>Business card, front · 85×55 mm</h3><p class="dl"><a href="svg/ion-business-card-front.svg" download>SVG (print)</a><a href="png/ion-business-card-front.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art full"><img src="png/ion-business-card-back.png" alt="Business card back"></div><h3>Business card, back · 85×55 mm</h3><p class="dl"><a href="svg/ion-business-card-back.svg" download>SVG (print)</a><a href="png/ion-business-card-back.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art full"><img src="png/ion-email-signature-preview.png" alt="Email signature"></div><h3>Email signature</h3><p class="dl"><a href="email-signature.html">HTML</a></p></div>
+  </div>
+</section>
+
+<section>
+  <span class="label">● Usage</span>
+  <h2>Keep it clean</h2>
+  <ul class="rules">
+    <li><strong>Clear space.</strong> Keep at least the height of the O's counter clear around the logo on every side.</li>
+    <li><strong>Minimum size.</strong> Wordmark 64 px (18 mm) wide; below that, use the icon.</li>
+    <li><strong>One colour at a time.</strong> Signal on paper is the default; ink with a signal dot, or paper on signal and night, are the alternatives.</li>
+    <li><strong>Never</strong> stretch, outline, rotate, add effects to, or re-set the logo in another font, and never move or drop the charge dot.</li>
+    <li><strong>Name in text</strong> as “ION Consulting”: ION in capitals, never “Ion” or “I.O.N.”.</li>
+    <li><strong>Voice.</strong> Plain, direct and specific: what we build and who it helps, never buzzwords.</li>
+  </ul>
+</section>
+
+<footer><span>© ION Consulting</span><a href="/">ion · back to the site</a></footer>
+</body>
+</html>

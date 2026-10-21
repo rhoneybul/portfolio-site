@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type {Settings} from '@/sanity/settings'
+import {BRAND} from '@/brand'
 
 const STATUS_TITLE: Record<string, string> = {
   available: 'Available for new work',
@@ -19,11 +20,12 @@ export function TopBar({settings, active}: {settings: Settings; active?: 'work' 
             title={settings?.availability?.label ?? STATUS_TITLE[status]}
             aria-hidden
           />
-          {settings?.name}
+          {BRAND}
         </strong>
         <span>
-          is a {role ? `${role} consultant` : 'consultant'}
-          {settings?.location && <> based in {settings.location}</>}.
+          {role ? `${role} by ` : ''}
+          {settings?.name}
+          {settings?.location && <>, based in {settings.location}</>}.
         </span>
         {settings?.availability?.label && <span className="top-bar__status">{settings.availability.label}.</span>}
       </Link>
