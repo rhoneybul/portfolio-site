@@ -8,6 +8,13 @@ export const service = defineType({
   icon: BoltIcon,
   fields: [
     defineField({name: 'title', type: 'string', validation: (rule) => rule.required()}),
+    defineField({
+      name: 'need',
+      title: 'Headline need',
+      description:
+        'Shown in the landing headline after "If you’re looking to…", e.g. "ship a product, fast"',
+      type: 'string',
+    }),
     defineField({name: 'summary', type: 'text', rows: 3}),
     defineField({
       name: 'deliverables',

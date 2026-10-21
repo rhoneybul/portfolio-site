@@ -31,7 +31,7 @@ export function ContactSection({settings}: {settings: Settings}) {
                 target="_blank"
                 rel="noreferrer"
               >
-                Message on WhatsApp <span aria-hidden>↗</span>
+                Message on WhatsApp <span aria-hidden>↗︎</span>
               </a>
             )}
           </div>

@@ -13,7 +13,7 @@ export function BookCall({url, label = 'Book a call', variant = 'primary'}: {
     <>
       <button type="button" className={`btn btn-${variant}`} onClick={() => dialog.current?.showModal()}>
         {label}
-        <span aria-hidden>↗</span>
+        <span aria-hidden>↗︎</span>
       </button>
       <dialog
         ref={dialog}
@@ -24,7 +24,7 @@ export function BookCall({url, label = 'Book a call', variant = 'primary'}: {
           <span>{label}</span>
           <div className="booking-dialog__actions">
             <a href={url} target="_blank" rel="noreferrer">
-              Open in new tab ↗
+              Open in new tab ↗︎
             </a>
             <button type="button" onClick={() => dialog.current?.close()}>
               Close ✕

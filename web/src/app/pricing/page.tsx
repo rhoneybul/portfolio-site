@@ -54,7 +54,7 @@ export default async function PricingPage() {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        {plan.actionLabel ?? 'Get in touch'} <span aria-hidden>↗</span>
+                        {plan.actionLabel ?? 'Get in touch'} <span aria-hidden>↗︎</span>
                       </a>
                     ) : (
                       bookingUrl && <BookCall url={bookingUrl} label={plan.actionLabel ?? 'Book a call'} />

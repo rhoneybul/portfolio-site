@@ -10,7 +10,7 @@ export function ScrollBadge({href = '#about'}: {href?: string}) {
         </text>
       </svg>
       <span className="scroll-badge__arrow" aria-hidden>
-        ↓
+        ↓︎
       </span>
     </a>
   )

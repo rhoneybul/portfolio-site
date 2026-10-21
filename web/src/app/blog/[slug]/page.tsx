@@ -39,7 +39,7 @@ export default async function PostPage({params}: Props) {
       <main>
         <article className="case post">
           <Link href="/blog" className="label back">
-            ← All posts
+            ←︎ All posts
           </Link>
           <h1 className="post__title">{post.title}</h1>
           <div className="case__intro">

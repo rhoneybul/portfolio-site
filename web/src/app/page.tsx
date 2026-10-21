@@ -41,18 +41,46 @@ export default async function HomePage() {
       <TopBar settings={settingsMeta} />
 
       <main>
-        {/* Wordmark hero */}
+        {/* Wordmark hero + the key message */}
         <section className="wordmark-hero">
-          <h1 className="wordmark" aria-label={BRAND}>
+          <p className="wordmark" aria-hidden>
             {BRAND_MARK}
-            <span className="charge" aria-hidden />
-          </h1>
-          <Marquee items={[...services, ...services].map((s) => s.title ?? '')} separator="●" className="marquee-role" />
+            <span className="charge" />
+          </p>
+          <div className="needs">
+            <h1 className="needs__heading">
+              <span className="needs__lead">If you’re looking to…</span>
+              <span className="sr-only">
+                {services.map((s) => s.need).filter(Boolean).join(', ')}, {BRAND} can help.
+              </span>
+            </h1>
+            <ol className="needs__list" aria-hidden>
+              {services.map((s, i) => (
+                <li key={s._id}>
+                  <a href={`#service-${i + 1}`} tabIndex={-1}>
+                    <span className="needs__index">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="needs__text">{s.need ?? s.title}</span>
+                    <span className="needs__arrow">↓︎</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+            <div className="needs__close">
+              <p className="needs__help">…I can help.</p>
+              {settings?.bookingUrl ? (
+                <BookCall url={settings.bookingUrl} label="Book a free 30-min call" />
+              ) : (
+                <a href="#contact" className="btn btn-primary">
+                  Get in touch <span aria-hidden>↗︎</span>
+                </a>
+              )}
+            </div>
+          </div>
           <div className="wordmark-hero__foot">
-            <a href="#about" className="scroll-down">
+            <a href="#services" className="scroll-down">
               Scroll down
             </a>
-            <ScrollBadge />
+            <ScrollBadge href="#services" />
           </div>
         </section>
 
@@ -70,29 +98,16 @@ export default async function HomePage() {
               <Headline text={settings?.headline ?? ''} accent={settings?.headlineAccent} />
             </h2>
             <p className="intro__lead">{settings?.intro}</p>
-            {!!services.length && (
-              <ol className="focus-list">
-                {services.map((s, i) => (
-                  <li key={s._id}>
-                    <a href={`#service-${i + 1}`}>
-                      <span className="focus-list__index">{String(i + 1).padStart(2, '0')}</span>
-                      <span className="focus-list__title">{s.title}</span>
-                      <span aria-hidden>↓</span>
-                    </a>
-                  </li>
-                ))}
-              </ol>
-            )}
             <div className="intro__actions">
               {settings?.bookingUrl ? (
                 <BookCall url={settings.bookingUrl} label="Book a call" />
               ) : (
                 <a href="#contact" className="btn btn-primary">
-                  Get in touch <span aria-hidden>↗</span>
+                  Get in touch <span aria-hidden>↗︎</span>
                 </a>
               )}
               <Link href="/pricing" className="text-btn">
-                See pricing <span aria-hidden>→</span>
+                See pricing <span aria-hidden>→︎</span>
               </Link>
             </div>
             {!!socials.length && (
@@ -170,16 +185,18 @@ export default async function HomePage() {
                 </div>
                 {!!service.proof?.length && (
                   <div className="service__proof">
-                    <span className="label">Proof</span>
+                    <span className="label">● Proof</span>
                     <ul>
                       {service.proof.map((p) => {
                         const href = p.slug ? `/work/${p.slug}` : p.url
                         const inner = (
                           <>
-                            <span className="proof__title">
-                              {p.title}
-                              {href && <span aria-hidden> ↗</span>}
-                            </span>
+                            <span className="proof__title">{p.title}</span>
+                            {href && (
+                              <span className="proof__arrow" aria-hidden>
+                                ↗︎
+                              </span>
+                            )}
                             {p.detail && <span className="proof__detail">{p.detail}</span>}
                           </>
                         )
@@ -220,7 +237,7 @@ export default async function HomePage() {
           <p className="statement__kicker">I help teams turn hard, real-world problems into</p>
           <p className="statement__big">systems that matter</p>
           <a href="#work" className="statement__link">
-            Check out my work <span aria-hidden>›</span>
+            Check out my work <span aria-hidden>›︎</span>
           </a>
           {!!settings?.stats?.length && (
             <dl className="stats">
@@ -251,7 +268,7 @@ export default async function HomePage() {
                     <span>{project.role}</span>
                   </span>
                   <span className="work-row__arrow" aria-hidden>
-                    ↗
+                    ↗︎
                   </span>
                   {project.coverImage?.asset && (
                     <Image

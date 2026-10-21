@@ -40,7 +40,7 @@ export default async function ProjectPage({params}: Props) {
       <main>
         <article className="case">
           <Link href="/#work" className="label back">
-            ← All work
+            ←︎ All work
           </Link>
           <h1 className="case__title">{project.title}</h1>
           <Marquee items={[project.sector ?? '', project.sector ?? '']} className="marquee-role" />
@@ -65,7 +65,7 @@ export default async function ProjectPage({params}: Props) {
                   <dt className="label">Website</dt>
                   <dd>
                     <a href={project.url} target="_blank" rel="noreferrer">
-                      {project.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')} ↗
+                      {project.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')} ↗︎
                     </a>
                   </dd>
                 </div>
@@ -111,7 +111,7 @@ export default async function ProjectPage({params}: Props) {
           {next?.slug && (
             <Link href={`/work/${next.slug}`} className="next-project">
               <span className="label">Next project</span>
-              <span className="next-project__title">{next.title} ↗</span>
+              <span className="next-project__title">{next.title} ↗︎</span>
             </Link>
           )}
         </article>

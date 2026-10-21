@@ -45,7 +45,7 @@ export default async function BlogPage() {
                   teams from the first hire to Series A.
                 </p>
                 <Link href="/#contact" className="text-btn">
-                  Get in touch in the meantime <span aria-hidden>→</span>
+                  Get in touch in the meantime <span aria-hidden>→︎</span>
                 </Link>
               </div>
             </>
