@@ -210,12 +210,12 @@ def og_image(bg=PAPER, fg=SIGNAL):
     b = dot(m + 9, m + 9, 9, fg)
     b += label(m + 28, m + 16, 'Olaz AI', 22, fg)
     b += label(m, m + 46, 'Rob Honeybul · London', 22, fg, MEDIUM)
-    b += label(W - m, m + 16, 'Technical leadership', 22, fg, MEDIUM, anchor='end')
-    b += label(W - m, m + 46, '& AI engineering', 22, fg, MEDIUM, anchor='end')
+    b += label(W - m, m + 16, 'Make your vision', 22, fg, MEDIUM, anchor='end')
+    b += label(W - m, m + 46, 'a reality', 22, fg, MEDIUM, anchor='end')
     mark, _ = wordmark(m + 26, 420, 290, fg)
     b += mark
     b += label(m, H - m, 'Free 30-minute intro call', 22, fg)
-    b += label(W - m, H - m, 'Fractional CTO · AI strategy · Platforms', 22, fg, MEDIUM, anchor='end')
+    b += label(W - m, H - m, 'Ideas to products · AI enablement', 22, fg, MEDIUM, anchor='end')
     return svg(W, H, b, bg)
 
 
@@ -227,8 +227,7 @@ def linkedin_banner():
     mw = x1 - x0
     mark, _ = wordmark(W - m - mw - x0, 66 - top, 250, SIGNAL)
     b += mark
-    tag, tw = text(LIGHT, 'TECHNICAL LEADERSHIP & AI ENGINEERING', 40, 0, 0, SIGNAL, -0.01)
-    b += text(LIGHT, 'TECHNICAL LEADERSHIP & AI ENGINEERING', 40, W - m, 66 + (base - top) + 64, SIGNAL, -0.01, 'end')[0]
+    b += text(LIGHT, 'MAKE YOUR VISION A REALITY', 40, W - m, 66 + (base - top) + 64, SIGNAL, -0.01, 'end')[0]
     b += dot(W - m - 9, 40, 8, SIGNAL)
     b += label(W - m - 26, 47, 'Olaz AI · London · Free 30-minute intro call', 18, SIGNAL, anchor='end')
     return svg(W, H, b, PAPER)
@@ -240,7 +239,7 @@ def card_front():
     b = dot(m + 7, m + 7, 7, SIGNAL)
     b += label(m + 22, m + 13, 'Rob Honeybul', 18, SIGNAL)
     b += label(m, m + 38, 'Director, Olaz AI', 18, SIGNAL, MEDIUM)
-    b += label(m, m + 63, 'Technical leadership & AI engineering', 18, SIGNAL, MEDIUM)
+    b += label(m, m + 63, 'Make your vision a reality', 18, SIGNAL, MEDIUM)
     mark, _ = wordmark(m + 14, H - m - 200 * 0.16, 200, SIGNAL)
     return svg(W, H, b + mark, PAPER)
 
