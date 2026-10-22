@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import {stegaClean} from 'next-sanity'
 import {sanityFetch} from '@/sanity/live'
 import {HOME_QUERY} from '@/sanity/queries'
 import {getSettings} from '@/sanity/settings'
@@ -25,7 +26,10 @@ function Headline({text, accent}: {text: string; accent?: string | null}) {
 
 export default async function HomePage() {
   const [{data}, settingsMeta] = await Promise.all([sanityFetch({query: HOME_QUERY}), getSettings()])
-  const {settings, services, projects} = data
+  const {settings, services: allServices, projects} = data
+  // Main offers lead the page; leadership is its own, separate message
+  const services = allServices.filter((s) => stegaClean(s.track) !== 'leadership')
+  const leadership = allServices.filter((s) => stegaClean(s.track) === 'leadership')
   const firstName = settings?.name?.split(' ')[0] ?? 'Rob'
   const socials = [
     ...(settings?.socials ?? []).map((s) => ({key: s._key, label: s.label ?? '', url: s.url ?? '#'})),
@@ -79,6 +83,11 @@ export default async function HomePage() {
               </a>
             )}
           </div>
+          {!!leadership.length && (
+            <p className="hero__aside">
+              Need senior technical leadership instead? <a href="#leadership">Fractional CTO and team building</a>
+            </p>
+          )}
         </section>
 
         {/* Intro: one statement, one action, a clean portrait */}
@@ -126,7 +135,7 @@ export default async function HomePage() {
             )}
             <figcaption>
               <span>{settings?.name}</span>
-              <span>Founder, {BRAND}</span>
+              <span>Director, {BRAND}</span>
             </figcaption>
           </figure>
         </section>
@@ -135,7 +144,7 @@ export default async function HomePage() {
         <section id="services" className="section">
           <header className="section__head">
             <span className="label">● What I do</span>
-            <h2 className="section__title">Three things</h2>
+            <h2 className="section__title">{services.length === 2 ? 'Two things' : 'What I do'}</h2>
           </header>
           <ol className="services">
             {services.map((service, i) => (
@@ -146,73 +155,43 @@ export default async function HomePage() {
                   <p className="service__summary">{service.summary}</p>
                   <p className="service__deliverables">{service.deliverables?.join(' · ')}</p>
                 </div>
-                {!!service.proof?.length && (
-                  <div className="service__proof">
-                    <span className="label">● Proof</span>
-                    <ul>
-                      {service.proof.map((p) => {
-                        const href = p.slug ? `/work/${p.slug}` : p.url
-                        const inner = (
-                          <>
-                            <span className="proof__title">{p.title}</span>
-                            {href && (
-                              <span className="proof__arrow" aria-hidden>
-                                ↗︎
-                              </span>
-                            )}
-                            {p.detail && <span className="proof__detail">{p.detail}</span>}
-                          </>
-                        )
-                        return (
-                          <li key={p._key}>
-                            {href ? (
-                              <Link href={href} className="proof" {...(p.slug ? {} : {target: '_blank', rel: 'noreferrer'})}>
-                                {inner}
-                              </Link>
-                            ) : (
-                              <div className="proof">{inner}</div>
-                            )}
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
-                )}
+                {!!service.proof?.length && <Proof items={service.proof} />}
               </li>
             ))}
           </ol>
         </section>
 
-        {/* Statement */}
-        <section className="statement">
-          <svg className="squiggle squiggle--a" viewBox="0 0 50 60" aria-hidden>
-            <path d="M4 4 V22 H24 V40 H44 V56" />
-          </svg>
-          <svg className="squiggle squiggle--b" viewBox="0 0 70 30" aria-hidden>
-            <path d="M2 26 L18 10 L28 22 L44 6 L56 18 L68 8" />
-          </svg>
-          <svg className="squiggle squiggle--c" viewBox="0 0 70 30" aria-hidden>
-            <path d="M2 26 L18 10 L28 22 L44 6 L56 18 L68 8" />
-          </svg>
-          <svg className="squiggle squiggle--d" viewBox="0 0 50 60" aria-hidden>
-            <path d="M4 4 V22 H24 V40 H44 V56" />
-          </svg>
-          <p className="statement__kicker">I help teams turn hard, real-world problems into</p>
-          <p className="statement__big">systems that matter</p>
-          <a href="#work" className="statement__link">
-            Check out my work <span aria-hidden>›︎</span>
-          </a>
-          {!!settings?.stats?.length && (
-            <dl className="stats">
-              {settings.stats.map((s) => (
-                <div key={s._key}>
-                  <dt>{s.value}</dt>
-                  <dd>{s.label}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </section>
+        {/* Leadership: a separate offer, its own message */}
+        {leadership.map((lead) => (
+          <section key={lead._id} id="leadership" className="leadership">
+            <div className="leadership__main">
+              <h2 className="leadership__title">Need a technical leader?</h2>
+              <p className="leadership__name">{lead.title}</p>
+              <p className="leadership__summary">{lead.summary}</p>
+              <p className="service__deliverables">{lead.deliverables?.join(' · ')}</p>
+              {settings?.bookingUrl ? (
+                <BookCall url={settings.bookingUrl} label="Talk about leadership" />
+              ) : (
+                <a href="#contact" className="btn btn-primary">
+                  Talk about leadership
+                </a>
+              )}
+            </div>
+            <div className="leadership__side">
+              {!!lead.proof?.length && <Proof items={lead.proof} />}
+              {!!settings?.stats?.length && (
+                <dl className="stats">
+                  {settings.stats.map((s) => (
+                    <div key={s._key}>
+                      <dt>{s.value}</dt>
+                      <dd>{s.label}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+            </div>
+          </section>
+        ))}
 
         {/* Work */}
         <section id="work" className="section">
@@ -253,5 +232,42 @@ export default async function HomePage() {
 
       <SiteFooter settings={settingsMeta} />
     </>
+  )
+}
+
+type ProofItem = {_key: string; title: string | null; detail: string | null; url: string | null; slug: string | null}
+
+function Proof({items}: {items: ProofItem[]}) {
+  return (
+    <div className="service__proof">
+      <span className="label">Proof</span>
+      <ul>
+        {items.map((p) => {
+          const href = p.slug ? `/work/${p.slug}` : p.url
+          const inner = (
+            <>
+              <span className="proof__title">{p.title}</span>
+              {href && (
+                <span className="proof__arrow" aria-hidden>
+                  ↗︎
+                </span>
+              )}
+              {p.detail && <span className="proof__detail">{p.detail}</span>}
+            </>
+          )
+          return (
+            <li key={p._key}>
+              {href ? (
+                <Link href={href} className="proof" {...(p.slug ? {} : {target: '_blank', rel: 'noreferrer'})}>
+                  {inner}
+                </Link>
+              ) : (
+                <div className="proof">{inner}</div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }

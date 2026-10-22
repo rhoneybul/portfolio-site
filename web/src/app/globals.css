@@ -349,6 +349,22 @@ main {
   margin-top: clamp(28px, 3.5vw, 48px);
 }
 
+.hero__aside {
+  margin-top: clamp(24px, 3vw, 40px);
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.hero__aside a {
+  color: var(--ink);
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+
+.hero__aside a:hover {
+  color: var(--accent);
+}
+
 .hero__help {
   font-family: var(--display);
   color: var(--accent);
@@ -641,83 +657,82 @@ a.proof:hover .proof__arrow {
   border: 0;
 }
 
-/* ---------- Statement (H.A) ---------- */
+/* ---------- Leadership: the separate offer, on night ---------- */
 
-.statement {
-  position: relative;
+.leadership {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(40px, 6vw, 96px);
   margin: clamp(80px, 10vw, 160px) var(--gutter) 0;
-  padding: clamp(64px, 8vw, 120px) clamp(24px, 5vw, 80px);
+  padding: clamp(48px, 7vw, 104px) clamp(24px, 5vw, 80px);
   border-radius: 28px;
   background: var(--dark);
-  color: #fff;
-  text-align: center;
-  overflow: hidden;
+  color: #f1efe9;
+  scroll-margin-top: 24px;
 }
 
-.statement__kicker {
-  font-size: clamp(20px, 2.2vw, 30px);
-  color: #d8d9db;
+.leadership__main {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  justify-items: start;
 }
 
-.statement__big {
+.leadership__title {
   font-family: var(--display);
+  font-weight: 400;
   color: var(--accent);
   text-transform: uppercase;
-  font-size: clamp(44px, 7.5vw, 124px);
-  line-height: 0.95;
-  margin-top: 14px;
+  font-size: clamp(44px, 6vw, 96px);
+  line-height: 0.9;
+  text-wrap: balance;
 }
 
-.statement__link {
-  display: inline-flex;
-  gap: 10px;
-  margin-top: 28px;
-  color: var(--accent);
+.leadership__name {
+  font-size: clamp(24px, 2.4vw, 34px);
   font-weight: 600;
-  text-underline-offset: 4px;
+  letter-spacing: -0.03em;
 }
 
-.squiggle {
-  position: absolute;
-  width: 64px;
-  fill: none;
-  stroke-width: 3.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.leadership__summary {
+  font-size: clamp(17px, 1.5vw, 20px);
+  line-height: 1.6;
+  color: var(--dark-muted);
+  max-width: 52ch;
 }
 
-.squiggle--a {
-  top: 14%;
-  left: 18%;
-  stroke: var(--accent);
+.leadership .btn-primary:hover {
+  color: #fff;
 }
 
-.squiggle--b {
-  top: 18%;
-  right: 16%;
-  stroke: #e6e8ea;
+.leadership__side {
+  display: grid;
+  gap: 40px;
+  align-content: start;
 }
 
-.squiggle--c {
-  bottom: 34%;
-  left: 10%;
-  stroke: #7b7f86;
+.leadership .service__proof ul {
+  border-top-color: var(--accent);
 }
 
-.squiggle--d {
-  bottom: 30%;
-  right: 12%;
-  stroke: var(--accent);
+.leadership .proof {
+  border-bottom-color: #2a2d31;
+}
+
+.leadership .proof__title {
+  color: #f1efe9;
+}
+
+.leadership .proof__detail {
+  color: var(--dark-muted);
 }
 
 .stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
-  margin-top: clamp(56px, 7vw, 96px);
-  padding-top: 40px;
-  border-top: 1px solid #2a2d31;
-  text-align: left;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 24px;
 }
 
 .stats dt {
@@ -1072,6 +1087,11 @@ a.proof:hover .proof__arrow {
   text-transform: uppercase;
 }
 
+.plan__price--words {
+  font-size: clamp(40px, 5vw, 80px);
+  line-height: 0.95;
+}
+
 .plan__unit {
   font-family: var(--sans);
   font-size: clamp(18px, 1.6vw, 22px);
@@ -1312,6 +1332,7 @@ a.proof:hover .proof__arrow {
   }
 
   .intro,
+  .leadership,
   .case__intro,
   .case__content {
     grid-template-columns: minmax(0, 1fr);
@@ -1351,10 +1372,6 @@ a.proof:hover .proof__arrow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .squiggle--c,
-  .squiggle--d {
-    display: none;
-  }
 }
 
 @media (max-width: 600px) {
@@ -1394,19 +1411,6 @@ a.proof:hover .proof__arrow {
 
 
 
-  .squiggle {
-    width: 40px;
-  }
-
-  .squiggle--a {
-    top: 6%;
-    left: 8%;
-  }
-
-  .squiggle--b {
-    top: 8%;
-    right: 8%;
-  }
 
 
   .contact__wordmark {

@@ -31,7 +31,7 @@ export default async function PricingPage() {
                   <span className="plan__index">{String(i + 1).padStart(2, '0')}</span>
                   <div className="plan__head">
                     <h2 className="plan__name">{plan.name}</h2>
-                    <p className="plan__price">
+                    <p className={`plan__price${(plan.price ?? '').length > 6 ? ' plan__price--words' : ''}`}>
                       {plan.price}
                       {plan.unit && <span className="plan__unit"> / {plan.unit}</span>}
                     </p>

@@ -9,6 +9,19 @@ export const service = defineType({
   fields: [
     defineField({name: 'title', type: 'string', validation: (rule) => rule.required()}),
     defineField({
+      name: 'track',
+      description: 'Main offers lead the landing page; leadership has its own section',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Main offer', value: 'main'},
+          {title: 'Leadership', value: 'leadership'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'main',
+    }),
+    defineField({
       name: 'need',
       title: 'Headline need',
       description:

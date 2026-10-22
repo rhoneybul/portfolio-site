@@ -239,7 +239,7 @@ def card_front():
     W, H, m = 850, 550, 50
     b = dot(m + 7, m + 7, 7, SIGNAL)
     b += label(m + 22, m + 13, 'Rob Honeybul', 18, SIGNAL)
-    b += label(m, m + 38, 'Founder, Olaz AI', 18, SIGNAL, MEDIUM)
+    b += label(m, m + 38, 'Director, Olaz AI', 18, SIGNAL, MEDIUM)
     b += label(m, m + 63, 'Technical leadership & AI engineering', 18, SIGNAL, MEDIUM)
     mark, _ = wordmark(m + 14, H - m - 200 * 0.16, 200, SIGNAL)
     return svg(W, H, b + mark, PAPER)

@@ -11,7 +11,7 @@ export const HOME_QUERY = defineQuery(`{
     socials[]{_key, label, url}
   },
   "services": *[_type == "service"] | order(order asc){
-    _id, title, need, summary, deliverables,
+    _id, title, track, need, summary, deliverables,
     proof[]{_key, title, detail, url, "slug": project->slug.current}
   },
   "projects": *[_type == "project" && defined(slug.current)] | order(order asc){
