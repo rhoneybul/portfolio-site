@@ -98,58 +98,57 @@ def svg(w, h, body, bg=None, title='Olaz AI'):
 
 
 # ---------- The mark ----------
-# "OLAZ" in Gloock (ola: Spanish for wave) with a solid dot at the top right, on a soft swell.
+# "OLAZ" in Gloock (ola: Spanish for wave) at the waterline: solid above a gentle wave, tinted below.
 # The same dot is the brand's status dot on the website.
 
 
-def swell(x0, x1, top, bottom):
-    """One soft swell: a single smooth crest across x0..x1 with tapered ends and a gentle
-    underside, so it floats behind the letters without hard edges."""
-    w = x1 - x0
-    h = bottom - top
-    rest = top + h * 0.62  # where the swell meets the water at either end
-    return (
-        f'M{x0:.2f} {rest:.2f}'
-        f' C{x0 + w * 0.24:.2f} {rest:.2f} {x0 + w * 0.36:.2f} {top:.2f} {x0 + w * 0.58:.2f} {top:.2f}'
-        f' C{x0 + w * 0.80:.2f} {top:.2f} {x0 + w * 0.86:.2f} {rest:.2f} {x1:.2f} {rest:.2f}'
-        f' C{x0 + w * 0.70:.2f} {bottom:.2f} {x0 + w * 0.30:.2f} {bottom:.2f} {x0:.2f} {rest:.2f} Z'
-    )
+def sine(xa, xb, y, amp, crests):
+    """A smooth sine-like wave from xa to xb centred on y, drawn with cubic curves."""
+    seg = (xb - xa) / (crests * 2)
+    k = seg * 0.3642  # control-point offset that approximates a sine half-period
+    d, x = f'M{xa:.2f} {y:.2f}', xa
+    for i in range(crests * 2):
+        py = y - amp if i % 2 == 0 else y + amp
+        d += f' C{x + k:.2f} {py:.2f} {x + seg - k:.2f} {py:.2f} {x + seg:.2f} {y:.2f}'
+        x += seg
+    return d
 
 
-def wordmark(x, baseline, size, color, dot=None, wave=True):
-    """OLAZ + its dot, sitting on a soft swell behind the letters.
+_clip_ids = iter(range(1, 10_000))
 
-    Returns (svg, bounds) with bounds as (x0, top, x1, bottom)."""
+
+def wordmark(x, baseline, size, color, water=None):
+    """OLAZ at the waterline: above a gentle wave the letters are solid, below it they sit
+    in the water as a pale tint (of `water`, else the letter colour).
+
+    Returns (svg, bounds) with bounds as (x0, top, x1, baseline)."""
     path, _ = text(DISPLAY, MARK, size, x, baseline, color, tracking=-0.01)
-    x0, _, x1, y1 = ink_bounds(DISPLAY, MARK, size, tracking=-0.01)
-    r = size * 0.085
-    cx = x + x1 + size * 0.05 + r
-    cy = baseline - y1 + r
-    accent = dot or color
-    body = ''
-    left, right, bottom = x + x0, cx + r, baseline
-    if wave:
-        # A light tint of the accent, behind the lower half of the letters
-        tint = 'fill="#FFFFFF" fill-opacity=".16"' if accent == PAPER else f'fill="{SIGNAL}" fill-opacity=".14"'
-        wave_top = baseline - y1 * 0.55
-        wave_bottom = baseline + size * 0.12
-        left, right = x + x0 - size * 0.14, cx + r + size * 0.1
-        body += f'<path d="{swell(left, right, wave_top, wave_bottom)}" {tint}/>'
-        bottom = wave_bottom
-    body += path + f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r:.2f}" fill="{accent}"/>'
-    return body, (left, baseline - y1, right, bottom)
+    x0, _, x1, cap = ink_bounds(DISPLAY, MARK, size, tracking=-0.01)
+    left, right = x + x0, x + x1
+    pad = size * 0.2
+    line = sine(left - pad, right + pad, baseline - cap * 0.3, size * 0.045, 2)
+    n = next(_clip_ids)
+    above = f'{line} L{right + pad:.2f} {baseline - cap - pad:.2f} L{left - pad:.2f} {baseline - cap - pad:.2f} Z'
+    below = f'{line} L{right + pad:.2f} {baseline + pad:.2f} L{left - pad:.2f} {baseline + pad:.2f} Z'
+    under = text(DISPLAY, MARK, size, x, baseline, water or color, tracking=-0.01)[0].replace('<path ', '<path fill-opacity=".3" ')
+    body = (
+        f'<defs><clipPath id="up{n}"><path d="{above}"/></clipPath>'
+        f'<clipPath id="dn{n}"><path d="{below}"/></clipPath></defs>'
+        f'<g clip-path="url(#up{n})">{path}</g><g clip-path="url(#dn{n})">{under}</g>'
+    )
+    return body, (left, baseline - cap, right, baseline)
 
 
-def logo_wordmark(color, bg=None, dot=None):
+def logo_wordmark(color, bg=None, water=None):
     size, pad = 200, 24
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
     w, h = x1 - x0 + pad * 2, base - top + pad * 2
-    body, _ = wordmark(pad - x0, pad - top, size, color, dot)
+    body, _ = wordmark(pad - x0, pad - top, size, color, water)
     return svg(w, h, body, bg)
 
 
-def logo_stacked(color, bg=None, sub=None, dot=None):
-    """OLAZ● over AI."""
+def logo_stacked(color, bg=None, sub=None, water=None):
+    """OLAZ over AI."""
     size, pad = 200, 28
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
     sub_size = size * 0.34
@@ -157,14 +156,14 @@ def logo_stacked(color, bg=None, sub=None, dot=None):
     sub_cap = cap_height(SEMIBOLD, sub_size)
     w = x1 - x0 + pad * 2
     h = (base - top) + gap + sub_cap + pad * 2
-    body, _ = wordmark(pad - x0, pad - top, size, color, dot)
+    body, _ = wordmark(pad - x0, pad - top, size, color, water)
     word_left = pad - x0 + ink_bounds(DISPLAY, MARK, size, -0.01)[0]
     sub_path, _ = text(SEMIBOLD, 'AI', sub_size, word_left, pad + (base - top) + gap + sub_cap, sub or color, 0.04)
     return svg(w, h, body + sub_path, bg)
 
 
-def logo_horizontal(color, bg=None, sub=None, dot=None):
-    """OLAZ● | AI on one line."""
+def logo_horizontal(color, bg=None, sub=None, water=None):
+    """OLAZ | AI on one line."""
     size, pad = 200, 28
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
     ion_h = base - top
@@ -175,7 +174,7 @@ def logo_horizontal(color, bg=None, sub=None, dot=None):
     _, sub_w = shape(SEMIBOLD, 'AI', sub_size, 0.04)
     w = sub_x + sub_w + pad
     h = ion_h + pad * 2
-    body, _ = wordmark(pad - x0, pad - top, size, color, dot)
+    body, _ = wordmark(pad - x0, pad - top, size, color, water)
     rule = f'<rect x="{rule_x:.2f}" y="{pad:.2f}" width="{size * 0.012:.2f}" height="{-top:.2f}" fill="{sub or color}"/>'
     sub_cap = cap_height(SEMIBOLD, sub_size)
     cap_h = -top
@@ -184,7 +183,7 @@ def logo_horizontal(color, bg=None, sub=None, dot=None):
 
 
 def icon(fg, bg, rounded=False, size=512, fill=0.74):
-    """The logo, OLAZ with its dot and swell, centred in a square: favicons, avatars, app icons."""
+    """The logo, OLAZ at its waterline, centred in a square: favicons, avatars, app icons."""
     _, (x0, top, x1, base) = wordmark(0, 0, 100, fg)
     scale = size * fill / (x1 - x0)
     w, h = (x1 - x0) * scale, (base - top) * scale
@@ -273,13 +272,13 @@ def build():
     files = {
         # logos
         'olaz-wordmark-signal.svg': logo_wordmark(SIGNAL),
-        'olaz-wordmark-ink.svg': logo_wordmark(INK, dot=SIGNAL),
+        'olaz-wordmark-ink.svg': logo_wordmark(INK, water=SIGNAL),
         'olaz-wordmark-paper.svg': logo_wordmark(PAPER),
         'olaz-logo-stacked-signal.svg': logo_stacked(SIGNAL),
-        'olaz-logo-stacked-ink.svg': logo_stacked(INK, sub=INK, dot=SIGNAL),
+        'olaz-logo-stacked-ink.svg': logo_stacked(INK, sub=INK, water=SIGNAL),
         'olaz-logo-stacked-paper.svg': logo_stacked(PAPER),
         'olaz-logo-horizontal-signal.svg': logo_horizontal(SIGNAL),
-        'olaz-logo-horizontal-ink.svg': logo_horizontal(INK, dot=SIGNAL),
+        'olaz-logo-horizontal-ink.svg': logo_horizontal(INK, water=SIGNAL),
         'olaz-logo-horizontal-paper.svg': logo_horizontal(PAPER),
         # icons: the logo in a square
         'olaz-icon-signal-on-paper.svg': icon(SIGNAL, PAPER),

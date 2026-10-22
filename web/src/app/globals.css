@@ -404,22 +404,6 @@ main {
   }
 }
 
-.wordmark {
-  position: relative;
-  isolation: isolate;
-}
-
-.wordmark__wave {
-  position: absolute;
-  z-index: -1;
-  left: calc(var(--gutter) + var(--indent) - 0.14em);
-  bottom: -0.1em;
-  width: 2.9em;
-  height: 0.55em;
-  fill: currentColor;
-  opacity: 0.14;
-}
-
 .marquee-role {
   color: var(--accent);
   text-transform: uppercase;
@@ -1273,6 +1257,16 @@ a.proof:hover .proof__arrow {
 }
 
 /* ---------- Footer ---------- */
+
+.wordmark-logo {
+  padding-left: calc(var(--gutter) + var(--indent) - 12px);
+}
+
+.wordmark-logo img {
+  display: block;
+  width: min(72vw, 620px);
+  height: auto;
+}
 
 .footer-mark {
   margin-top: clamp(96px, 12vw, 200px);

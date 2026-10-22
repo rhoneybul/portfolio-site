@@ -1,7 +1,7 @@
 # Olaz AI brand kit
 
-The logo is **OLAZ** in Gloock (*ola* is Spanish for wave) with a solid **dot** at its top right,
-sitting on a soft **swell**: one light, tinted wave behind the lower half of the letters. Lockups add **AI**. It shares the website's design language: paper background, one signal-orange
+The logo is **OLAZ** in Gloock (*ola* is Spanish for wave) at the **waterline**: above a gentle
+wave the letters are solid, below it they sit in the water as a 30% tint. Lockups add **AI**. It shares the website's design language: paper background, one signal-orange
 ink, Gloock for display and Inter Tight for everything else.
 
 Live guide with downloads: `/brand/index.html` on the website.
