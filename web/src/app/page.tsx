@@ -43,6 +43,7 @@ export default async function HomePage() {
       <main>
         {/* Hero: the offer, stated plainly. Each need opens to a short answer. */}
         <section className="hero">
+          <div className="hero__text">
           <h1 className="hero__lead">
             If you’re looking to…
             <span className="sr-only">
@@ -88,9 +89,33 @@ export default async function HomePage() {
               Need senior technical leadership instead? <a href="#leadership">Fractional CTO and team building</a>
             </p>
           )}
+          </div>
+
+          {settings?.portrait?.asset && (
+            <figure className="hero__portrait">
+              <div className="hero__photo">
+                <Image
+                  src={urlFor(settings.portrait).width(900).height(1125).url()}
+                  alt={settings.portrait.alt ?? settings.name ?? ''}
+                  width={900}
+                  height={1125}
+                  priority
+                  sizes="(max-width: 900px) 70vw, 30vw"
+                />
+                {/* The brand's waterline: below the wave the photo sits in the water */}
+                <svg className="hero__water" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden>
+                  <path d="M0 10C14 10 22 2 36 2S58 12 72 12 90 4 100 4V40H0Z" />
+                </svg>
+              </div>
+              <figcaption>
+                <span>{settings?.name}</span>
+                <span>Director, {BRAND}</span>
+              </figcaption>
+            </figure>
+          )}
         </section>
 
-        {/* Intro: one statement, one action, a clean portrait */}
+        {/* Intro: one statement, one action */}
         <section id="about" className="intro">
           <div className="intro__text">
             <h2 className="intro__headline">
@@ -121,23 +146,6 @@ export default async function HomePage() {
               </ul>
             )}
           </div>
-
-          <figure className="portrait">
-            {settings?.portrait?.asset && (
-              <Image
-                src={urlFor(settings.portrait).width(800).height(1000).url()}
-                alt={settings.portrait.alt ?? settings.name ?? ''}
-                width={800}
-                height={1000}
-                priority
-                sizes="(max-width: 900px) 60vw, 280px"
-              />
-            )}
-            <figcaption>
-              <span>{settings?.name}</span>
-              <span>Director, {BRAND}</span>
-            </figcaption>
-          </figure>
         </section>
 
         {/* Services: the three focus areas */}
