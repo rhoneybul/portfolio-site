@@ -5,15 +5,11 @@ import {HOME_QUERY} from '@/sanity/queries'
 import {getSettings} from '@/sanity/settings'
 import {urlFor} from '@/sanity/image'
 import {TopBar} from '@/components/top-bar'
-import {BRAND, BRAND_MARK} from '@/brand'
+import {BRAND} from '@/brand'
 import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {RichText} from '@/components/rich-text'
 import {BookCall} from '@/components/book-call'
-import {Marquee} from '@/components/marquee'
-import {ScrollBadge} from '@/components/scroll-badge'
-import {SocialIcon} from '@/components/icons'
-import {ToolIcon, brandColor} from '@/components/tool-icon'
 
 function Headline({text, accent}: {text: string; accent?: string | null}) {
   if (!accent || !text.includes(accent)) return <>{text}</>
@@ -41,62 +37,53 @@ export default async function HomePage() {
       <TopBar settings={settingsMeta} />
 
       <main>
-        {/* Wordmark hero + the key message */}
-        <section className="wordmark-hero">
-          <p className="wordmark" aria-hidden>
-            {BRAND_MARK}
-            <span className="charge" />
-            <svg className="wordmark__wave" viewBox="0 0 100 30" preserveAspectRatio="none">
-              <path d="M0 18.6C24 18.6 36 0 58 0S86 18.6 100 18.6C70 30 30 30 0 18.6Z" />
-            </svg>
-          </p>
-          <div className="needs">
-            <h1 className="needs__heading">
-              <span className="needs__lead">If you’re looking to…</span>
-              <span className="sr-only">
-                {services.map((s) => s.need).filter(Boolean).join(', ')}, {BRAND} can help.
-              </span>
-            </h1>
-            <ol className="needs__list" aria-hidden>
-              {services.map((s, i) => (
-                <li key={s._id}>
-                  <a href={`#service-${i + 1}`} tabIndex={-1}>
-                    <span className="needs__index">{String(i + 1).padStart(2, '0')}</span>
-                    <span className="needs__text">{s.need ?? s.title}</span>
-                    <span className="needs__arrow">↓︎</span>
-                  </a>
-                </li>
-              ))}
-            </ol>
-            <div className="needs__close">
-              <p className="needs__help">…I can help.</p>
-              {settings?.bookingUrl ? (
-                <BookCall url={settings.bookingUrl} label="Book a free 30-min call" />
-              ) : (
-                <a href="#contact" className="btn btn-primary">
-                  Get in touch <span aria-hidden>↗︎</span>
-                </a>
-              )}
-            </div>
-          </div>
-          <div className="wordmark-hero__foot">
-            <a href="#services" className="scroll-down">
-              Scroll down
-            </a>
-            <ScrollBadge href="#services" />
+        {/* Hero: the offer, stated plainly. Each need opens to a short answer. */}
+        <section className="hero">
+          <h1 className="hero__lead">
+            If you’re looking to…
+            <span className="sr-only">
+              {' '}
+              {services.map((s) => s.need).filter(Boolean).join(', ')}, {BRAND} can help.
+            </span>
+          </h1>
+          <ul className="needs">
+            {services.map((s, i) => (
+              <li key={s._id}>
+                <details className="need">
+                  <summary>
+                    <span className="need__text">{s.need ?? s.title}</span>
+                    <span className="need__toggle" aria-hidden />
+                  </summary>
+                  <div className="need__body">
+                    <p>{s.summary}</p>
+                    {!!s.proof?.length && (
+                      <p className="need__proof">
+                        {s.proof.map((p) => p.title).join(' · ')}
+                      </p>
+                    )}
+                    <a href={`#service-${i + 1}`} className="text-btn">
+                      How I do it
+                    </a>
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
+          <div className="hero__close">
+            <p className="hero__help">…I can help.</p>
+            {settings?.bookingUrl ? (
+              <BookCall url={settings.bookingUrl} label="Book a free 30-min call" />
+            ) : (
+              <a href="#contact" className="btn btn-primary">
+                Get in touch
+              </a>
+            )}
           </div>
         </section>
 
-        {/* Intro */}
+        {/* Intro: one statement, one action, a clean portrait */}
         <section id="about" className="intro">
           <div className="intro__text">
-            <span className="hello-tag">
-              Hi everyone 👋, I’m {settings?.name}
-              <i aria-hidden />
-              <i aria-hidden />
-              <i aria-hidden />
-              <i aria-hidden />
-            </span>
             <h2 className="intro__headline">
               <Headline text={settings?.headline ?? ''} accent={settings?.headlineAccent} />
             </h2>
@@ -106,64 +93,43 @@ export default async function HomePage() {
                 <BookCall url={settings.bookingUrl} label="Book a call" />
               ) : (
                 <a href="#contact" className="btn btn-primary">
-                  Get in touch <span aria-hidden>↗︎</span>
+                  Get in touch
                 </a>
               )}
               <Link href="/pricing" className="text-btn">
-                See pricing <span aria-hidden>→︎</span>
+                See pricing
               </Link>
             </div>
             {!!socials.length && (
-              <div className="find-me">
-                <span>Find me on:</span>
-                <ul>
-                  {socials.map((s) => (
-                    <li key={s.key}>
-                      <a href={s.url} target="_blank" rel="noreferrer" aria-label={s.label} title={s.label}>
-                        <SocialIcon name={s.label} />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <ul className="text-links intro__links">
+                {socials.map((s) => (
+                  <li key={s.key}>
+                    <a href={s.url} target="_blank" rel="noreferrer">
+                      {s.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
 
           <figure className="portrait">
-            <svg className="portrait__swoosh" viewBox="0 0 400 300" aria-hidden>
-              <path d="M40 250 L330 110" />
-              <path d="M150 280 L370 170" />
-            </svg>
-            <span className="portrait__squiggle" aria-hidden>
-              <svg viewBox="0 0 60 30">
-                <path d="M2 26 L18 6 L30 22 L44 4 L58 18" />
-              </svg>
-            </span>
             {settings?.portrait?.asset && (
               <Image
-                src={urlFor(settings.portrait).width(900).height(1100).url()}
+                src={urlFor(settings.portrait).width(800).height(1000).url()}
                 alt={settings.portrait.alt ?? settings.name ?? ''}
-                width={900}
-                height={1100}
+                width={800}
+                height={1000}
                 priority
-                sizes="(max-width: 860px) 90vw, 36vw"
+                sizes="(max-width: 900px) 60vw, 280px"
               />
             )}
-            {settings?.tools
-              ?.slice(0, 4)
-              .map((tool, i) => (
-                <span
-                  key={tool._key}
-                  className={`badge-float badge-float--${i + 1}`}
-                  title={tool.name ?? undefined}
-                  style={{'--brand': brandColor(tool.icon) ?? 'var(--accent)'} as React.CSSProperties}
-                >
-                  <ToolIcon name={tool.name ?? ''} slug={tool.icon} size={24} />
-                </span>
-              ))}
+            <figcaption>
+              <span>{settings?.name}</span>
+              <span>Founder, {BRAND}</span>
+            </figcaption>
           </figure>
         </section>
-
 
         {/* Services: the three focus areas */}
         <section id="services" className="section">

@@ -7,7 +7,6 @@ export const HOME_QUERY = defineQuery(`{
     about,
     stats[]{_key, value, label},
     process[]{_key, title, description},
-    "tools": tools[featured == true]{_key, name, icon},
     contactHeading, email, whatsapp, bookingUrl,
     socials[]{_key, label, url}
   },
