@@ -12,17 +12,17 @@ mkdirSync(pngDir, {recursive: true})
 
 // name -> list of [output suffix, width] ; default renders at 2x the SVG's own size
 const sizes = {
-  'ion-app-icon.svg': [['512', 512], ['180', 180], ['192', 192]],
-  'ion-icon-paper-on-signal.svg': [['512', 512]],
-  'ion-icon-signal-on-paper.svg': [['512', 512]],
-  'ion-icon-signal-on-night.svg': [['512', 512]],
-  'ion-favicon.svg': [['32', 32], ['48', 48], ['512', 512]],
-  'ion-linkedin-avatar.svg': [['', 400]],
-  'ion-og-image.svg': [['', 1200]],
-  'ion-og-image-night.svg': [['', 1200]],
-  'ion-linkedin-banner.svg': [['', 1584]],
-  'ion-business-card-front.svg': [['', 1004]],
-  'ion-business-card-back.svg': [['', 1004]],
+  'olaz-app-icon.svg': [['512', 512], ['180', 180], ['192', 192]],
+  'olaz-icon-paper-on-signal.svg': [['512', 512]],
+  'olaz-icon-signal-on-paper.svg': [['512', 512]],
+  'olaz-icon-signal-on-night.svg': [['512', 512]],
+  'olaz-favicon.svg': [['32', 32], ['48', 48], ['512', 512]],
+  'olaz-linkedin-avatar.svg': [['', 400]],
+  'olaz-og-image.svg': [['', 1200]],
+  'olaz-og-image-night.svg': [['', 1200]],
+  'olaz-linkedin-banner.svg': [['', 1584]],
+  'olaz-business-card-front.svg': [['', 1004]],
+  'olaz-business-card-back.svg': [['', 1004]],
 }
 
 const browser = await chromium.launch()

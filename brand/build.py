@@ -1,4 +1,4 @@
-"""Generate ION Consulting brand assets as SVG, with all type converted to outlines.
+"""Generate Olaz AI brand assets as SVG, with all type converted to outlines.
 
 Fonts (OFL, from Google Fonts) are read from brand/.fonts: Gloock-Regular.ttf and static
 Inter Tight instances InterTight-300/500/600.ttf (see README.md). Run: python3 brand/build.py
@@ -24,6 +24,7 @@ INK = '#161616'
 NIGHT = '#111315'
 
 DISPLAY = 'Gloock-Regular.ttf'
+MARK = 'OLAZ'  # the wordmark: ola, Spanish for wave
 LIGHT, MEDIUM, SEMIBOLD = 'InterTight-300.ttf', 'InterTight-500.ttf', 'InterTight-600.ttf'
 
 
@@ -88,7 +89,7 @@ def tracking_to_fit(name, s, size, width):
     return (width - natural) / (size * (len(s) - 1))
 
 
-def svg(w, h, body, bg=None, title='ION Consulting'):
+def svg(w, h, body, bg=None, title='Olaz AI'):
     rect = f'<rect width="{w}" height="{h}" fill="{bg}"/>' if bg else ''
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w:g} {h:g}" width="{w:g}" height="{h:g}">'
@@ -97,7 +98,7 @@ def svg(w, h, body, bg=None, title='ION Consulting'):
 
 
 # ---------- The mark ----------
-# "ION" in Gloock with a charge: a solid dot at the top right, as an ion carries a charge.
+# "OLAZ" in Gloock (ola: Spanish for wave) with a solid dot at the top right, on a soft swell.
 # The same dot is the brand's status dot on the website.
 
 
@@ -116,11 +117,11 @@ def swell(x0, x1, top, bottom):
 
 
 def wordmark(x, baseline, size, color, dot=None, wave=True):
-    """ION + charge dot, sitting on a soft swell behind the letters.
+    """OLAZ + its dot, sitting on a soft swell behind the letters.
 
     Returns (svg, bounds) with bounds as (x0, top, x1, bottom)."""
-    path, _ = text(DISPLAY, 'ION', size, x, baseline, color, tracking=-0.01)
-    x0, _, x1, y1 = ink_bounds(DISPLAY, 'ION', size, tracking=-0.01)
+    path, _ = text(DISPLAY, MARK, size, x, baseline, color, tracking=-0.01)
+    x0, _, x1, y1 = ink_bounds(DISPLAY, MARK, size, tracking=-0.01)
     r = size * 0.085
     cx = x + x1 + size * 0.05 + r
     cy = baseline - y1 + r
@@ -148,45 +149,42 @@ def logo_wordmark(color, bg=None, dot=None):
 
 
 def logo_stacked(color, bg=None, sub=None, dot=None):
-    """ION● over CONSULTING, the word tracked to the width of ION."""
+    """OLAZ● over AI."""
     size, pad = 200, 28
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
-    ion_w = ink_bounds(DISPLAY, 'ION', size, -0.01)[2] - x0
-    # Size CONSULTING so that, tracked at 0.16em, it spans the width of ION
-    tr = 0.16
-    _, natural = shape(SEMIBOLD, 'CONSULTING', 100, tr)
-    sub_size = 100 * ion_w / natural
-    gap = size * 0.12
+    sub_size = size * 0.34
+    gap = size * 0.1
     sub_cap = cap_height(SEMIBOLD, sub_size)
     w = x1 - x0 + pad * 2
     h = (base - top) + gap + sub_cap + pad * 2
     body, _ = wordmark(pad - x0, pad - top, size, color, dot)
-    sub_path, _ = text(SEMIBOLD, 'CONSULTING', sub_size, pad, pad + (base - top) + gap + sub_cap, sub or color, tr)
+    word_left = pad - x0 + ink_bounds(DISPLAY, MARK, size, -0.01)[0]
+    sub_path, _ = text(SEMIBOLD, 'AI', sub_size, word_left, pad + (base - top) + gap + sub_cap, sub or color, 0.04)
     return svg(w, h, body + sub_path, bg)
 
 
 def logo_horizontal(color, bg=None, sub=None, dot=None):
-    """ION● | CONSULTING on one line."""
+    """OLAZ● | AI on one line."""
     size, pad = 200, 28
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
     ion_h = base - top
-    sub_size = size * 0.2
+    sub_size = size * 0.4
     gap = size * 0.16
     rule_x = pad + (x1 - x0) + gap
     sub_x = rule_x + gap
-    _, sub_w = shape(SEMIBOLD, 'CONSULTING', sub_size, 0.14)
+    _, sub_w = shape(SEMIBOLD, 'AI', sub_size, 0.04)
     w = sub_x + sub_w + pad
     h = ion_h + pad * 2
     body, _ = wordmark(pad - x0, pad - top, size, color, dot)
     rule = f'<rect x="{rule_x:.2f}" y="{pad:.2f}" width="{size * 0.012:.2f}" height="{-top:.2f}" fill="{sub or color}"/>'
     sub_cap = cap_height(SEMIBOLD, sub_size)
     cap_h = -top
-    sub_path, _ = text(SEMIBOLD, 'CONSULTING', sub_size, sub_x, pad + cap_h / 2 + sub_cap / 2, sub or color, 0.14)
+    sub_path, _ = text(SEMIBOLD, 'AI', sub_size, sub_x, pad + cap_h / 2 + sub_cap / 2, sub or color, 0.04)
     return svg(w, h, body + rule + sub_path, bg)
 
 
 def icon(fg, bg, rounded=False, size=512, fill=0.74):
-    """The logo, ION with its charge dot, centred in a square: favicons, avatars, app icons."""
+    """The logo, OLAZ with its dot and swell, centred in a square: favicons, avatars, app icons."""
     _, (x0, top, x1, base) = wordmark(0, 0, 100, fg)
     scale = size * fill / (x1 - x0)
     w, h = (x1 - x0) * scale, (base - top) * scale
@@ -211,11 +209,11 @@ def dot(cx, cy, r, color):
 def og_image(bg=PAPER, fg=SIGNAL):
     W, H, m = 1200, 630, 64
     b = dot(m + 9, m + 9, 9, fg)
-    b += label(m + 28, m + 16, 'ION Consulting', 22, fg)
+    b += label(m + 28, m + 16, 'Olaz AI', 22, fg)
     b += label(m, m + 46, 'Rob Honeybul · London', 22, fg, MEDIUM)
     b += label(W - m, m + 16, 'Technical leadership', 22, fg, MEDIUM, anchor='end')
     b += label(W - m, m + 46, '& AI engineering', 22, fg, MEDIUM, anchor='end')
-    mark, _ = wordmark(m - 6, 430, 330, fg)
+    mark, _ = wordmark(m + 26, 420, 290, fg)
     b += mark
     b += label(m, H - m, 'Free 30-minute intro call', 22, fg)
     b += label(W - m, H - m, 'Fractional CTO · AI strategy · Platforms', 22, fg, MEDIUM, anchor='end')
@@ -233,7 +231,7 @@ def linkedin_banner():
     tag, tw = text(LIGHT, 'TECHNICAL LEADERSHIP & AI ENGINEERING', 40, 0, 0, SIGNAL, -0.01)
     b += text(LIGHT, 'TECHNICAL LEADERSHIP & AI ENGINEERING', 40, W - m, 66 + (base - top) + 64, SIGNAL, -0.01, 'end')[0]
     b += dot(W - m - 9, 40, 8, SIGNAL)
-    b += label(W - m - 26, 47, 'ION Consulting · London · Free 30-minute intro call', 18, SIGNAL, anchor='end')
+    b += label(W - m - 26, 47, 'Olaz AI · London · Free 30-minute intro call', 18, SIGNAL, anchor='end')
     return svg(W, H, b, PAPER)
 
 
@@ -242,9 +240,9 @@ def card_front():
     W, H, m = 850, 550, 50
     b = dot(m + 7, m + 7, 7, SIGNAL)
     b += label(m + 22, m + 13, 'Rob Honeybul', 18, SIGNAL)
-    b += label(m, m + 38, 'Founder, ION Consulting', 18, SIGNAL, MEDIUM)
+    b += label(m, m + 38, 'Founder, Olaz AI', 18, SIGNAL, MEDIUM)
     b += label(m, m + 63, 'Technical leadership & AI engineering', 18, SIGNAL, MEDIUM)
-    mark, _ = wordmark(m - 4, H - m - 250 * 0.16, 250, SIGNAL)
+    mark, _ = wordmark(m + 14, H - m - 200 * 0.16, 200, SIGNAL)
     return svg(W, H, b + mark, PAPER)
 
 
@@ -274,28 +272,28 @@ def build():
     OUT.mkdir(exist_ok=True)
     files = {
         # logos
-        'ion-wordmark-signal.svg': logo_wordmark(SIGNAL),
-        'ion-wordmark-ink.svg': logo_wordmark(INK, dot=SIGNAL),
-        'ion-wordmark-paper.svg': logo_wordmark(PAPER),
-        'ion-logo-stacked-signal.svg': logo_stacked(SIGNAL),
-        'ion-logo-stacked-ink.svg': logo_stacked(INK, sub=INK, dot=SIGNAL),
-        'ion-logo-stacked-paper.svg': logo_stacked(PAPER),
-        'ion-logo-horizontal-signal.svg': logo_horizontal(SIGNAL),
-        'ion-logo-horizontal-ink.svg': logo_horizontal(INK, dot=SIGNAL),
-        'ion-logo-horizontal-paper.svg': logo_horizontal(PAPER),
+        'olaz-wordmark-signal.svg': logo_wordmark(SIGNAL),
+        'olaz-wordmark-ink.svg': logo_wordmark(INK, dot=SIGNAL),
+        'olaz-wordmark-paper.svg': logo_wordmark(PAPER),
+        'olaz-logo-stacked-signal.svg': logo_stacked(SIGNAL),
+        'olaz-logo-stacked-ink.svg': logo_stacked(INK, sub=INK, dot=SIGNAL),
+        'olaz-logo-stacked-paper.svg': logo_stacked(PAPER),
+        'olaz-logo-horizontal-signal.svg': logo_horizontal(SIGNAL),
+        'olaz-logo-horizontal-ink.svg': logo_horizontal(INK, dot=SIGNAL),
+        'olaz-logo-horizontal-paper.svg': logo_horizontal(PAPER),
         # icons: the logo in a square
-        'ion-icon-signal-on-paper.svg': icon(SIGNAL, PAPER),
-        'ion-icon-paper-on-signal.svg': icon(PAPER, SIGNAL),
-        'ion-icon-signal-on-night.svg': icon(SIGNAL, NIGHT),
-        'ion-favicon.svg': icon(SIGNAL, PAPER, fill=0.9),
-        'ion-app-icon.svg': icon(PAPER, SIGNAL, rounded=True),
-        'ion-linkedin-avatar.svg': icon(PAPER, SIGNAL, size=400, fill=0.62),
+        'olaz-icon-signal-on-paper.svg': icon(SIGNAL, PAPER),
+        'olaz-icon-paper-on-signal.svg': icon(PAPER, SIGNAL),
+        'olaz-icon-signal-on-night.svg': icon(SIGNAL, NIGHT),
+        'olaz-favicon.svg': icon(SIGNAL, PAPER, fill=0.9),
+        'olaz-app-icon.svg': icon(PAPER, SIGNAL, rounded=True),
+        'olaz-linkedin-avatar.svg': icon(PAPER, SIGNAL, size=400, fill=0.62),
         # applications
-        'ion-og-image.svg': og_image(),
-        'ion-og-image-night.svg': og_image(NIGHT, SIGNAL),
-        'ion-linkedin-banner.svg': linkedin_banner(),
-        'ion-business-card-front.svg': card_front(),
-        'ion-business-card-back.svg': card_back(),
+        'olaz-og-image.svg': og_image(),
+        'olaz-og-image-night.svg': og_image(NIGHT, SIGNAL),
+        'olaz-linkedin-banner.svg': linkedin_banner(),
+        'olaz-business-card-front.svg': card_front(),
+        'olaz-business-card-back.svg': card_back(),
     }
     for name, content in files.items():
         (OUT / name).write_text(content)

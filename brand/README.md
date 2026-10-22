@@ -1,7 +1,7 @@
-# ION Consulting brand kit
+# Olaz AI brand kit
 
-The logo is **ION** in Gloock with a solid **charge dot** at its top right (an ion is an atom
-with a charge) sitting on a soft **swell**: one light, tinted wave behind the lower half of the letters. It shares the website's design language: paper background, one signal-orange
+The logo is **OLAZ** in Gloock (*ola* is Spanish for wave) with a solid **dot** at its top right,
+sitting on a soft **swell**: one light, tinted wave behind the lower half of the letters. Lockups add **AI**. It shares the website's design language: paper background, one signal-orange
 ink, Gloock for display and Inter Tight for everything else.
 
 Live guide with downloads: `/brand/index.html` on the website.
@@ -36,4 +36,4 @@ brand/sync.sh                     # copies the kit to web/public/brand
 
 The website's favicon (`web/src/app/icon.svg`), Apple icon and social image
 (`web/src/app/opengraph-image.png`, `twitter-image.png`) are copies of
-`ion-favicon.svg`, `ion-app-icon-180.png` and `ion-og-image.png`.
+`olaz-favicon.svg`, `olaz-app-icon-180.png` and `olaz-og-image.png`.

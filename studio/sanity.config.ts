@@ -6,7 +6,7 @@ import {SINGLETONS, structure} from './structure'
 
 export default defineConfig({
   name: 'default',
-  title: 'ION Consulting',
+  title: 'Olaz AI',
 
   projectId: '9q3oqv8p',
   dataset: 'production',
