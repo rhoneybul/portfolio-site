@@ -29,8 +29,9 @@
   h2 { margin: 0 0 32px; font: 400 clamp(48px, 8vw, 120px)/0.85 Gloock, serif; color: var(--signal); text-transform: uppercase; }
   .lead { max-width: 60ch; color: var(--muted); margin: 0 0 32px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; border-top: 1.5px solid var(--signal); padding-top: 24px; }
-  .tile { display: grid; gap: 12px; align-content: start; }
-  .tile .art { display: grid; place-items: center; aspect-ratio: 16 / 10; padding: 32px; border: 1px solid var(--line); background: #fff; }
+  .tile { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start; min-width: 0; }
+  .tile .art { width: 100%; }
+  .tile .art { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; aspect-ratio: 16 / 10; padding: 32px; border: 1px solid var(--line); background: #fff; }
   .tile .art.paper { background: var(--paper); }
   .tile .art.night { background: var(--night); border-color: var(--night); }
   .tile .art.signal { background: var(--signal); border-color: var(--signal); }
@@ -68,13 +69,13 @@
 
 <div class="hero">
   <img src="svg/ion-logo-stacked-signal.svg" alt="ION Consulting logo">
-  <p>Logo, colour and type for ION Consulting: technical leadership and AI engineering by Rob Honeybul. An ion is an atom with a charge; the dot is ours.</p>
+  <p>Logo, colour and type for ION Consulting: technical leadership and AI engineering by Rob Honeybul. An ion is an atom with a charge; the dot is ours, and the wave carries it.</p>
 </div>
 
 <section>
   <span class="label">● Logo</span>
   <h2>The mark</h2>
-  <p class="lead">The wordmark is ION set in Gloock with a solid charge dot at its top right. Use the stacked logo where there is room, the horizontal one in narrow bars, and the wordmark alone once the name is already clear.</p>
+  <p class="lead">The wordmark is ION set in Gloock with a solid charge dot at its top right and a wave running beneath it, in the same signal ink. Use the stacked logo where there is room, the horizontal one in narrow bars, and the wordmark alone once the name is already clear.</p>
   <div class="grid">
     <div class="tile"><div class="art"><img src="svg/ion-logo-stacked-signal.svg" alt=""></div><h3>Stacked · Signal</h3><p class="dl"><a href="svg/ion-logo-stacked-signal.svg" download>SVG</a><a href="png/ion-logo-stacked-signal.png" download>PNG</a></p></div>
     <div class="tile"><div class="art"><img src="svg/ion-logo-stacked-ink.svg" alt=""></div><h3>Stacked · Ink</h3><p class="dl"><a href="svg/ion-logo-stacked-ink.svg" download>SVG</a><a href="png/ion-logo-stacked-ink.png" download>PNG</a></p></div>
@@ -144,7 +145,7 @@
     <li><strong>Clear space.</strong> Keep at least the height of the O's counter clear around the logo on every side.</li>
     <li><strong>Minimum size.</strong> Wordmark 24 px (8 mm) wide on screen, 18 mm in print.</li>
     <li><strong>One colour at a time.</strong> Signal on paper is the default; ink with a signal dot, or paper on signal and night, are the alternatives.</li>
-    <li><strong>Never</strong> stretch, outline, rotate, add effects to, or re-set the logo in another font, and never move or drop the charge dot.</li>
+    <li><strong>Never</strong> stretch, outline, rotate, add effects to, or re-set the logo in another font, and never move or drop the charge dot or the wave.</li>
     <li><strong>Name in text</strong> as “ION Consulting”: ION in capitals, never “Ion” or “I.O.N.”.</li>
     <li><strong>Voice.</strong> Plain, direct and specific: what we build and who it helps, never buzzwords.</li>
   </ul>

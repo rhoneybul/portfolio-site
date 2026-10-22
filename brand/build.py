@@ -101,15 +101,39 @@ def svg(w, h, body, bg=None, title='ION Consulting'):
 # The same dot is the brand's status dot on the website.
 
 
-def wordmark(x, baseline, size, color, dot=None):
-    """ION + charge dot. Returns (svg, bounds) with bounds as (x0, top, x1, baseline)."""
+def wave_path(x0, x1, y, amp, crests=3):
+    """A smooth sine-like wave from x0 to x1 centred on y, drawn with cubic curves."""
+    seg = (x1 - x0) / (crests * 2)
+    k = seg * 0.3642  # control-point offset that approximates a sine half-period
+    d = f'M{x0:.2f} {y:.2f}'
+    x = x0
+    for i in range(crests * 2):
+        peak = y - amp if i % 2 == 0 else y + amp
+        d += f' C{x + k:.2f} {peak:.2f} {x + seg - k:.2f} {peak:.2f} {x + seg:.2f} {y:.2f}'
+        x += seg
+    return d
+
+
+def wordmark(x, baseline, size, color, dot=None, wave=True):
+    """ION + charge dot, with a wave running under it.
+
+    Returns (svg, bounds) with bounds as (x0, top, x1, bottom)."""
     path, _ = text(DISPLAY, 'ION', size, x, baseline, color, tracking=-0.01)
     x0, _, x1, y1 = ink_bounds(DISPLAY, 'ION', size, tracking=-0.01)
     r = size * 0.085
     cx = x + x1 + size * 0.05 + r
     cy = baseline - y1 + r
-    circle = f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r:.2f}" fill="{dot or color}"/>'
-    return path + circle, (x + x0, baseline - y1, cx + r, baseline)
+    accent = dot or color
+    body = path + f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r:.2f}" fill="{accent}"/>'
+    bottom = baseline
+    if wave:
+        sw = size * 0.032
+        amp = size * 0.045
+        wy = baseline + size * 0.11
+        d = wave_path(x + x0, cx + r, wy, amp, crests=2)
+        body += f'<path d="{d}" fill="none" stroke="{accent}" stroke-width="{sw:.2f}" stroke-linecap="round"/>'
+        bottom = wy + amp + sw / 2
+    return body, (x + x0, baseline - y1, cx + r, bottom)
 
 
 def logo_wordmark(color, bg=None, dot=None):
@@ -151,9 +175,10 @@ def logo_horizontal(color, bg=None, sub=None, dot=None):
     w = sub_x + sub_w + pad
     h = ion_h + pad * 2
     body, _ = wordmark(pad - x0, pad - top, size, color, dot)
-    rule = f'<rect x="{rule_x:.2f}" y="{pad:.2f}" width="{size * 0.012:.2f}" height="{ion_h:.2f}" fill="{sub or color}"/>'
+    rule = f'<rect x="{rule_x:.2f}" y="{pad:.2f}" width="{size * 0.012:.2f}" height="{-top:.2f}" fill="{sub or color}"/>'
     sub_cap = cap_height(SEMIBOLD, sub_size)
-    sub_path, _ = text(SEMIBOLD, 'CONSULTING', sub_size, sub_x, pad + ion_h / 2 + sub_cap / 2, sub or color, 0.14)
+    cap_h = -top
+    sub_path, _ = text(SEMIBOLD, 'CONSULTING', sub_size, sub_x, pad + cap_h / 2 + sub_cap / 2, sub or color, 0.14)
     return svg(w, h, body + rule + sub_path, bg)
 
 
@@ -187,7 +212,7 @@ def og_image(bg=PAPER, fg=SIGNAL):
     b += label(m, m + 46, 'Rob Honeybul · London', 22, fg, MEDIUM)
     b += label(W - m, m + 16, 'Technical leadership', 22, fg, MEDIUM, anchor='end')
     b += label(W - m, m + 46, '& AI engineering', 22, fg, MEDIUM, anchor='end')
-    mark, _ = wordmark(m - 6, 452, 330, fg)
+    mark, _ = wordmark(m - 6, 430, 330, fg)
     b += mark
     b += label(m, H - m, 'Free 30-minute intro call', 22, fg)
     b += label(W - m, H - m, 'Fractional CTO · AI strategy · Platforms', 22, fg, MEDIUM, anchor='end')
@@ -200,7 +225,7 @@ def linkedin_banner():
     b = ''
     mark, (x0, top, x1, base) = wordmark(0, 0, 250, SIGNAL)
     mw = x1 - x0
-    mark, _ = wordmark(W - m - mw - x0, 66 + (base - top), 250, SIGNAL)
+    mark, _ = wordmark(W - m - mw - x0, 66 - top, 250, SIGNAL)
     b += mark
     tag, tw = text(LIGHT, 'TECHNICAL LEADERSHIP & AI ENGINEERING', 40, 0, 0, SIGNAL, -0.01)
     b += text(LIGHT, 'TECHNICAL LEADERSHIP & AI ENGINEERING', 40, W - m, 66 + (base - top) + 64, SIGNAL, -0.01, 'end')[0]
@@ -216,7 +241,7 @@ def card_front():
     b += label(m + 22, m + 13, 'Rob Honeybul', 18, SIGNAL)
     b += label(m, m + 38, 'Founder, ION Consulting', 18, SIGNAL, MEDIUM)
     b += label(m, m + 63, 'Technical leadership & AI engineering', 18, SIGNAL, MEDIUM)
-    mark, _ = wordmark(m - 4, H - m, 250, SIGNAL)
+    mark, _ = wordmark(m - 4, H - m - 250 * 0.16, 250, SIGNAL)
     return svg(W, H, b + mark, PAPER)
 
 
@@ -236,7 +261,7 @@ def card_back():
         b += f'<rect x="{m}" y="{y + 16}" width="{W - 2 * m}" height="1.2" fill="{PAPER}" opacity=".35"/>'
         y += 52
     mark, (x0, top, x1, base) = wordmark(0, 0, 120, PAPER)
-    mark, _ = wordmark(m - x0, m + (base - top), 120, PAPER)
+    mark, _ = wordmark(m - x0, m - top, 120, PAPER)
     b += mark
     b += label(W - m, m + 16, 'Let’s talk', 18, PAPER, anchor='end')
     return svg(W, H, b, SIGNAL)

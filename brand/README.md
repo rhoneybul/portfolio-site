@@ -1,7 +1,7 @@
 # ION Consulting brand kit
 
 The logo is **ION** in Gloock with a solid **charge dot** at its top right (an ion is an atom
-with a charge). It shares the website's design language: paper background, one signal-orange
+with a charge) and a **wave** running beneath it. It shares the website's design language: paper background, one signal-orange
 ink, Gloock for display and Inter Tight for everything else.
 
 Live guide with downloads: `/brand/index.html` on the website.
