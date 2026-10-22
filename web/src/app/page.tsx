@@ -45,7 +45,7 @@ export default async function HomePage() {
         <section className="hero">
           <div className="hero__text">
           <h1 className="hero__lead">
-            If you’re looking to…
+            If you’re looking to
             <span className="sr-only">
               {' '}
               {services.map((s) => s.need).filter(Boolean).join(', ')}, {BRAND} can help.
@@ -75,7 +75,7 @@ export default async function HomePage() {
             ))}
           </ul>
           <div className="hero__close">
-            <p className="hero__help">…I can help.</p>
+            <p className="hero__help">I can help.</p>
             {settings?.bookingUrl ? (
               <BookCall url={settings.bookingUrl} label="Book a free 30-min call" />
             ) : (
