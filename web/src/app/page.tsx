@@ -46,8 +46,8 @@ export default async function HomePage() {
           <p className="wordmark" aria-hidden>
             {BRAND_MARK}
             <span className="charge" />
-            <svg className="wordmark__wave" viewBox="0 0 400 40" preserveAspectRatio="none">
-              <path d="M4 20 C40 2 60 2 100 20 S160 38 200 20 S260 2 300 20 S360 38 396 20" />
+            <svg className="wordmark__wave" viewBox="0 0 100 30" preserveAspectRatio="none">
+              <path d="M0 18.6C24 18.6 36 0 58 0S86 18.6 100 18.6C70 30 30 30 0 18.6Z" />
             </svg>
           </p>
           <div className="needs">

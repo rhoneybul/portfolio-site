@@ -101,21 +101,22 @@ def svg(w, h, body, bg=None, title='ION Consulting'):
 # The same dot is the brand's status dot on the website.
 
 
-def wave_path(x0, x1, y, amp, crests=3):
-    """A smooth sine-like wave from x0 to x1 centred on y, drawn with cubic curves."""
-    seg = (x1 - x0) / (crests * 2)
-    k = seg * 0.3642  # control-point offset that approximates a sine half-period
-    d = f'M{x0:.2f} {y:.2f}'
-    x = x0
-    for i in range(crests * 2):
-        peak = y - amp if i % 2 == 0 else y + amp
-        d += f' C{x + k:.2f} {peak:.2f} {x + seg - k:.2f} {peak:.2f} {x + seg:.2f} {y:.2f}'
-        x += seg
-    return d
+def swell(x0, x1, top, bottom):
+    """One soft swell: a single smooth crest across x0..x1 with tapered ends and a gentle
+    underside, so it floats behind the letters without hard edges."""
+    w = x1 - x0
+    h = bottom - top
+    rest = top + h * 0.62  # where the swell meets the water at either end
+    return (
+        f'M{x0:.2f} {rest:.2f}'
+        f' C{x0 + w * 0.24:.2f} {rest:.2f} {x0 + w * 0.36:.2f} {top:.2f} {x0 + w * 0.58:.2f} {top:.2f}'
+        f' C{x0 + w * 0.80:.2f} {top:.2f} {x0 + w * 0.86:.2f} {rest:.2f} {x1:.2f} {rest:.2f}'
+        f' C{x0 + w * 0.70:.2f} {bottom:.2f} {x0 + w * 0.30:.2f} {bottom:.2f} {x0:.2f} {rest:.2f} Z'
+    )
 
 
 def wordmark(x, baseline, size, color, dot=None, wave=True):
-    """ION + charge dot, with a wave running under it.
+    """ION + charge dot, sitting on a soft swell behind the letters.
 
     Returns (svg, bounds) with bounds as (x0, top, x1, bottom)."""
     path, _ = text(DISPLAY, 'ION', size, x, baseline, color, tracking=-0.01)
@@ -124,16 +125,18 @@ def wordmark(x, baseline, size, color, dot=None, wave=True):
     cx = x + x1 + size * 0.05 + r
     cy = baseline - y1 + r
     accent = dot or color
-    body = path + f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r:.2f}" fill="{accent}"/>'
-    bottom = baseline
+    body = ''
+    left, right, bottom = x + x0, cx + r, baseline
     if wave:
-        sw = size * 0.032
-        amp = size * 0.045
-        wy = baseline + size * 0.11
-        d = wave_path(x + x0, cx + r, wy, amp, crests=2)
-        body += f'<path d="{d}" fill="none" stroke="{accent}" stroke-width="{sw:.2f}" stroke-linecap="round"/>'
-        bottom = wy + amp + sw / 2
-    return body, (x + x0, baseline - y1, cx + r, bottom)
+        # A light tint of the accent, behind the lower half of the letters
+        tint = 'fill="#FFFFFF" fill-opacity=".16"' if accent == PAPER else f'fill="{SIGNAL}" fill-opacity=".14"'
+        wave_top = baseline - y1 * 0.55
+        wave_bottom = baseline + size * 0.12
+        left, right = x + x0 - size * 0.14, cx + r + size * 0.1
+        body += f'<path d="{swell(left, right, wave_top, wave_bottom)}" {tint}/>'
+        bottom = wave_bottom
+    body += path + f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r:.2f}" fill="{accent}"/>'
+    return body, (left, baseline - y1, right, bottom)
 
 
 def logo_wordmark(color, bg=None, dot=None):
