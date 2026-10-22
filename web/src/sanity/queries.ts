@@ -4,14 +4,11 @@ export const HOME_QUERY = defineQuery(`{
   "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{
     name, role, location, availability, headline, headlineAccent, intro,
     portrait{asset, hotspot, crop, alt},
-    about,
-    stats[]{_key, value, label},
-    process[]{_key, title, description},
     contactHeading, email, whatsapp, bookingUrl,
     socials[]{_key, label, url}
   },
   "services": *[_type == "service"] | order(order asc){
-    _id, title, track, need, summary, deliverables,
+    _id, title, track, need, summary,
     proof[]{_key, title, detail, url, "slug": project->slug.current}
   },
   "projects": *[_type == "project" && defined(slug.current)] | order(order asc){

@@ -1,13 +1,12 @@
 import type {Settings} from '@/sanity/settings'
 import {BookCall} from './book-call'
 import {Marquee} from './marquee'
+import {Arrow} from '@/components/arrow'
 
 export function ContactSection({settings}: {settings: Settings}) {
   const whatsapp = settings?.whatsapp
-  const links = [
-    ...(settings?.socials ?? []).map((s) => ({label: s.label ?? '', href: s.url ?? '#'})),
-    whatsapp && {label: 'WhatsApp', href: `https://wa.me/${whatsapp}`},
-  ].filter(Boolean) as {label: string; href: string}[]
+  // WhatsApp has its own button above, so the links are the socials only
+  const links = (settings?.socials ?? []).map((s) => ({label: s.label ?? '', href: s.url ?? '#'}))
 
   return (
     <section id="contact" className="contact">
@@ -31,7 +30,7 @@ export function ContactSection({settings}: {settings: Settings}) {
                 target="_blank"
                 rel="noreferrer"
               >
-                Message on WhatsApp <span aria-hidden>↗︎</span>
+                Message on WhatsApp <Arrow />
               </a>
             )}
           </div>

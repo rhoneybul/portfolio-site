@@ -12,6 +12,7 @@ import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {RichText} from '@/components/rich-text'
 import {Marquee} from '@/components/marquee'
+import {Arrow} from '@/components/arrow'
 
 type Props = {params: Promise<{slug: string}>}
 
@@ -65,7 +66,7 @@ export default async function ProjectPage({params}: Props) {
                   <dt className="label">Website</dt>
                   <dd>
                     <a href={project.url} target="_blank" rel="noreferrer">
-                      {project.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')} ↗︎
+                      {project.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')} <Arrow />
                     </a>
                   </dd>
                 </div>
@@ -111,7 +112,7 @@ export default async function ProjectPage({params}: Props) {
           {next?.slug && (
             <Link href={`/work/${next.slug}`} className="next-project">
               <span className="label">Next project</span>
-              <span className="next-project__title">{next.title} ↗︎</span>
+              <span className="next-project__title">{next.title} <Arrow /></span>
             </Link>
           )}
         </article>

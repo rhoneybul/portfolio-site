@@ -8,6 +8,7 @@ import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {BookCall} from '@/components/book-call'
 import {Marquee} from '@/components/marquee'
+import {Arrow} from '@/components/arrow'
 
 export const metadata: Metadata = {title: 'Pricing'}
 
@@ -54,7 +55,7 @@ export default async function PricingPage() {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        {plan.actionLabel ?? 'Get in touch'} <span aria-hidden>↗︎</span>
+                        {plan.actionLabel ?? 'Get in touch'} <Arrow />
                       </a>
                     ) : (
                       bookingUrl && <BookCall url={bookingUrl} label={plan.actionLabel ?? 'Book a call'} />

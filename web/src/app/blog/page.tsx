@@ -7,6 +7,7 @@ import {TopBar} from '@/components/top-bar'
 import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {Marquee} from '@/components/marquee'
+import {Arrow} from '@/components/arrow'
 
 export const metadata: Metadata = {title: 'Blog'}
 
@@ -45,7 +46,7 @@ export default async function BlogPage() {
                   teams from the first hire to Series A.
                 </p>
                 <Link href="/#contact" className="text-btn">
-                  Get in touch in the meantime <span aria-hidden>→︎</span>
+                  Get in touch in the meantime <Arrow direction="right" />
                 </Link>
               </div>
             </>
