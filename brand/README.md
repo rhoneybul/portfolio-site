@@ -1,6 +1,6 @@
-# Olaz AI brand kit
+# Tydel AI brand kit
 
-The logo is **OLAZ** in Gloock (*ola* is Spanish for wave) at the **waterline**: above a gentle
+The logo is **TYDEL** in Gloock (from *tidal*) at the **waterline**: above a gentle
 wave the letters are solid, below it they sit in the water as a 30% tint. Lockups add **AI**. It shares the website's design language: paper background, one signal-orange
 ink, Gloock for display and Inter Tight for everything else.
 
@@ -36,4 +36,4 @@ brand/sync.sh                     # copies the kit to web/public/brand
 
 The website's favicon (`web/src/app/icon.svg`), Apple icon and social image
 (`web/src/app/opengraph-image.png`, `twitter-image.png`) are copies of
-`olaz-favicon.svg`, `olaz-app-icon-180.png` and `olaz-og-image.png`.
+`tydel-favicon.svg`, `tydel-app-icon-180.png` and `tydel-og-image.png`.

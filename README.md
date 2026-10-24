@@ -1,6 +1,6 @@
-# Olaz AI website
+# Tydel AI website
 
-The site for Olaz AI, Rob Honeybul's technical leadership and AI engineering practice.
+The site for Tydel AI, Rob Honeybul's technical leadership and AI engineering practice.
 Brand kit (logo, colours, type, social and print assets): [`brand/`](brand/README.md), also served at `/brand/index.html`.
 
 Design follows the ANDSAVU portfolio (off-white, one red-orange ink, giant serif wordmark, marquee),
@@ -12,7 +12,7 @@ Monorepo with a standalone Sanity Studio and a Next.js site.
 ```
 studio/   Sanity Studio (project 9q3oqv8p, dataset production)
 web/      Next.js 16 App Router site, reads content from Sanity
-brand/    Olaz AI brand kit and its generators
+brand/    Tydel AI brand kit and its generators
 ```
 
 ## Editing content
