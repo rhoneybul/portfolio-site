@@ -1,7 +1,7 @@
 """Generate Fohm AI brand assets as SVG, with all type converted to outlines.
 
-Fonts (OFL, from Google Fonts) are read from brand/.fonts: DMSans-500/700.ttf and static
-Inter Tight instances InterTight-300/500/600.ttf (see README.md). Run: python3 brand/build.py
+Fonts (OFL, from Google Fonts) are read from brand/.fonts: static DM Sans instances, DMSans-500/700.ttf
+for the logo and DMSans-300/600-text.ttf for labels (see README.md). Run: python3 brand/build.py
 """
 
 import math
@@ -27,7 +27,8 @@ LOGO = 'DMSans-700.ttf'  # DM Sans Bold, at its largest optical size
 LOGO_TRACKING = -0.02
 LOGO_SUB = 'DMSans-500.ttf'  # the AI in the lockups
 WORD = 'fohm'  # foam, respelled
-LIGHT, MEDIUM, SEMIBOLD = 'InterTight-300.ttf', 'InterTight-500.ttf', 'InterTight-600.ttf'
+# one family throughout, the logo's
+LIGHT, MEDIUM, SEMIBOLD = 'DMSans-300-text.ttf', 'DMSans-500.ttf', 'DMSans-600-text.ttf'
 
 
 @lru_cache

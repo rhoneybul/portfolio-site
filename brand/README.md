@@ -3,7 +3,7 @@
 The logo is **fohm** (*foam*, respelled) in DM Sans Bold, lower case, with the **symbol** as its o:
 a round of sea, solid below a rising swell, three bubbles lifting off it. The symbol alone is the
 icon. Lockups add **AI**. It shares the website's design language: paper background, one
-signal-orange ink, DM Serif Display for large headings and Inter Tight for everything else.
+signal-orange ink, and one typeface, DM Sans, for the logo and everything else.
 
 Live guide with downloads: `/brand/index.html` on the website.
 
@@ -26,8 +26,8 @@ Live guide with downloads: `/brand/index.html` on the website.
 ## Rebuilding
 
 ```bash
-# fonts (OFL, Google Fonts) into brand/.fonts: DMSans-{500,700}.ttf (from DMSans[opsz,wght].ttf at
-# opsz 40) and InterTight-{300,500,600}.ttf (from InterTight[wght].ttf), made with fontTools' instancer
+# fonts (OFL, Google Fonts) into brand/.fonts, static instances of DMSans[opsz,wght].ttf made with
+# fontTools' instancer: DMSans-{500,700}.ttf at opsz 40, DMSans-{300,600}-text.ttf at opsz 14
 pip install fonttools uharfbuzz
 python3 brand/build.py            # SVGs
 node brand/render.mjs             # PNGs (needs playwright)

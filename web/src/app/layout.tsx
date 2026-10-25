@@ -1,14 +1,14 @@
 import {siteUrl} from '@/site-url'
 import type {Metadata} from 'next'
-import {DM_Serif_Display, Inter_Tight} from 'next/font/google'
+import {DM_Sans} from 'next/font/google'
 import {SanityLive} from '@/sanity/live'
 import {sanityFetch} from '@/sanity/live'
 import {SETTINGS_QUERY} from '@/sanity/queries'
 import {BRAND} from '@/brand'
 import './globals.css'
 
-const sans = Inter_Tight({subsets: ['latin'], variable: '--font-sans'})
-const display = DM_Serif_Display({subsets: ['latin'], weight: '400', variable: '--font-display'})
+// One family, the logo's: DM Sans, variable in weight and optical size
+const sans = DM_Sans({subsets: ['latin'], variable: '--font-sans', axes: ['opsz']})
 
 export async function generateMetadata(): Promise<Metadata> {
   const {data: settings} = await sanityFetch({query: SETTINGS_QUERY, stega: false})
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en-GB" className={`${sans.variable} ${display.variable}`}>
+    <html lang="en-GB" className={sans.variable}>
       <body id="top">
         {children}
         <SanityLive />

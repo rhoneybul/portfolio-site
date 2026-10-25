@@ -8,14 +8,14 @@
 <link rel="icon" href="svg/fohm-favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700&family=DM+Serif+Display&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <style>
   :root {
     --signal: #F4401B; --paper: #F6F6F6; --ink: #161616; --muted: #5f5f5f; --line: #dedede;
     --gutter: clamp(16px, 4vw, 56px);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 'Inter Tight', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 'DM Sans', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
   img { display: block; max-width: 100%; height: auto; }
   header { display: flex; justify-content: space-between; gap: 24px; padding: var(--gutter); color: var(--signal); text-transform: uppercase; font-size: 15px; }
@@ -26,7 +26,7 @@
   .hero p { margin: 24px 0 0; max-width: 48ch; font-size: clamp(19px, 2vw, 24px); color: var(--muted); }
   section { padding: 72px var(--gutter) 0; }
   .label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; text-transform: uppercase; color: var(--signal); }
-  h2 { margin: 0 0 32px; font: 400 clamp(48px, 8vw, 120px)/0.85 'DM Serif Display', serif; color: var(--signal); text-transform: uppercase; }
+  h2 { margin: 0 0 32px; font: 700 clamp(48px, 8vw, 120px)/0.9 'DM Sans', sans-serif; letter-spacing: -0.035em; color: var(--signal); }
   .lead { max-width: 60ch; color: var(--muted); margin: 0 0 32px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; border-top: 1.5px solid var(--signal); padding-top: 24px; }
   .tile { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start; min-width: 0; }
@@ -50,7 +50,7 @@
   .swatch code { font: 14px ui-monospace, monospace; color: var(--muted); }
   .type { display: grid; gap: 32px; border-top: 1.5px solid var(--signal); padding-top: 24px; }
   .type .logo-type { font: 700 clamp(40px, 12vw, 180px)/0.9 'DM Sans', sans-serif; letter-spacing: -0.02em; color: var(--signal); }
-  .type .display { font: 400 clamp(40px, 12vw, 180px)/0.85 'DM Serif Display', serif; overflow-wrap: anywhere; color: var(--signal); text-transform: uppercase; }
+  .type .display { font: 700 clamp(40px, 12vw, 180px)/0.9 'DM Sans', sans-serif; letter-spacing: -0.035em; overflow-wrap: anywhere; color: var(--signal); }
   .type .sans { font-size: clamp(28px, 4vw, 56px); font-weight: 300; text-transform: uppercase; color: var(--signal); }
   .type .body { max-width: 60ch; color: var(--muted); }
   .rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 24px 48px; border-top: 1.5px solid var(--signal); padding-top: 24px; margin: 0; padding-left: 0; list-style: none; }
@@ -117,12 +117,12 @@
 
 <section>
   <span class="label">● Type</span>
-  <h2>Three faces</h2>
+  <h2>One face</h2>
   <div class="type">
-    <div><span class="label">Logo · DM Sans Bold</span><div class="logo-type">fohm</div></div>
-    <div><span class="label">Display · DM Serif Display</span><div class="display">Fohm AI</div></div>
-    <div><span class="label">Labels & marquee · Inter Tight, uppercase</span><div class="sans">Technical leadership & AI engineering</div></div>
-    <div><span class="label">Body · Inter Tight</span><p class="body">All three are free (SIL Open Font License) on Google Fonts. DM Sans is for the logo only. DM Serif Display is for very large headings only, always in capitals. Inter Tight does everything else: semibold uppercase for labels, light uppercase for marquees, regular for reading.</p></div>
+    <div><span class="label">Logo · DM Sans Bold, lower case</span><div class="logo-type">fohm</div></div>
+    <div><span class="label">Headings · DM Sans Bold, as written</span><div class="display">Make your vision a reality</div></div>
+    <div><span class="label">Labels & marquee · DM Sans, uppercase</span><div class="sans">Technical leadership & AI engineering</div></div>
+    <div><span class="label">Body · DM Sans</span><p class="body">DM Sans is free (SIL Open Font License) on Google Fonts, and it does everything: bold for the logo and headings, semibold uppercase for labels, light uppercase for marquees, regular for reading.</p></div>
   </div>
 </section>
 
