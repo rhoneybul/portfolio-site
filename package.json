@@ -1,5 +1,5 @@
 {
-  "name": "rob-honeybul",
+  "name": "fohm",
   "private": true,
   "scripts": {
     "dev:web": "npm --prefix web run dev",

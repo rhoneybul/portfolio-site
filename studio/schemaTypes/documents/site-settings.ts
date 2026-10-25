@@ -268,7 +268,7 @@ export const siteSettings = defineType({
     defineField({
       name: 'bookingUrl',
       title: 'Booking link',
-      description: 'Cal.com or Calendly link for intro calls, e.g. https://cal.com/rob-honeybul/intro. Embedded on the site when set.',
+      description: 'Cal.com or Calendly link for intro calls, e.g. https://cal.com/fohm/intro. Embedded on the site when set.',
       type: 'url',
       group: 'contact',
     }),

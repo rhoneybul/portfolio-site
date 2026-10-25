@@ -5,9 +5,9 @@ export default defineCliConfig({
     projectId: '9q3oqv8p',
     dataset: 'production',
   },
-  studioHost: 'rob-honeybul',
+  studioHost: 'fohm',
   deployment: {
-    appId: 'ybp5h36sln7zk7q84y9ovlkh',
+    appId: 'ss9ynq6j9irimzmwvvw80dmo',
     autoUpdates: true,
   },
   typegen: {

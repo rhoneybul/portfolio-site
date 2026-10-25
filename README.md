@@ -20,7 +20,7 @@ brand/    Fohm AI brand kit and its generators
 All copy, services, work, experience, skills, your photo, CV, booking link and WhatsApp
 number live in Sanity. Edit them in the Studio and the site updates live (no redeploy).
 
-- Hosted Studio: https://rob-honeybul.sanity.studio (redeploy with `npm run deploy` in `studio/`)
+- Hosted Studio: https://fohm.sanity.studio (redeploy with `npm run deploy` in `studio/`)
 - Local Studio: `cd studio && npm install && npm run dev` → http://localhost:3333
 
 ## Local development
