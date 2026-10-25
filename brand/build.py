@@ -178,6 +178,74 @@ def foam(xa, xb, y, amp, crests, left, right, size, cap):
     return out
 
 
+# ---------- The symbol ----------
+# A round of sea at the waterline: the water solid below a rising swell, clipped to a circle,
+# three bubbles lifting off it. Drawn in a 400 box; SYMBOL_BOX is its ink bounds there.
+
+
+def _swell(u):
+    return 0.44 + 0.07 * math.sin(2 * math.pi * u * 0.85) - 0.30 * u ** 2.4
+
+
+def _symbol_parts():
+    x, y, w, h = 56, 56, 288, 288
+    pts = [(x + w * i / 80, y + h * _swell(i / 80)) for i in range(81)]
+    water = 'M' + ' L'.join(f'{a:.2f} {b:.2f}' for a, b in pts) + f' L{x + w} {y + h + 10} L{x} {y + h + 10} Z'
+    ax, ay = x + w * 0.18, y + h * _swell(0.18)
+    bubbles = [(ax, ay - 58, 18), (ax + 54, ay - 82, 11), (ax + 96, ay - 58, 7)]
+    return water, bubbles
+
+
+def _symbol_box():
+    water, bubbles = _symbol_parts()
+    # the water's ink: points of the swell inside the circle, and the circle below them
+    inside = [(200 + 144 * math.cos(t), 200 + 144 * math.sin(t)) for t in [i * math.pi / 180 for i in range(360)]]
+    xs, ys = [], []
+    for px, py in inside:
+        u = (px - 56) / 288
+        if 0 <= u <= 1 and py >= 56 + 288 * _swell(u):
+            xs.append(px); ys.append(py)
+    xs += [bx - r for bx, by, r in bubbles] + [bx + r for bx, by, r in bubbles]
+    ys += [by - r for bx, by, r in bubbles]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+SYMBOL_BOX = _symbol_box()
+
+
+def symbol(x, y, width, color):
+    """The symbol with its ink box's top left at (x, y), `width` wide. Returns (svg, height)."""
+    x0, y0, x1, y1 = SYMBOL_BOX
+    k = width / (x1 - x0)
+    water, bubbles = _symbol_parts()
+    n = next(_clip_ids)
+    dots = ''.join(f'<circle cx="{bx:.2f}" cy="{by:.2f}" r="{r}"/>' for bx, by, r in bubbles)
+    body = (f'<g transform="translate({x - x0 * k:.2f} {y - y0 * k:.2f}) scale({k:.5f})" fill="{color}">'
+            f'<defs><clipPath id="sym{n}"><circle cx="200" cy="200" r="144"/></clipPath></defs>'
+            f'<path clip-path="url(#sym{n})" d="{water}"/>{dots}</g>')
+    return body, (y1 - y0) * k
+
+
+def logo_symbol(color, bg=None, size=400, fill=0.8):
+    x0, y0, x1, y1 = SYMBOL_BOX
+    w = size * fill
+    h = w * (y1 - y0) / (x1 - x0)
+    body, _ = symbol((size - w) / 2, (size - h) / 2, w, color)
+    return svg(size, size, body, bg)
+
+
+def logo_lockup(color, bg=None):
+    """The symbol beside the FOHM wordmark."""
+    size, pad = 200, 28
+    _, (x0, top, x1, base) = wordmark(0, 0, size, color)
+    cap = base - top
+    sw = cap * 1.05
+    sym, sh = symbol(pad, pad + (cap - sw * (SYMBOL_BOX[3] - SYMBOL_BOX[1]) / (SYMBOL_BOX[2] - SYMBOL_BOX[0])) / 2, sw, color)
+    gap = size * 0.16
+    word, _ = wordmark(pad + sw + gap - x0, pad - top, size, color)
+    return svg(pad + sw + gap + (x1 - x0) + pad, cap + pad * 2, sym + word, bg)
+
+
 def logo_wordmark(color, bg=None, water=None):
     size, pad = 200, 24
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
@@ -221,17 +289,14 @@ def logo_horizontal(color, bg=None, sub=None, water=None):
     return svg(w, h, body + rule + sub_path, bg)
 
 
-def icon(fg, bg, rounded=False, size=512, fill=0.74, mark=MARK[0]):
-    """The initial at its waterline, centred in a square: favicons, avatars, app icons.
-    A word is unreadable at favicon size, so the icon carries the initial alone."""
-    _, (x0, top, x1, base) = wordmark(0, 0, 100, fg, mark=mark)
-    scale = size * fill / max(x1 - x0, base - top)
-    w, h = (x1 - x0) * scale, (base - top) * scale
-    left = (size - w) / 2 - x0 * scale
-    baseline = (size + h) / 2
-    glyph, _ = wordmark(left, baseline, 100 * scale, fg, mark=mark)
+def icon(fg, bg, rounded=False, size=512, fill=0.74):
+    """The symbol centred in a square: favicons, avatars, app icons."""
+    x0, y0, x1, y1 = SYMBOL_BOX
+    w = size * fill
+    h = w * (y1 - y0) / (x1 - x0)
+    mark, _ = symbol((size - w) / 2, (size - h) / 2, w, fg)
     rx = size * 0.18 if rounded else 0
-    return svg(size, size, f'<rect width="{size}" height="{size}" rx="{rx:g}" fill="{bg}"/>{glyph}')
+    return svg(size, size, f'<rect width="{size}" height="{size}" rx="{rx:g}" fill="{bg}"/>{mark}')
 
 
 # ---------- Applications ----------
@@ -247,8 +312,8 @@ def dot(cx, cy, r, color):
 
 def og_image(bg=PAPER, fg=SIGNAL):
     W, H, m = 1200, 630, 64
-    b = dot(m + 9, m + 9, 9, fg)
-    b += label(m + 28, m + 16, 'Fohm AI', 22, fg)
+    b = symbol(m, m - 2, 22, fg)[0]
+    b += label(m + 32, m + 16, 'Fohm AI', 22, fg)
     b += label(m, m + 46, 'Rob Honeybul · London', 22, fg, MEDIUM)
     b += label(W - m, m + 16, 'Make your vision', 22, fg, MEDIUM, anchor='end')
     b += label(W - m, m + 46, 'a reality', 22, fg, MEDIUM, anchor='end')
@@ -268,15 +333,15 @@ def linkedin_banner():
     mark, _ = wordmark(W - m - mw - x0, 66 - top, 250, SIGNAL)
     b += mark
     b += text(LIGHT, 'MAKE YOUR VISION A REALITY', 40, W - m, 66 + (base - top) + 64, SIGNAL, -0.01, 'end')[0]
-    b += dot(W - m - 9, 40, 8, SIGNAL)
-    b += label(W - m - 26, 47, 'Fohm AI · London · Free 30-minute intro call', 18, SIGNAL, anchor='end')
+    b += symbol(W - m - 20, 30, 20, SIGNAL)[0]
+    b += label(W - m - 30, 47, 'Fohm AI · London · Free 30-minute intro call', 18, SIGNAL, anchor='end')
     return svg(W, H, b, PAPER)
 
 
 def card_front():
     # 85 x 55 mm at 10 units per mm
     W, H, m = 850, 550, 50
-    b = dot(m + 7, m + 7, 7, SIGNAL)
+    b = symbol(m - 2, m - 2, 18, SIGNAL)[0]
     b += label(m + 22, m + 13, 'Rob Honeybul', 18, SIGNAL)
     b += label(m, m + 38, 'Director, Fohm AI', 18, SIGNAL, MEDIUM)
     b += label(m, m + 63, 'Make your vision a reality', 18, SIGNAL, MEDIUM)
@@ -319,10 +384,16 @@ def build():
         'fohm-logo-horizontal-signal.svg': logo_horizontal(SIGNAL),
         'fohm-logo-horizontal-ink.svg': logo_horizontal(INK, water=SIGNAL),
         'fohm-logo-horizontal-paper.svg': logo_horizontal(PAPER),
-        # icons: the logo in a square
+        # the symbol, alone and beside the wordmark
+        'fohm-symbol-signal.svg': logo_symbol(SIGNAL),
+        'fohm-symbol-paper.svg': logo_symbol(PAPER),
+        'fohm-symbol-tight.svg': logo_symbol(SIGNAL, fill=1),  # edge to edge, for inline use
+        'fohm-lockup-signal.svg': logo_lockup(SIGNAL),
+        'fohm-lockup-paper.svg': logo_lockup(PAPER),
+        # icons: the symbol in a square
         'fohm-icon-signal-on-paper.svg': icon(SIGNAL, PAPER, fill=0.6),
         'fohm-icon-paper-on-signal.svg': icon(PAPER, SIGNAL, fill=0.6),
-        'fohm-favicon.svg': icon(SIGNAL, PAPER, fill=0.8),
+        'fohm-favicon.svg': icon(SIGNAL, PAPER, fill=0.86),
         'fohm-app-icon.svg': icon(PAPER, SIGNAL, rounded=True, fill=0.56),
         'fohm-linkedin-avatar.svg': icon(PAPER, SIGNAL, size=400, fill=0.5),
         # applications

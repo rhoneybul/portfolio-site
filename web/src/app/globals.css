@@ -188,28 +188,10 @@ main {
   opacity: 0.75;
 }
 
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--accent);
+.top-bar__mark {
+  width: 18px;
+  height: auto;
   flex: none;
-}
-
-.dot-available {
-  animation: pulse 2.4s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(244, 64, 27, 0.45);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(244, 64, 27, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(244, 64, 27, 0);
-  }
 }
 
 .top-bar__nav {

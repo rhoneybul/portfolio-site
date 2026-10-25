@@ -15,10 +15,14 @@ export function TopBar({settings, active}: {settings: Settings; active?: 'work' 
     <header className="top-bar">
       <Link href="/" className="top-bar__intro">
         <strong>
-          <span
-            className={`dot dot-${status}`}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="top-bar__mark"
+            src="/brand/svg/fohm-symbol-tight.svg"
+            alt=""
+            width={18}
+            height={18}
             title={settings?.availability?.label ?? STATUS_TITLE[status]}
-            aria-hidden
           />
           {BRAND}
         </strong>
