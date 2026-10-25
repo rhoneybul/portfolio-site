@@ -4,6 +4,8 @@ Fonts (OFL, from Google Fonts) are read from brand/.fonts: Gloock-Regular.ttf an
 Inter Tight instances InterTight-300/500/600.ttf (see README.md). Run: python3 brand/build.py
 """
 
+import math
+import random
 from functools import lru_cache
 from pathlib import Path
 
@@ -134,12 +136,47 @@ def wordmark(x, baseline, size, color, water=None, mark=MARK):
     above = f'{line} L{right + pad:.2f} {baseline - cap - pad:.2f} L{left - pad:.2f} {baseline - cap - pad:.2f} Z'
     below = f'{line} L{right + pad:.2f} {baseline + pad:.2f} L{left - pad:.2f} {baseline + pad:.2f} Z'
     under = text(DISPLAY, mark, size, x, baseline, water or color, tracking=-0.01)[0].replace('<path ', '<path fill-opacity=".3" ')
+    bubbles = ''.join(
+        f'<circle cx="{bx:.2f}" cy="{by:.2f}" r="{br:.2f}"/>'
+        for bx, by, br in foam(left - pad, right + pad, baseline - cap * 0.3, *swell, left, right, size, cap)
+    )
+    mx, my, mw, mh = left - pad, baseline - cap - pad, right - left + pad * 2, cap + pad * 2
     body = (
         f'<defs><clipPath id="up{n}"><path d="{above}"/></clipPath>'
-        f'<clipPath id="dn{n}"><path d="{below}"/></clipPath></defs>'
-        f'<g clip-path="url(#up{n})">{path}</g><g clip-path="url(#dn{n})">{under}</g>'
+        f'<clipPath id="dn{n}"><path d="{below}"/></clipPath>'
+        f'<mask id="fm{n}" maskUnits="userSpaceOnUse" x="{mx:.2f}" y="{my:.2f}" width="{mw:.2f}" height="{mh:.2f}">'
+        f'<rect x="{mx:.2f}" y="{my:.2f}" width="{mw:.2f}" height="{mh:.2f}" fill="#fff"/><g fill="#000">{bubbles}</g></mask></defs>'
+        f'<g mask="url(#fm{n})"><g clip-path="url(#up{n})">{path}</g><g clip-path="url(#dn{n})">{under}</g></g>'
     )
     return body, (left, baseline - cap, right, baseline)
+
+
+def foam(xa, xb, y, amp, crests, left, right, size, cap):
+    """Sea foam at the waterline: white bubbles punched out of the letters, packed
+    along the wave and thinning away from it, a few rising just above it; kept
+    small and low so no bubble breaks a thin stroke such as the H's crossbar.
+    Seeded, so every asset gets the same froth."""
+    rng = random.Random(7)
+    seg = (xb - xa) / (crests * 2)
+
+    def wave(px):
+        return y - amp * math.sin(math.pi * (px - xa) / seg)
+
+    out = []
+    px = left
+    while px < right:
+        for _ in range(3):
+            r = size * (0.005 + 0.016 * rng.random() ** 2.2)
+            # most froth sits on the line, spreading a little down into the water
+            # and a few bubbles rising into the solid letter
+            dy = rng.gauss(cap * 0.02, cap * 0.04)
+            if rng.random() < 0.08:
+                dy = -abs(rng.gauss(cap * 0.07, cap * 0.03))
+            bx, by = px + rng.uniform(-size * 0.01, size * 0.01), wave(px) + dy
+            if all(math.hypot(bx - ox, by - oy) > (r + orr) * 1.1 for ox, oy, orr in out):
+                out.append((bx, by, r))
+        px += size * 0.016
+    return out
 
 
 def logo_wordmark(color, bg=None, water=None):
