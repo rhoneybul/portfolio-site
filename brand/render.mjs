@@ -12,17 +12,17 @@ mkdirSync(pngDir, {recursive: true})
 
 // name -> list of [output suffix, width] ; default renders at 2x the SVG's own size
 const sizes = {
-  'tydel-app-icon.svg': [['512', 512], ['180', 180], ['192', 192]],
-  'tydel-icon-paper-on-signal.svg': [['512', 512]],
-  'tydel-icon-signal-on-paper.svg': [['512', 512]],
-  'tydel-icon-signal-on-night.svg': [['512', 512]],
-  'tydel-favicon.svg': [['32', 32], ['48', 48], ['512', 512]],
-  'tydel-linkedin-avatar.svg': [['', 400]],
-  'tydel-og-image.svg': [['', 1200]],
-  'tydel-og-image-night.svg': [['', 1200]],
-  'tydel-linkedin-banner.svg': [['', 1584]],
-  'tydel-business-card-front.svg': [['', 1004]],
-  'tydel-business-card-back.svg': [['', 1004]],
+  'fohm-app-icon.svg': [['512', 512], ['180', 180], ['192', 192]],
+  'fohm-icon-paper-on-signal.svg': [['512', 512]],
+  'fohm-icon-signal-on-paper.svg': [['512', 512]],
+  'fohm-icon-signal-on-night.svg': [['512', 512]],
+  'fohm-favicon.svg': [['32', 32], ['48', 48], ['512', 512]],
+  'fohm-linkedin-avatar.svg': [['', 400]],
+  'fohm-og-image.svg': [['', 1200]],
+  'fohm-og-image-night.svg': [['', 1200]],
+  'fohm-linkedin-banner.svg': [['', 1584]],
+  'fohm-business-card-front.svg': [['', 1004]],
+  'fohm-business-card-back.svg': [['', 1004]],
 }
 
 const browser = await chromium.launch()

@@ -6,7 +6,7 @@ import {SINGLETONS, structure} from './structure'
 
 export default defineConfig({
   name: 'default',
-  title: 'Tydel AI',
+  title: 'Fohm AI',
 
   projectId: '9q3oqv8p',
   dataset: 'production',

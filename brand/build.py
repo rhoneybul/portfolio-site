@@ -1,4 +1,4 @@
-"""Generate Tydel AI brand assets as SVG, with all type converted to outlines.
+"""Generate Fohm AI brand assets as SVG, with all type converted to outlines.
 
 Fonts (OFL, from Google Fonts) are read from brand/.fonts: Gloock-Regular.ttf and static
 Inter Tight instances InterTight-300/500/600.ttf (see README.md). Run: python3 brand/build.py
@@ -24,7 +24,7 @@ INK = '#161616'
 NIGHT = '#111315'
 
 DISPLAY = 'Gloock-Regular.ttf'
-MARK = 'TYDEL'  # the wordmark: tidal, respelled
+MARK = 'FOHM'  # the wordmark: foam, respelled
 LIGHT, MEDIUM, SEMIBOLD = 'InterTight-300.ttf', 'InterTight-500.ttf', 'InterTight-600.ttf'
 
 
@@ -89,7 +89,7 @@ def tracking_to_fit(name, s, size, width):
     return (width - natural) / (size * (len(s) - 1))
 
 
-def svg(w, h, body, bg=None, title='Tydel AI'):
+def svg(w, h, body, bg=None, title='Fohm AI'):
     rect = f'<rect width="{w}" height="{h}" fill="{bg}"/>' if bg else ''
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w:g} {h:g}" width="{w:g}" height="{h:g}">'
@@ -98,7 +98,7 @@ def svg(w, h, body, bg=None, title='Tydel AI'):
 
 
 # ---------- The mark ----------
-# "TYDEL" in Gloock (from tidal) at the waterline: solid above a gentle wave, tinted below.
+# "FOHM" in Gloock (foam, respelled) at the waterline: solid above a gentle wave, tinted below.
 # The same dot is the brand's status dot on the website.
 
 
@@ -118,7 +118,7 @@ _clip_ids = iter(range(1, 10_000))
 
 
 def wordmark(x, baseline, size, color, water=None, mark=MARK):
-    """TYDEL at the waterline: above a gentle wave the letters are solid, below it they sit
+    """FOHM at the waterline: above a gentle wave the letters are solid, below it they sit
     in the water as a pale tint (of `water`, else the letter colour).
 
     Returns (svg, bounds) with bounds as (x0, top, x1, baseline)."""
@@ -151,7 +151,7 @@ def logo_wordmark(color, bg=None, water=None):
 
 
 def logo_stacked(color, bg=None, sub=None, water=None):
-    """TYDEL over AI."""
+    """FOHM over AI."""
     size, pad = 200, 28
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
     sub_size = size * 0.34
@@ -166,7 +166,7 @@ def logo_stacked(color, bg=None, sub=None, water=None):
 
 
 def logo_horizontal(color, bg=None, sub=None, water=None):
-    """TYDEL | AI on one line."""
+    """FOHM | AI on one line."""
     size, pad = 200, 28
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
     ion_h = base - top
@@ -187,7 +187,7 @@ def logo_horizontal(color, bg=None, sub=None, water=None):
 
 def icon(fg, bg, rounded=False, size=512, fill=0.74, mark=MARK[0]):
     """The initial at its waterline, centred in a square: favicons, avatars, app icons.
-    Five letters are unreadable at favicon size, so the icon carries the T alone."""
+    A word is unreadable at favicon size, so the icon carries the initial alone."""
     _, (x0, top, x1, base) = wordmark(0, 0, 100, fg, mark=mark)
     scale = size * fill / max(x1 - x0, base - top)
     w, h = (x1 - x0) * scale, (base - top) * scale
@@ -212,7 +212,7 @@ def dot(cx, cy, r, color):
 def og_image(bg=PAPER, fg=SIGNAL):
     W, H, m = 1200, 630, 64
     b = dot(m + 9, m + 9, 9, fg)
-    b += label(m + 28, m + 16, 'Tydel AI', 22, fg)
+    b += label(m + 28, m + 16, 'Fohm AI', 22, fg)
     b += label(m, m + 46, 'Rob Honeybul · London', 22, fg, MEDIUM)
     b += label(W - m, m + 16, 'Make your vision', 22, fg, MEDIUM, anchor='end')
     b += label(W - m, m + 46, 'a reality', 22, fg, MEDIUM, anchor='end')
@@ -233,7 +233,7 @@ def linkedin_banner():
     b += mark
     b += text(LIGHT, 'MAKE YOUR VISION A REALITY', 40, W - m, 66 + (base - top) + 64, SIGNAL, -0.01, 'end')[0]
     b += dot(W - m - 9, 40, 8, SIGNAL)
-    b += label(W - m - 26, 47, 'Tydel AI · London · Free 30-minute intro call', 18, SIGNAL, anchor='end')
+    b += label(W - m - 26, 47, 'Fohm AI · London · Free 30-minute intro call', 18, SIGNAL, anchor='end')
     return svg(W, H, b, PAPER)
 
 
@@ -242,7 +242,7 @@ def card_front():
     W, H, m = 850, 550, 50
     b = dot(m + 7, m + 7, 7, SIGNAL)
     b += label(m + 22, m + 13, 'Rob Honeybul', 18, SIGNAL)
-    b += label(m, m + 38, 'Director, Tydel AI', 18, SIGNAL, MEDIUM)
+    b += label(m, m + 38, 'Director, Fohm AI', 18, SIGNAL, MEDIUM)
     b += label(m, m + 63, 'Make your vision a reality', 18, SIGNAL, MEDIUM)
     mark, _ = wordmark(m + 14, H - m - 200 * 0.16, 200, SIGNAL)
     return svg(W, H, b + mark, PAPER)
@@ -274,28 +274,28 @@ def build():
     OUT.mkdir(exist_ok=True)
     files = {
         # logos
-        'tydel-wordmark-signal.svg': logo_wordmark(SIGNAL),
-        'tydel-wordmark-ink.svg': logo_wordmark(INK, water=SIGNAL),
-        'tydel-wordmark-paper.svg': logo_wordmark(PAPER),
-        'tydel-logo-stacked-signal.svg': logo_stacked(SIGNAL),
-        'tydel-logo-stacked-ink.svg': logo_stacked(INK, sub=INK, water=SIGNAL),
-        'tydel-logo-stacked-paper.svg': logo_stacked(PAPER),
-        'tydel-logo-horizontal-signal.svg': logo_horizontal(SIGNAL),
-        'tydel-logo-horizontal-ink.svg': logo_horizontal(INK, water=SIGNAL),
-        'tydel-logo-horizontal-paper.svg': logo_horizontal(PAPER),
+        'fohm-wordmark-signal.svg': logo_wordmark(SIGNAL),
+        'fohm-wordmark-ink.svg': logo_wordmark(INK, water=SIGNAL),
+        'fohm-wordmark-paper.svg': logo_wordmark(PAPER),
+        'fohm-logo-stacked-signal.svg': logo_stacked(SIGNAL),
+        'fohm-logo-stacked-ink.svg': logo_stacked(INK, sub=INK, water=SIGNAL),
+        'fohm-logo-stacked-paper.svg': logo_stacked(PAPER),
+        'fohm-logo-horizontal-signal.svg': logo_horizontal(SIGNAL),
+        'fohm-logo-horizontal-ink.svg': logo_horizontal(INK, water=SIGNAL),
+        'fohm-logo-horizontal-paper.svg': logo_horizontal(PAPER),
         # icons: the logo in a square
-        'tydel-icon-signal-on-paper.svg': icon(SIGNAL, PAPER, fill=0.6),
-        'tydel-icon-paper-on-signal.svg': icon(PAPER, SIGNAL, fill=0.6),
-        'tydel-icon-signal-on-night.svg': icon(SIGNAL, NIGHT, fill=0.6),
-        'tydel-favicon.svg': icon(SIGNAL, PAPER, fill=0.8),
-        'tydel-app-icon.svg': icon(PAPER, SIGNAL, rounded=True, fill=0.56),
-        'tydel-linkedin-avatar.svg': icon(PAPER, SIGNAL, size=400, fill=0.5),
+        'fohm-icon-signal-on-paper.svg': icon(SIGNAL, PAPER, fill=0.6),
+        'fohm-icon-paper-on-signal.svg': icon(PAPER, SIGNAL, fill=0.6),
+        'fohm-icon-signal-on-night.svg': icon(SIGNAL, NIGHT, fill=0.6),
+        'fohm-favicon.svg': icon(SIGNAL, PAPER, fill=0.8),
+        'fohm-app-icon.svg': icon(PAPER, SIGNAL, rounded=True, fill=0.56),
+        'fohm-linkedin-avatar.svg': icon(PAPER, SIGNAL, size=400, fill=0.5),
         # applications
-        'tydel-og-image.svg': og_image(),
-        'tydel-og-image-night.svg': og_image(NIGHT, SIGNAL),
-        'tydel-linkedin-banner.svg': linkedin_banner(),
-        'tydel-business-card-front.svg': card_front(),
-        'tydel-business-card-back.svg': card_back(),
+        'fohm-og-image.svg': og_image(),
+        'fohm-og-image-night.svg': og_image(NIGHT, SIGNAL),
+        'fohm-linkedin-banner.svg': linkedin_banner(),
+        'fohm-business-card-front.svg': card_front(),
+        'fohm-business-card-back.svg': card_back(),
     }
     for name, content in files.items():
         (OUT / name).write_text(content)
