@@ -1,11 +1,10 @@
 """Generate Fohm AI brand assets as SVG, with all type converted to outlines.
 
-Fonts (OFL, from Google Fonts) are read from brand/.fonts: DMSerifDisplay-Regular.ttf and static
+Fonts (OFL, from Google Fonts) are read from brand/.fonts: DMSans-500/700.ttf and static
 Inter Tight instances InterTight-300/500/600.ttf (see README.md). Run: python3 brand/build.py
 """
 
 import math
-import random
 from functools import lru_cache
 from pathlib import Path
 
@@ -24,8 +23,10 @@ SIGNAL = '#F4401B'  # signal orange, the one ink of the brand
 PAPER = '#F6F6F6'
 INK = '#161616'
 
-DISPLAY = 'DMSerifDisplay-Regular.ttf'
-MARK = 'FOHM'  # the wordmark: foam, respelled
+LOGO = 'DMSans-700.ttf'  # DM Sans Bold, at its largest optical size
+LOGO_TRACKING = -0.02
+LOGO_SUB = 'DMSans-500.ttf'  # the AI in the lockups
+WORD = 'fohm'  # foam, respelled
 LIGHT, MEDIUM, SEMIBOLD = 'InterTight-300.ttf', 'InterTight-500.ttf', 'InterTight-600.ttf'
 
 
@@ -98,84 +99,7 @@ def svg(w, h, body, bg=None, title='Fohm AI'):
     )
 
 
-# ---------- The mark ----------
-# "FOHM" in DM Serif Display (foam, respelled) at the waterline: solid above a gentle wave, tinted below.
-# The same dot is the brand's status dot on the website.
-
-
-def sine(xa, xb, y, amp, crests):
-    """A smooth sine-like wave from xa to xb centred on y, drawn with cubic curves."""
-    seg = (xb - xa) / (crests * 2)
-    k = seg * 0.3642  # control-point offset that approximates a sine half-period
-    d, x = f'M{xa:.2f} {y:.2f}', xa
-    for i in range(crests * 2):
-        py = y - amp if i % 2 == 0 else y + amp
-        d += f' C{x + k:.2f} {py:.2f} {x + seg - k:.2f} {py:.2f} {x + seg:.2f} {y:.2f}'
-        x += seg
-    return d
-
-
 _clip_ids = iter(range(1, 10_000))
-
-
-def wordmark(x, baseline, size, color, water=None, mark=MARK):
-    """FOHM at the waterline: above a gentle wave the letters are solid, below it they sit
-    in the water as a pale tint (of `water`, else the letter colour).
-
-    Returns (svg, bounds) with bounds as (x0, top, x1, baseline)."""
-    path, _ = text(DISPLAY, mark, size, x, baseline, color, tracking=-0.01)
-    x0, _, x1, cap = ink_bounds(DISPLAY, mark, size, tracking=-0.01)
-    left, right = x + x0, x + x1
-    pad = size * 0.2
-    # two swells across the word; a lone initial is too narrow for one to read, so it
-    # gets a near-level waterline
-    swell = (size * 0.045, 2) if len(mark) > 1 else (size * 0.012, 1)
-    line = sine(left - pad, right + pad, baseline - cap * 0.3, *swell)
-    n = next(_clip_ids)
-    above = f'{line} L{right + pad:.2f} {baseline - cap - pad:.2f} L{left - pad:.2f} {baseline - cap - pad:.2f} Z'
-    below = f'{line} L{right + pad:.2f} {baseline + pad:.2f} L{left - pad:.2f} {baseline + pad:.2f} Z'
-    under = text(DISPLAY, mark, size, x, baseline, water or color, tracking=-0.01)[0].replace('<path ', '<path fill-opacity=".3" ')
-    bubbles = ''.join(
-        f'<circle cx="{bx:.2f}" cy="{by:.2f}" r="{br:.2f}"/>'
-        for bx, by, br in foam(left - pad, right + pad, baseline - cap * 0.3, *swell, left, right, size, cap)
-    )
-    mx, my, mw, mh = left - pad, baseline - cap - pad, right - left + pad * 2, cap + pad * 2
-    body = (
-        f'<defs><clipPath id="up{n}"><path d="{above}"/></clipPath>'
-        f'<clipPath id="dn{n}"><path d="{below}"/></clipPath>'
-        f'<mask id="fm{n}" maskUnits="userSpaceOnUse" x="{mx:.2f}" y="{my:.2f}" width="{mw:.2f}" height="{mh:.2f}">'
-        f'<rect x="{mx:.2f}" y="{my:.2f}" width="{mw:.2f}" height="{mh:.2f}" fill="#fff"/><g fill="#000">{bubbles}</g></mask></defs>'
-        f'<g mask="url(#fm{n})"><g clip-path="url(#up{n})">{path}</g><g clip-path="url(#dn{n})">{under}</g></g>'
-    )
-    return body, (left, baseline - cap, right, baseline)
-
-
-def foam(xa, xb, y, amp, crests, left, right, size, cap):
-    """Sea foam at the waterline: white bubbles punched out of the letters, packed
-    along the wave and thinning away from it, a few rising just above it; kept
-    small and low so no bubble breaks a thin stroke such as the H's crossbar.
-    Seeded, so every asset gets the same froth."""
-    rng = random.Random(7)
-    seg = (xb - xa) / (crests * 2)
-
-    def wave(px):
-        return y - amp * math.sin(math.pi * (px - xa) / seg)
-
-    out = []
-    px = left
-    while px < right:
-        for _ in range(2):
-            r = size * (0.004 + 0.009 * rng.random() ** 2.4)
-            # most froth sits on the line, spreading a little down into the water
-            # and a few bubbles rising into the solid letter
-            dy = rng.gauss(cap * 0.015, cap * 0.03)
-            if rng.random() < 0.05:
-                dy = -abs(rng.gauss(cap * 0.05, cap * 0.02))
-            bx, by = px + rng.uniform(-size * 0.01, size * 0.01), wave(px) + dy
-            if all(math.hypot(bx - ox, by - oy) > (r + orr) * 1.1 for ox, oy, orr in out):
-                out.append((bx, by, r))
-        px += size * 0.024
-    return out
 
 
 # ---------- The symbol ----------
@@ -226,6 +150,39 @@ def symbol(x, y, width, color):
     return body, (y1 - y0) * k
 
 
+def symbol_at(cx, cy, d, color):
+    """The symbol with its circle, diameter d, centred on (cx, cy)."""
+    k = d / 288
+    water, bubbles = _symbol_parts()
+    n = next(_clip_ids)
+    dots = ''.join(f'<circle cx="{bx:.2f}" cy="{by:.2f}" r="{r}"/>' for bx, by, r in bubbles)
+    return (f'<g transform="translate({cx - 200 * k:.2f} {cy - 200 * k:.2f}) scale({k:.5f})" fill="{color}">'
+            f'<defs><clipPath id="sym{n}"><circle cx="200" cy="200" r="144"/></clipPath></defs>'
+            f'<path clip-path="url(#sym{n})" d="{water}"/>{dots}</g>')
+
+
+# ---------- The logo ----------
+# fohm in DM Sans Bold, lower case, with the symbol standing in for the o: its bubbles
+# rise into the space above the x-height.
+
+
+def wordmark(x, baseline, size, color, word=WORD):
+    """The logo with its baseline at y. Returns (svg, bounds) with bounds as (x0, top, x1, baseline)."""
+    glyphs, _ = shape(LOGO, word, size, LOGO_TRACKING)
+    o = word.index('o')
+    room = size * 0.05  # a little air either side of the symbol
+    out = ''
+    for j, ch in enumerate(word):
+        gx = x + glyphs[j][1] + (room if j == o else 2 * room if j > o else 0)
+        if j == o:
+            ox0, oy0, ox1, oy1 = ink_bounds(LOGO, ch, size)
+            out += symbol_at(gx + (ox0 + ox1) / 2, baseline - (oy0 + oy1) / 2, (oy1 - oy0) * 1.04, color)
+        else:
+            out += text(LOGO, ch, size, gx, baseline, color)[0]
+    x0, _, x1, top = ink_bounds(LOGO, word, size, LOGO_TRACKING)
+    return out, (x + x0, baseline - top, x + x1 + 2 * room, baseline)
+
+
 def logo_symbol(color, bg=None, size=400, fill=0.8):
     x0, y0, x1, y1 = SYMBOL_BOX
     w = size * fill
@@ -234,43 +191,31 @@ def logo_symbol(color, bg=None, size=400, fill=0.8):
     return svg(size, size, body, bg)
 
 
-def logo_lockup(color, bg=None):
-    """The symbol beside the FOHM wordmark."""
-    size, pad = 200, 28
-    _, (x0, top, x1, base) = wordmark(0, 0, size, color)
-    cap = base - top
-    sw = cap * 1.05
-    sym, sh = symbol(pad, pad + (cap - sw * (SYMBOL_BOX[3] - SYMBOL_BOX[1]) / (SYMBOL_BOX[2] - SYMBOL_BOX[0])) / 2, sw, color)
-    gap = size * 0.16
-    word, _ = wordmark(pad + sw + gap - x0, pad - top, size, color)
-    return svg(pad + sw + gap + (x1 - x0) + pad, cap + pad * 2, sym + word, bg)
-
-
-def logo_wordmark(color, bg=None, water=None):
-    size, pad = 200, 24
+def logo_wordmark(color, bg=None, pad=24):
+    size = 200
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
     w, h = x1 - x0 + pad * 2, base - top + pad * 2
-    body, _ = wordmark(pad - x0, pad - top, size, color, water)
+    body, _ = wordmark(pad - x0, pad - top, size, color)
     return svg(w, h, body, bg)
 
 
-def logo_stacked(color, bg=None, sub=None, water=None):
-    """FOHM over AI."""
+def logo_stacked(color, bg=None, sub=None):
+    """The logo over AI."""
     size, pad = 200, 28
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
     sub_size = size * 0.34
     gap = size * 0.1
-    sub_cap = cap_height(SEMIBOLD, sub_size)
+    sub_cap = cap_height(LOGO_SUB, sub_size)
     w = x1 - x0 + pad * 2
     h = (base - top) + gap + sub_cap + pad * 2
-    body, _ = wordmark(pad - x0, pad - top, size, color, water)
-    word_left = pad - x0 + ink_bounds(DISPLAY, MARK, size, -0.01)[0]
-    sub_path, _ = text(SEMIBOLD, 'AI', sub_size, word_left, pad + (base - top) + gap + sub_cap, sub or color, 0.04)
+    body, _ = wordmark(pad - x0, pad - top, size, color)
+    word_left = pad
+    sub_path, _ = text(LOGO_SUB, 'AI', sub_size, word_left, pad + (base - top) + gap + sub_cap, sub or color, 0.04)
     return svg(w, h, body + sub_path, bg)
 
 
-def logo_horizontal(color, bg=None, sub=None, water=None):
-    """FOHM | AI on one line."""
+def logo_horizontal(color, bg=None, sub=None):
+    """The logo, a rule, then AI, on one line."""
     size, pad = 200, 28
     _, (x0, top, x1, base) = wordmark(0, 0, size, color)
     ion_h = base - top
@@ -278,14 +223,14 @@ def logo_horizontal(color, bg=None, sub=None, water=None):
     gap = size * 0.16
     rule_x = pad + (x1 - x0) + gap
     sub_x = rule_x + gap
-    _, sub_w = shape(SEMIBOLD, 'AI', sub_size, 0.04)
+    _, sub_w = shape(LOGO_SUB, 'AI', sub_size, 0.04)
     w = sub_x + sub_w + pad
     h = ion_h + pad * 2
-    body, _ = wordmark(pad - x0, pad - top, size, color, water)
+    body, _ = wordmark(pad - x0, pad - top, size, color)
     rule = f'<rect x="{rule_x:.2f}" y="{pad:.2f}" width="{size * 0.012:.2f}" height="{-top:.2f}" fill="{sub or color}"/>'
-    sub_cap = cap_height(SEMIBOLD, sub_size)
+    sub_cap = cap_height(LOGO_SUB, sub_size)
     cap_h = -top
-    sub_path, _ = text(SEMIBOLD, 'AI', sub_size, sub_x, pad + cap_h / 2 + sub_cap / 2, sub or color, 0.04)
+    sub_path, _ = text(LOGO_SUB, 'AI', sub_size, sub_x, pad + cap_h / 2 + sub_cap / 2, sub or color, 0.04)
     return svg(w, h, body + rule + sub_path, bg)
 
 
@@ -376,20 +321,15 @@ def build():
     files = {
         # logos
         'fohm-wordmark-signal.svg': logo_wordmark(SIGNAL),
-        'fohm-wordmark-ink.svg': logo_wordmark(INK, water=SIGNAL),
         'fohm-wordmark-paper.svg': logo_wordmark(PAPER),
+        'fohm-wordmark-tight.svg': logo_wordmark(SIGNAL, pad=4),  # edge to edge, for inline use
         'fohm-logo-stacked-signal.svg': logo_stacked(SIGNAL),
-        'fohm-logo-stacked-ink.svg': logo_stacked(INK, sub=INK, water=SIGNAL),
         'fohm-logo-stacked-paper.svg': logo_stacked(PAPER),
         'fohm-logo-horizontal-signal.svg': logo_horizontal(SIGNAL),
-        'fohm-logo-horizontal-ink.svg': logo_horizontal(INK, water=SIGNAL),
         'fohm-logo-horizontal-paper.svg': logo_horizontal(PAPER),
         # the symbol, alone and beside the wordmark
         'fohm-symbol-signal.svg': logo_symbol(SIGNAL),
         'fohm-symbol-paper.svg': logo_symbol(PAPER),
-        'fohm-symbol-tight.svg': logo_symbol(SIGNAL, fill=1),  # edge to edge, for inline use
-        'fohm-lockup-signal.svg': logo_lockup(SIGNAL),
-        'fohm-lockup-paper.svg': logo_lockup(PAPER),
         # icons: the symbol in a square
         'fohm-icon-signal-on-paper.svg': icon(SIGNAL, PAPER, fill=0.6),
         'fohm-icon-paper-on-signal.svg': icon(PAPER, SIGNAL, fill=0.6),

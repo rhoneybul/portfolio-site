@@ -1,8 +1,9 @@
 # Fohm AI brand kit
 
-The logo is **FOHM** in DM Serif Display (*foam*, respelled) at the **waterline**: above a gentle
-wave the letters are solid, below it they sit in the water as a 30% tint. Lockups add **AI**. It shares the website's design language: paper background, one signal-orange
-ink, DM Serif Display for display and Inter Tight for everything else.
+The logo is **fohm** (*foam*, respelled) in DM Sans Bold, lower case, with the **symbol** as its o:
+a round of sea, solid below a rising swell, three bubbles lifting off it. The symbol alone is the
+icon. Lockups add **AI**. It shares the website's design language: paper background, one
+signal-orange ink, DM Serif Display for large headings and Inter Tight for everything else.
 
 Live guide with downloads: `/brand/index.html` on the website.
 
@@ -25,8 +26,8 @@ Live guide with downloads: `/brand/index.html` on the website.
 ## Rebuilding
 
 ```bash
-# fonts (OFL, Google Fonts) into brand/.fonts: DMSerifDisplay-Regular.ttf and InterTight-{300,500,600}.ttf,
-# the static weights made from InterTight[wght].ttf with fontTools' instancer
+# fonts (OFL, Google Fonts) into brand/.fonts: DMSans-{500,700}.ttf (from DMSans[opsz,wght].ttf at
+# opsz 40) and InterTight-{300,500,600}.ttf (from InterTight[wght].ttf), made with fontTools' instancer
 pip install fonttools uharfbuzz
 python3 brand/build.py            # SVGs
 node brand/render.mjs             # PNGs (needs playwright)

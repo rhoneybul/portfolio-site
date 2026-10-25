@@ -188,10 +188,11 @@ main {
   opacity: 0.75;
 }
 
-.top-bar__mark {
-  width: 18px;
-  height: auto;
-  flex: none;
+.top-bar__logo {
+  display: block;
+  height: 26px;
+  width: auto;
+  margin-bottom: 8px;
 }
 
 .top-bar__nav {
@@ -1184,12 +1185,12 @@ a.proof:hover .proof__arrow {
 /* ---------- Footer ---------- */
 
 .wordmark-logo {
-  padding-left: calc(var(--gutter) + var(--indent) - 12px);
+  padding-left: calc(var(--gutter) + var(--indent));
 }
 
 .wordmark-logo img {
   display: block;
-  width: min(72vw, 620px);
+  width: min(72vw, 560px);
   height: auto;
 }
 

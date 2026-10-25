@@ -17,14 +17,11 @@ export function TopBar({settings, active}: {settings: Settings; active?: 'work' 
         <strong>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            className="top-bar__mark"
-            src="/brand/svg/fohm-symbol-tight.svg"
-            alt=""
-            width={18}
-            height={18}
+            className="top-bar__logo"
+            src="/brand/svg/fohm-wordmark-tight.svg"
+            alt={BRAND}
             title={settings?.availability?.label ?? STATUS_TITLE[status]}
           />
-          {BRAND}
         </strong>
         <span>
           {role ? `${role} by ` : ''}
