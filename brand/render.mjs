@@ -19,6 +19,9 @@ const sizes = {
   'fohm-linkedin-avatar.svg': [['', 400]],
   'fohm-og-image.svg': [['', 1200]],
   'fohm-linkedin-banner.svg': [['', 1584]],
+  'fohm-linkedin-logo-paper.svg': [['', 400]],
+  'fohm-linkedin-logo-signal.svg': [['', 400]],
+  'fohm-linkedin-cover.svg': [['', 1128]],
   'fohm-business-card-front.svg': [['', 1004]],
   'fohm-business-card-back.svg': [['', 1004]],
 }

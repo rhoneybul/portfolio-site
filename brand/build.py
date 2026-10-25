@@ -283,6 +283,23 @@ def linkedin_banner():
     return svg(W, H, b, PAPER)
 
 
+def linkedin_logo(fg, bg, size=400):
+    """The whole logo centred in a square, for a LinkedIn company page."""
+    _, (x0, top, x1, base) = wordmark(0, 0, 100, fg)
+    k = size * 0.72 / (x1 - x0)
+    w, h = (x1 - x0) * k, (base - top) * k
+    mark, _ = wordmark((size - w) / 2 - x0 * k, (size + h) / 2, 100 * k, fg)
+    return svg(size, size, mark, bg)
+
+
+def linkedin_cover():
+    # A company page cover (1128 x 191): the logo square covers the lower left, so the type sits right.
+    W, H, m = 1128, 191, 40
+    b = text(LIGHT, 'MAKE YOUR VISION A REALITY', 34, W - m, 92, SIGNAL, -0.01, 'end')[0]
+    b += label(W - m, 132, 'Ideas to products, fast · AI enablement · Fractional CTO', 15, SIGNAL, MEDIUM, anchor='end')
+    return svg(W, H, b, PAPER)
+
+
 def card_front():
     # 85 x 55 mm at 10 units per mm
     W, H, m = 850, 550, 50
@@ -339,6 +356,9 @@ def build():
         # applications
         'fohm-og-image.svg': og_image(),
         'fohm-linkedin-banner.svg': linkedin_banner(),
+        'fohm-linkedin-logo-paper.svg': linkedin_logo(SIGNAL, PAPER),
+        'fohm-linkedin-logo-signal.svg': linkedin_logo(PAPER, SIGNAL),
+        'fohm-linkedin-cover.svg': linkedin_cover(),
         'fohm-business-card-front.svg': card_front(),
         'fohm-business-card-back.svg': card_back(),
     }
