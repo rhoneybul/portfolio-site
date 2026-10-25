@@ -21,7 +21,6 @@ Live guide with downloads: `/brand/index.html` on the website.
 | Signal | `#F4401B` |
 | Paper | `#F6F6F6` |
 | Ink | `#161616` |
-| Night | `#111315` |
 
 ## Rebuilding
 

@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Gloock&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --signal: #F4401B; --paper: #F6F6F6; --ink: #161616; --night: #111315; --muted: #5f5f5f; --line: #dedede;
+    --signal: #F4401B; --paper: #F6F6F6; --ink: #161616; --muted: #5f5f5f; --line: #dedede;
     --gutter: clamp(16px, 4vw, 56px);
   }
   * { box-sizing: border-box; }
@@ -33,7 +33,6 @@
   .tile .art { width: 100%; }
   .tile .art { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; aspect-ratio: 16 / 10; padding: 32px; border: 1px solid var(--line); background: #fff; }
   .tile .art.paper { background: var(--paper); }
-  .tile .art.night { background: var(--night); border-color: var(--night); }
   .tile .art.signal { background: var(--signal); border-color: var(--signal); }
   .tile .art img { max-height: 100%; }
   .tile .art.square { aspect-ratio: 1; padding: 0; }
@@ -79,13 +78,13 @@
   <div class="grid">
     <div class="tile"><div class="art"><img src="svg/fohm-logo-stacked-signal.svg" alt=""></div><h3>Stacked · Signal</h3><p class="dl"><a href="svg/fohm-logo-stacked-signal.svg" download>SVG</a><a href="png/fohm-logo-stacked-signal.png" download>PNG</a></p></div>
     <div class="tile"><div class="art"><img src="svg/fohm-logo-stacked-ink.svg" alt=""></div><h3>Stacked · Ink</h3><p class="dl"><a href="svg/fohm-logo-stacked-ink.svg" download>SVG</a><a href="png/fohm-logo-stacked-ink.png" download>PNG</a></p></div>
-    <div class="tile"><div class="art night"><img src="svg/fohm-logo-stacked-paper.svg" alt=""></div><h3>Stacked · Paper</h3><p class="dl"><a href="svg/fohm-logo-stacked-paper.svg" download>SVG</a><a href="png/fohm-logo-stacked-paper.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art signal"><img src="svg/fohm-logo-stacked-paper.svg" alt=""></div><h3>Stacked · Paper</h3><p class="dl"><a href="svg/fohm-logo-stacked-paper.svg" download>SVG</a><a href="png/fohm-logo-stacked-paper.png" download>PNG</a></p></div>
     <div class="tile"><div class="art"><img src="svg/fohm-logo-horizontal-signal.svg" alt=""></div><h3>Horizontal · Signal</h3><p class="dl"><a href="svg/fohm-logo-horizontal-signal.svg" download>SVG</a><a href="png/fohm-logo-horizontal-signal.png" download>PNG</a></p></div>
     <div class="tile"><div class="art"><img src="svg/fohm-logo-horizontal-ink.svg" alt=""></div><h3>Horizontal · Ink</h3><p class="dl"><a href="svg/fohm-logo-horizontal-ink.svg" download>SVG</a><a href="png/fohm-logo-horizontal-ink.png" download>PNG</a></p></div>
     <div class="tile"><div class="art signal"><img src="svg/fohm-logo-horizontal-paper.svg" alt=""></div><h3>Horizontal · Paper</h3><p class="dl"><a href="svg/fohm-logo-horizontal-paper.svg" download>SVG</a><a href="png/fohm-logo-horizontal-paper.png" download>PNG</a></p></div>
     <div class="tile"><div class="art"><img src="svg/fohm-wordmark-signal.svg" alt=""></div><h3>Wordmark · Signal</h3><p class="dl"><a href="svg/fohm-wordmark-signal.svg" download>SVG</a><a href="png/fohm-wordmark-signal.png" download>PNG</a></p></div>
     <div class="tile"><div class="art"><img src="svg/fohm-wordmark-ink.svg" alt=""></div><h3>Wordmark · Ink</h3><p class="dl"><a href="svg/fohm-wordmark-ink.svg" download>SVG</a><a href="png/fohm-wordmark-ink.png" download>PNG</a></p></div>
-    <div class="tile"><div class="art night"><img src="svg/fohm-wordmark-paper.svg" alt=""></div><h3>Wordmark · Paper</h3><p class="dl"><a href="svg/fohm-wordmark-paper.svg" download>SVG</a><a href="png/fohm-wordmark-paper.png" download>PNG</a></p></div>
+    <div class="tile"><div class="art signal"><img src="svg/fohm-wordmark-paper.svg" alt=""></div><h3>Wordmark · Paper</h3><p class="dl"><a href="svg/fohm-wordmark-paper.svg" download>SVG</a><a href="png/fohm-wordmark-paper.png" download>PNG</a></p></div>
   </div>
 </section>
 
@@ -99,19 +98,17 @@
     <div class="tile"><div class="art square"><img src="svg/fohm-favicon.svg" alt=""></div><h3>Favicon</h3><p class="dl"><a href="svg/fohm-favicon.svg" download>SVG</a><a href="png/fohm-favicon-32.png" download>PNG 32</a><a href="png/fohm-favicon-48.png" download>PNG 48</a></p></div>
     <div class="tile"><div class="art square"><img src="svg/fohm-icon-signal-on-paper.svg" alt=""></div><h3>Signal on paper</h3><p class="dl"><a href="png/fohm-icon-signal-on-paper-512.png" download>PNG</a><a href="svg/fohm-icon-signal-on-paper.svg" download>SVG</a></p></div>
     <div class="tile"><div class="art square"><img src="svg/fohm-icon-paper-on-signal.svg" alt=""></div><h3>Paper on signal</h3><p class="dl"><a href="png/fohm-icon-paper-on-signal-512.png" download>PNG</a><a href="svg/fohm-icon-paper-on-signal.svg" download>SVG</a></p></div>
-    <div class="tile"><div class="art square"><img src="svg/fohm-icon-signal-on-night.svg" alt=""></div><h3>Signal on night</h3><p class="dl"><a href="png/fohm-icon-signal-on-night-512.png" download>PNG</a><a href="svg/fohm-icon-signal-on-night.svg" download>SVG</a></p></div>
   </div>
 </section>
 
 <section>
   <span class="label">● Colour</span>
   <h2>One ink</h2>
-  <p class="lead">Signal orange carries the brand. Use it for the mark, headings and labels; keep body copy in ink. Paper is the page, night is for dark blocks.</p>
+  <p class="lead">Signal orange carries the brand. Use it for the mark, headings and labels; keep body copy in ink. Paper is the page. There is no dark version: the brand lives on light.</p>
   <div class="swatches">
     <div class="swatch"><span style="background:#F4401B"></span><div><strong>Signal</strong><code>#F4401B · rgb(244 64 27)</code></div></div>
     <div class="swatch"><span style="background:#F6F6F6"></span><div><strong>Paper</strong><code>#F6F6F6 · rgb(246 246 246)</code></div></div>
     <div class="swatch"><span style="background:#161616"></span><div><strong>Ink</strong><code>#161616 · rgb(22 22 22)</code></div></div>
-    <div class="swatch"><span style="background:#111315"></span><div><strong>Night</strong><code>#111315 · rgb(17 19 21)</code></div></div>
   </div>
 </section>
 
@@ -130,7 +127,6 @@
   <h2>In use</h2>
   <div class="grid">
     <div class="tile"><div class="art full"><img src="png/fohm-og-image.png" alt="Social sharing image"></div><h3>Social sharing image · 1200×630</h3><p class="dl"><a href="png/fohm-og-image.png" download>PNG</a><a href="svg/fohm-og-image.svg" download>SVG</a></p></div>
-    <div class="tile"><div class="art full"><img src="png/fohm-og-image-night.png" alt="Social sharing image, dark"></div><h3>Social image, night · 1200×630</h3><p class="dl"><a href="png/fohm-og-image-night.png" download>PNG</a><a href="svg/fohm-og-image-night.svg" download>SVG</a></p></div>
     <div class="tile"><div class="art full"><img src="png/fohm-linkedin-banner.png" alt="LinkedIn banner"></div><h3>LinkedIn banner · 1584×396</h3><p class="dl"><a href="png/fohm-linkedin-banner.png" download>PNG</a><a href="svg/fohm-linkedin-banner.svg" download>SVG</a></p></div>
     <div class="tile"><div class="art full"><img src="png/fohm-business-card-front.png" alt="Business card front"></div><h3>Business card, front · 85×55 mm</h3><p class="dl"><a href="svg/fohm-business-card-front.svg" download>SVG (print)</a><a href="png/fohm-business-card-front.png" download>PNG</a></p></div>
     <div class="tile"><div class="art full"><img src="png/fohm-business-card-back.png" alt="Business card back"></div><h3>Business card, back · 85×55 mm</h3><p class="dl"><a href="svg/fohm-business-card-back.svg" download>SVG (print)</a><a href="png/fohm-business-card-back.png" download>PNG</a></p></div>
@@ -144,7 +140,7 @@
   <ul class="rules">
     <li><strong>Clear space.</strong> Keep at least the height of the O's counter clear around the logo on every side.</li>
     <li><strong>Minimum size.</strong> Wordmark 24 px (8 mm) wide on screen, 18 mm in print.</li>
-    <li><strong>One colour at a time.</strong> Signal on paper is the default; ink with signal water, or paper on signal and night, are the alternatives.</li>
+    <li><strong>One colour at a time.</strong> Signal on paper is the default; ink with signal water, or paper on signal, are the alternatives.</li>
     <li><strong>Never</strong> stretch, outline, rotate, add effects to, or re-set the logo in another font, and never move, flatten or drop the waterline.</li>
     <li><strong>Name in text</strong> as “Fohm AI”: capital O, never “FOHM AI” in running text or “Fohm A.I.”. The logo sets FOHM in capitals.</li>
     <li><strong>Voice.</strong> Plain, direct and specific: what we build and who it helps, never buzzwords.</li>

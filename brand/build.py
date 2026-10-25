@@ -23,7 +23,6 @@ OUT = ROOT / 'svg'
 SIGNAL = '#F4401B'  # signal orange, the one ink of the brand
 PAPER = '#F6F6F6'
 INK = '#161616'
-NIGHT = '#111315'
 
 DISPLAY = 'Gloock-Regular.ttf'
 MARK = 'FOHM'  # the wordmark: foam, respelled
@@ -165,17 +164,17 @@ def foam(xa, xb, y, amp, crests, left, right, size, cap):
     out = []
     px = left
     while px < right:
-        for _ in range(3):
-            r = size * (0.005 + 0.016 * rng.random() ** 2.2)
+        for _ in range(2):
+            r = size * (0.004 + 0.009 * rng.random() ** 2.4)
             # most froth sits on the line, spreading a little down into the water
             # and a few bubbles rising into the solid letter
-            dy = rng.gauss(cap * 0.02, cap * 0.04)
-            if rng.random() < 0.08:
-                dy = -abs(rng.gauss(cap * 0.07, cap * 0.03))
+            dy = rng.gauss(cap * 0.015, cap * 0.03)
+            if rng.random() < 0.05:
+                dy = -abs(rng.gauss(cap * 0.05, cap * 0.02))
             bx, by = px + rng.uniform(-size * 0.01, size * 0.01), wave(px) + dy
             if all(math.hypot(bx - ox, by - oy) > (r + orr) * 1.1 for ox, oy, orr in out):
                 out.append((bx, by, r))
-        px += size * 0.016
+        px += size * 0.024
     return out
 
 
@@ -323,13 +322,11 @@ def build():
         # icons: the logo in a square
         'fohm-icon-signal-on-paper.svg': icon(SIGNAL, PAPER, fill=0.6),
         'fohm-icon-paper-on-signal.svg': icon(PAPER, SIGNAL, fill=0.6),
-        'fohm-icon-signal-on-night.svg': icon(SIGNAL, NIGHT, fill=0.6),
         'fohm-favicon.svg': icon(SIGNAL, PAPER, fill=0.8),
         'fohm-app-icon.svg': icon(PAPER, SIGNAL, rounded=True, fill=0.56),
         'fohm-linkedin-avatar.svg': icon(PAPER, SIGNAL, size=400, fill=0.5),
         # applications
         'fohm-og-image.svg': og_image(),
-        'fohm-og-image-night.svg': og_image(NIGHT, SIGNAL),
         'fohm-linkedin-banner.svg': linkedin_banner(),
         'fohm-business-card-front.svg': card_front(),
         'fohm-business-card-back.svg': card_back(),
