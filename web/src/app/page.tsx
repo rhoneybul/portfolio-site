@@ -10,7 +10,7 @@ import {BRAND} from '@/brand'
 import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {RichText} from '@/components/rich-text'
-import {BookCall} from '@/components/book-call'
+import {WhatsAppButton} from '@/components/whatsapp-button'
 import {Arrow} from '@/components/arrow'
 
 function Headline({text, accent}: {text: string; accent?: string | null}) {
@@ -72,8 +72,12 @@ export default async function HomePage() {
           </ul>
           <div className="hero__close">
             <p className="hero__help">I can help.</p>
-            {settings?.bookingUrl ? (
-              <BookCall url={settings.bookingUrl} label="Book a free 30-min call" />
+            {settings?.whatsapp ? (
+              <WhatsAppButton
+                number={settings.whatsapp}
+                message="Hi Rob, I found you through your website."
+                label="Message me on WhatsApp"
+              />
             ) : (
               <a href="#contact" className="btn btn-primary">
                 Get in touch
@@ -138,8 +142,12 @@ export default async function HomePage() {
               <h2 className="leadership__title">Need a technical leader?</h2>
               <p className="leadership__name">{lead.title}</p>
               <p className="leadership__summary">{lead.summary}</p>
-              {settings?.bookingUrl ? (
-                <BookCall url={settings.bookingUrl} label="Talk about leadership" />
+              {settings?.whatsapp ? (
+                <WhatsAppButton
+                  number={settings.whatsapp}
+                  message="Hi Rob, I'd like to talk about technical leadership."
+                  label="Talk about leadership"
+                />
               ) : (
                 <a href="#contact" className="btn btn-primary">
                   Talk about leadership

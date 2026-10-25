@@ -17,7 +17,7 @@ brand/    Fohm AI brand kit and its generators
 
 ## Editing content
 
-All copy, services, work, experience, skills, your photo, CV, booking link and WhatsApp
+All copy, services, work, experience, skills, your photo, CV and WhatsApp
 number live in Sanity. Edit them in the Studio and the site updates live (no redeploy).
 
 - Hosted Studio: https://fohm.sanity.studio (redeploy with `npm run deploy` in `studio/`)
@@ -42,7 +42,7 @@ npx sanity schema deploy # keeps the Sanity MCP / AI tools in sync
 
 | Feature | Service | Setup |
 | --- | --- | --- |
-| Book a call | [Cal.com](https://cal.com) (free) | **Site settings → Contact → Booking link** (currently your Cal.com profile, which offers the 15 and 30-minute calls). Opens in an embedded scheduler. |
+| Get in touch | WhatsApp | Every call-to-action button opens WhatsApp with a message pre-filled to **Site settings → Contact → WhatsApp number**. |
 | Contact form | WhatsApp | The form opens WhatsApp with the visitor's message pre-filled to **Site settings → Contact → WhatsApp number**. No backend or keys. |
 | Blog | Sanity | **Blog** in the Studio. `/blog` shows "Coming soon" until the first post is published, then lists posts. |
 | Pricing | Sanity | **Site settings → Pricing**: the plans on `/pricing` (price, unit, description, button). |

@@ -4,7 +4,7 @@ export const HOME_QUERY = defineQuery(`{
   "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{
     name, role, location, availability, headline, headlineAccent, intro,
     portrait{asset, hotspot, crop, alt},
-    contactHeading, email, whatsapp, bookingUrl,
+    contactHeading, email, whatsapp,
     socials[]{_key, label, url}
   },
   "services": *[_type == "service"] | order(order asc){
@@ -18,7 +18,7 @@ export const HOME_QUERY = defineQuery(`{
 }`)
 
 export const SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0]{
-  name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,
+  name, role, location, availability, email, whatsapp, contactHeading,
   socials[]{_key, label, url},
   seo,
   "portraitUrl": portrait.asset->url
@@ -37,7 +37,7 @@ export const PROJECT_SLUGS_QUERY = defineQuery(
 
 export const PRICING_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "siteSettings"][0]{
   pricingIntro,
-  pricingPlans[]{_key, name, price, unit, description, includes, action, actionLabel, bookingUrl}
+  pricingPlans[]{_key, name, price, unit, description, includes, actionLabel}
 }`)
 
 export const POSTS_QUERY = defineQuery(`*[_type == "post" && defined(slug.current)] | order(publishedAt desc){

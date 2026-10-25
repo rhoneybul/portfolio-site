@@ -231,24 +231,10 @@ export const siteSettings = defineType({
               of: [defineArrayMember({type: 'string'})],
             }),
             defineField({
-              name: 'action',
-              title: 'Button',
+              name: 'actionLabel',
+              title: 'Button label',
+              description: 'The button opens WhatsApp. Defaults to "Get in touch".',
               type: 'string',
-              options: {
-                list: [
-                  {title: 'Book a call', value: 'book'},
-                  {title: 'Message on WhatsApp', value: 'whatsapp'},
-                ],
-                layout: 'radio',
-              },
-              initialValue: 'book',
-            }),
-            defineField({name: 'actionLabel', title: 'Button label', type: 'string'}),
-            defineField({
-              name: 'bookingUrl',
-              title: 'Booking link',
-              description: 'Optional: a specific Cal.com event, e.g. the 30-minute call',
-              type: 'url',
             }),
           ],
           preview: {select: {title: 'name', subtitle: 'price'}},
@@ -264,13 +250,6 @@ export const siteSettings = defineType({
       type: 'string',
       group: 'contact',
       validation: (rule) => rule.regex(/^\d{8,15}$/),
-    }),
-    defineField({
-      name: 'bookingUrl',
-      title: 'Booking link',
-      description: 'Cal.com or Calendly link for intro calls, e.g. https://cal.com/fohm/intro. Embedded on the site when set.',
-      type: 'url',
-      group: 'contact',
     }),
     defineField({
       name: 'cv',

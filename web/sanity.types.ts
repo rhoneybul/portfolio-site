@@ -274,16 +274,13 @@ export type SiteSettings = {
     unit?: string;
     description?: string;
     includes?: Array<string>;
-    action?: "book" | "whatsapp";
     actionLabel?: string;
-    bookingUrl?: string;
     _type: "pricingPlan";
     _key: string;
   }>;
   contactHeading?: string;
   email?: string;
   whatsapp?: string;
-  bookingUrl?: string;
   cv?: {
     asset?: SanityFileAssetReference;
     media?: unknown;
@@ -423,7 +420,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: HOME_QUERY
-// Query: {  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{    name, role, location, availability, headline, headlineAccent, intro,    portrait{asset, hotspot, crop, alt},    contactHeading, email, whatsapp, bookingUrl,    socials[]{_key, label, url}  },  "services": *[_type == "service"] | order(order asc){    _id, title, track, need, summary,    proof[]{_key, title, detail, url, "slug": project->slug.current}  },  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,    coverImage{asset, hotspot, crop, alt}  }}
+// Query: {  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{    name, role, location, availability, headline, headlineAccent, intro,    portrait{asset, hotspot, crop, alt},    contactHeading, email, whatsapp,    socials[]{_key, label, url}  },  "services": *[_type == "service"] | order(order asc){    _id, title, track, need, summary,    proof[]{_key, title, detail, url, "slug": project->slug.current}  },  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,    coverImage{asset, hotspot, crop, alt}  }}
 export type HOME_QUERY_RESULT = {
   settings: {
     name: string | null;
@@ -445,7 +442,6 @@ export type HOME_QUERY_RESULT = {
     contactHeading: string | null;
     email: string | null;
     whatsapp: string | null;
-    bookingUrl: string | null;
     socials: Array<{
       _key: string;
       label: string | null;
@@ -487,7 +483,7 @@ export type HOME_QUERY_RESULT = {
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: SETTINGS_QUERY
-// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,  socials[]{_key, label, url},  seo,  "portraitUrl": portrait.asset->url}
+// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  name, role, location, availability, email, whatsapp, contactHeading,  socials[]{_key, label, url},  seo,  "portraitUrl": portrait.asset->url}
 export type SETTINGS_QUERY_RESULT = {
   name: string | null;
   role: string | null;
@@ -498,7 +494,6 @@ export type SETTINGS_QUERY_RESULT = {
   } | null;
   email: string | null;
   whatsapp: string | null;
-  bookingUrl: string | null;
   contactHeading: string | null;
   socials: Array<{
     _key: string;
@@ -552,7 +547,7 @@ export type PROJECT_SLUGS_QUERY_RESULT = Array<{
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: PRICING_QUERY
-// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  pricingIntro,  pricingPlans[]{_key, name, price, unit, description, includes, action, actionLabel, bookingUrl}}
+// Query: *[_type == "siteSettings" && _id == "siteSettings"][0]{  pricingIntro,  pricingPlans[]{_key, name, price, unit, description, includes, actionLabel}}
 export type PRICING_QUERY_RESULT = {
   pricingIntro: string | null;
   pricingPlans: Array<{
@@ -562,9 +557,7 @@ export type PRICING_QUERY_RESULT = {
     unit: string | null;
     description: string | null;
     includes: Array<string> | null;
-    action: "book" | "whatsapp" | null;
     actionLabel: string | null;
-    bookingUrl: string | null;
   }> | null;
 } | null;
 
@@ -606,11 +599,11 @@ export type POST_SLUGS_QUERY_RESULT = Array<{
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    '{\n  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{\n    name, role, location, availability, headline, headlineAccent, intro,\n    portrait{asset, hotspot, crop, alt},\n    contactHeading, email, whatsapp, bookingUrl,\n    socials[]{_key, label, url}\n  },\n  "services": *[_type == "service"] | order(order asc){\n    _id, title, track, need, summary,\n    proof[]{_key, title, detail, url, "slug": project->slug.current}\n  },\n  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){\n    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,\n    coverImage{asset, hotspot, crop, alt}\n  }\n}': HOME_QUERY_RESULT;
-    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  name, role, location, availability, email, whatsapp, bookingUrl, contactHeading,\n  socials[]{_key, label, url},\n  seo,\n  "portraitUrl": portrait.asset->url\n}': SETTINGS_QUERY_RESULT;
+    '{\n  "settings": *[_type == "siteSettings" && _id == "siteSettings"][0]{\n    name, role, location, availability, headline, headlineAccent, intro,\n    portrait{asset, hotspot, crop, alt},\n    contactHeading, email, whatsapp,\n    socials[]{_key, label, url}\n  },\n  "services": *[_type == "service"] | order(order asc){\n    _id, title, track, need, summary,\n    proof[]{_key, title, detail, url, "slug": project->slug.current}\n  },\n  "projects": *[_type == "project" && defined(slug.current)] | order(order asc){\n    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,\n    coverImage{asset, hotspot, crop, alt}\n  }\n}': HOME_QUERY_RESULT;
+    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  name, role, location, availability, email, whatsapp, contactHeading,\n  socials[]{_key, label, url},\n  seo,\n  "portraitUrl": portrait.asset->url\n}': SETTINGS_QUERY_RESULT;
     '*[_type == "project" && slug.current == $slug][0]{\n  _id, title, sector, role, period, url, summary, body, outcomes, tags, accent,\n  coverImage{asset, hotspot, crop, alt},\n  "next": *[_type == "project" && defined(slug.current) && order > ^.order] | order(order asc)[0]{title, "slug": slug.current},\n  "first": *[_type == "project" && defined(slug.current)] | order(order asc)[0]{title, "slug": slug.current}\n}': PROJECT_QUERY_RESULT;
     '*[_type == "project" && defined(slug.current)]{"slug": slug.current}': PROJECT_SLUGS_QUERY_RESULT;
-    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  pricingIntro,\n  pricingPlans[]{_key, name, price, unit, description, includes, action, actionLabel, bookingUrl}\n}': PRICING_QUERY_RESULT;
+    '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  pricingIntro,\n  pricingPlans[]{_key, name, price, unit, description, includes, actionLabel}\n}': PRICING_QUERY_RESULT;
     '*[_type == "post" && defined(slug.current)] | order(publishedAt desc){\n  _id, title, "slug": slug.current, publishedAt, excerpt\n}': POSTS_QUERY_RESULT;
     '*[_type == "post" && slug.current == $slug][0]{\n  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt}\n}': POST_QUERY_RESULT;
     '*[_type == "post" && defined(slug.current)]{"slug": slug.current}': POST_SLUGS_QUERY_RESULT;
