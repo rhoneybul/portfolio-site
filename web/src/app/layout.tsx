@@ -1,6 +1,6 @@
 import {siteUrl} from '@/site-url'
 import type {Metadata} from 'next'
-import {Gloock, Inter_Tight} from 'next/font/google'
+import {DM_Serif_Display, Inter_Tight} from 'next/font/google'
 import {SanityLive} from '@/sanity/live'
 import {sanityFetch} from '@/sanity/live'
 import {SETTINGS_QUERY} from '@/sanity/queries'
@@ -8,7 +8,7 @@ import {BRAND} from '@/brand'
 import './globals.css'
 
 const sans = Inter_Tight({subsets: ['latin'], variable: '--font-sans'})
-const display = Gloock({subsets: ['latin'], weight: '400', variable: '--font-display'})
+const display = DM_Serif_Display({subsets: ['latin'], weight: '400', variable: '--font-display'})
 
 export async function generateMetadata(): Promise<Metadata> {
   const {data: settings} = await sanityFetch({query: SETTINGS_QUERY, stega: false})

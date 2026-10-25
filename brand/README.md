@@ -1,8 +1,8 @@
 # Fohm AI brand kit
 
-The logo is **FOHM** in Gloock (*foam*, respelled) at the **waterline**: above a gentle
+The logo is **FOHM** in DM Serif Display (*foam*, respelled) at the **waterline**: above a gentle
 wave the letters are solid, below it they sit in the water as a 30% tint. Lockups add **AI**. It shares the website's design language: paper background, one signal-orange
-ink, Gloock for display and Inter Tight for everything else.
+ink, DM Serif Display for display and Inter Tight for everything else.
 
 Live guide with downloads: `/brand/index.html` on the website.
 
@@ -25,7 +25,7 @@ Live guide with downloads: `/brand/index.html` on the website.
 ## Rebuilding
 
 ```bash
-# fonts (OFL, Google Fonts) into brand/.fonts: Gloock-Regular.ttf and InterTight-{300,500,600}.ttf,
+# fonts (OFL, Google Fonts) into brand/.fonts: DMSerifDisplay-Regular.ttf and InterTight-{300,500,600}.ttf,
 # the static weights made from InterTight[wght].ttf with fontTools' instancer
 pip install fonttools uharfbuzz
 python3 brand/build.py            # SVGs

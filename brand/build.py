@@ -1,6 +1,6 @@
 """Generate Fohm AI brand assets as SVG, with all type converted to outlines.
 
-Fonts (OFL, from Google Fonts) are read from brand/.fonts: Gloock-Regular.ttf and static
+Fonts (OFL, from Google Fonts) are read from brand/.fonts: DMSerifDisplay-Regular.ttf and static
 Inter Tight instances InterTight-300/500/600.ttf (see README.md). Run: python3 brand/build.py
 """
 
@@ -24,7 +24,7 @@ SIGNAL = '#F4401B'  # signal orange, the one ink of the brand
 PAPER = '#F6F6F6'
 INK = '#161616'
 
-DISPLAY = 'Gloock-Regular.ttf'
+DISPLAY = 'DMSerifDisplay-Regular.ttf'
 MARK = 'FOHM'  # the wordmark: foam, respelled
 LIGHT, MEDIUM, SEMIBOLD = 'InterTight-300.ttf', 'InterTight-500.ttf', 'InterTight-600.ttf'
 
@@ -99,7 +99,7 @@ def svg(w, h, body, bg=None, title='Fohm AI'):
 
 
 # ---------- The mark ----------
-# "FOHM" in Gloock (foam, respelled) at the waterline: solid above a gentle wave, tinted below.
+# "FOHM" in DM Serif Display (foam, respelled) at the waterline: solid above a gentle wave, tinted below.
 # The same dot is the brand's status dot on the website.
 
 
