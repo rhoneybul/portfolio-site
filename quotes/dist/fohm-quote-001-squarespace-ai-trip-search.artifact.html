@@ -1,0 +1,311 @@
+<title>FOHM-Q-2026-001 AI trip search for Squarespace</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style id="quote-style">/* Fohm AI quote: a printed document on paper, one signal ink, DM Sans throughout. Single light look by choice. */
+:root {
+  --signal: #F4401B; --paper: #F6F6F6; --sheet: #FFFFFF; --ink: #161616; --muted: #5f5f5f; --line: #dedede;
+  --edit: #FFF3EF;
+  --font: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--paper); border-bottom: 1px solid var(--line); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+.bar .status { flex: 1 1 200px; min-width: 0; color: var(--muted); font-size: 13px; }
+.bar button { font: 600 13px/1 var(--font); letter-spacing: 0.02em; padding: 10px 14px; border-radius: 999px; border: 1.5px solid var(--signal); background: var(--sheet); color: var(--signal); cursor: pointer; }
+.bar button.primary { background: var(--signal); color: #fff; }
+.bar button:disabled { opacity: 0.45; cursor: default; }
+.bar button:focus-visible, [contenteditable]:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.wrap { padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.sheet { max-width: 210mm; margin: 0 auto; background: var(--sheet); padding: clamp(20px, 6vw, 16mm); box-shadow: 0 1px 2px rgba(22,22,22,0.06), 0 8px 24px rgba(22,22,22,0.06); }
+.pdf .sheet { box-shadow: none; max-width: none; padding: 0; }
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+header .logo svg { width: min(46mm, 40vw); height: auto; display: block; }
+header .tag { text-align: right; color: var(--signal); text-transform: uppercase; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
+header .tag strong { display: block; font-size: 28px; line-height: 1; letter-spacing: -0.02em; margin-bottom: 4px; }
+h1 { margin: 40px 0 8px; font-weight: 700; font-size: clamp(28px, 6vw, 38px); line-height: 1.04; letter-spacing: -0.035em; color: var(--signal); text-wrap: balance; }
+.kind { margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+section { margin-top: 36px; }
+h2 { margin: 0 0 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--signal); padding-bottom: 8px; border-bottom: 1.5px solid var(--signal); break-after: avoid; }
+h3 { margin: 24px 0 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; break-after: avoid; }
+p { margin: 0 0 8px; }
+.muted, .muted-cells td { color: var(--muted); }
+.summary { font-size: 17px; color: var(--muted); max-width: 62ch; }
+.summary strong, .note strong, .dash strong { color: var(--ink); }
+.table { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+tr { break-inside: avoid; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--line); }
+thead th { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding-top: 0; }
+tbody th { font-weight: 600; width: 34%; }
+.parties { margin-top: 36px; }
+.num { text-align: right; white-space: nowrap; padding-right: 0; padding-left: 16px; }
+.total { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; padding: 18px 22px; background: var(--signal); color: #fff; break-inside: avoid; }
+.total span { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.total strong { font-size: 30px; line-height: 1; letter-spacing: -0.02em; }
+.note { margin-top: 12px; color: var(--muted); }
+.dash { margin: 0; padding: 0; list-style: none; }
+.dash li { position: relative; padding-left: 20px; margin-bottom: 6px; color: var(--muted); }
+.dash li::before { content: '—'; position: absolute; left: 0; color: var(--signal); font-weight: 600; }
+.clauses { margin: 0; padding: 0; list-style: none; counter-reset: clause; }
+.clauses li { counter-increment: clause; display: grid; grid-template-columns: 34px minmax(0, 1fr); padding: 10px 0; border-bottom: 1px solid var(--line); break-inside: avoid; }
+.clauses li::before { content: counter(clause, decimal-leading-zero); color: var(--signal); font-weight: 600; }
+.clauses strong { display: block; }
+.clauses span { color: var(--muted); }
+.signatures td { height: 44px; }
+.keep { break-inside: avoid; }
+footer { margin-top: 48px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; color: var(--signal); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+footer .mark { display: flex; align-items: center; gap: 8px; }
+footer .mark svg { width: 18px; height: 18px; }
+.editing [data-path] { background: var(--edit); border-radius: 2px; box-shadow: 0 0 0 2px var(--edit); cursor: text; }
+.editing [data-path]:hover { box-shadow: 0 0 0 2px var(--edit), 0 0 0 3px rgba(244,64,27,0.35); }
+.editing .total [data-path] { background: rgba(255,255,255,0.18); box-shadow: none; }
+@media (max-width: 560px) {
+  tbody th { width: auto; }
+  .stack tr { display: grid; grid-template-columns: minmax(0, 1fr); padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .stack th, .stack td { border: 0; padding: 2px 0; }
+  .stack thead { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<div id="quote-app"></div>
+<script type="application/json" id="quote-data">{"quote":{"file":"fohm-quote-001-squarespace-ai-trip-search","number":"FOHM-Q-2026-001","kind":"Quote and development agreement","title":"AI trip search for Squarespace","parties":[["Prepared for (the Client)","Amy Schrier, CEO, Catalyst Planet"],["From (the Supplier)","Fohm AI · Rob Honeybul, Director · rob@fohm.io · +44 7432 590745"]],"meta":[["Reference","FOHM-Q-2026-001 (quote this on all payments)"],["Date issued","4 November 2026"],["Valid until","4 December 2026"],["Currency","GBP"]],"summary":"A Squarespace plugin that lets visitors search your existing trip catalogue in plain English (\"a week of surfing in Portugal in May\", \"family trips under £2,000\") and see the trips that match, on your own site, in your own style. **£2,500 fixed**, with bug fixes and extra development afterwards at **£100 an hour**, with each request or bug reviewed within one week and a timeline then agreed.","scopeTitle":"What you get","scope":[["Catalogue indexing","Your existing trips, read from your Squarespace site, indexed so the search understands destinations, dates, activities, prices and descriptions."],["AI search","Natural-language search over that catalogue, returning the best-matching trips with a short line on why each one fits."],["Search interface","A simple search box and results list, embedded on the Squarespace pages you choose and styled to match your site, on phone and desktop."],["Installation","Installed on your site through Squarespace code injection, tested on live pages."],["Handover","A short written guide: how it works, how new trips get picked up, and how to switch it off."]],"excluded":["Monitoring, uptime alerts, error reporting or analytics dashboards","Booking, payments, enquiry forms or changes to checkout","Writing, editing or restructuring the trip catalogue itself"],"timeline":{"title":"Delivery","intro":"The build is delivered in four milestones, about four weeks from kick-off. Kick-off is the later of the deposit being paid and access to the site and catalogue being given.","head":["Milestone","What happens","Target"],"rows":[["1. Kick-off","Deposit paid, access given, search pages agreed","Week 0"],["2. Search working","Catalogue indexed and search running on a test page for your review","Week 2"],["3. Installed","Search installed on the agreed live pages, styled to your site","Week 3"],["4. Handover","Handover guide and source code delivered; acceptance period starts","Week 4"]],"note":"Target dates are estimates, not guarantees, and move with any delay in access, feedback or payment."},"lines":[["1","AI trip search plugin for Squarespace: build, installation and handover, as above","1","£2,500.00","£2,500.00"]],"totalLabel":"Total due for the build","total":"£2,500.00","priceNote":"**Optional, after handover:** bug fixes and extra development at £100.00 per hour. Each request or bug is reviewed within one week, then a timeline and estimate are agreed with you before work starts. Nothing is billed beyond the agreed estimate without your written approval.","schedule":[["Deposit (50%)","On signing this agreement","£1,250.00","Before kick-off"],["Balance (50%)","At handover (milestone 4)","£1,250.00","14 days from invoice"],["Hourly work","Monthly in arrears, with hours itemised","£100.00 / hour","14 days from invoice"]],"terms":["**Hosting and AI usage.** These start at no cost to you. If usage grows to the point where those costs rise over time, we will review the terms together before anything changes.","**Requirements.** A Squarespace plan that allows code injection, and access to the site for installation."],"agreementIntro":"Once signed by both parties, this quote is the agreement between the Client and Fohm AI (the Supplier) for the work above.","clauses":[["Scope and changes","The Supplier delivers the work in What you get. Anything outside it, or any change to it, is a change request: the Supplier reviews it within one week and confirms the cost and timeline in writing before starting. Approved changes are billed at £100 an hour."],["Client responsibilities","The Client gives timely access to the Squarespace site, the trip catalogue and the accounts needed, gives feedback within 5 working days of a request, and confirms it has the rights to all content supplied. Delays on the Client's side move the delivery dates accordingly."],["Acceptance","The Client has 10 working days after handover to report, in writing, anything that does not match the scope, which the Supplier fixes at no charge. If nothing is reported in that time, or the plugin is used on the live site, the work is accepted. Later fixes are billed hourly."],["Payment","Invoices are due within 14 days. The Supplier may pause work while an invoice is overdue, and may charge interest and compensation on late payments under the Late Payment of Commercial Debts (Interest) Act 1998."],["Ownership and handover","When all fees are paid, the Client owns the code written for this project, and the Supplier hands over the source code, documentation and any credentials it holds, so the Client or another developer can take the work on. Until then the Supplier keeps ownership and grants the Client a licence to use the work. Open-source libraries and third-party services keep their own licences. The Supplier keeps its pre-existing tools and general know-how, and grants the Client a perpetual licence to use any of them included in the work."],["Third-party platforms","The plugin runs on Squarespace and third-party AI and hosting services. The Supplier is not responsible for their outages, pricing, policy or API changes, or for breakage those changes cause; fixes needed because of them are billed hourly."],["Security and data","The plugin is built with reasonable care and common good practice, but no software is free of vulnerabilities. The Supplier does not warrant that the work is secure, uninterrupted or error-free, and is not liable for security breaches, data loss or unauthorised access, including through the platforms it runs on. The Client is responsible for its site, accounts, backups and compliance with data protection law. Where the Supplier handles personal data for the Client, it does so only on the Client's instructions and to deliver this work."],["AI results","Search results are generated by an AI model and can occasionally be incomplete or inaccurate. They help visitors find trips and are not a statement of availability, price or suitability; the Client's catalogue remains the source of truth."],["Warranty","The Supplier warrants that the work will be carried out with reasonable skill and care. Beyond the acceptance period, the work is provided as is, and all other warranties are excluded to the extent the law allows."],["Liability","Each party's total liability under this agreement is limited to the fees paid under it. Neither party is liable for indirect or consequential loss, including lost profits, bookings, revenue or data. Nothing here limits liability for death or personal injury caused by negligence, for fraud, or for anything else that cannot be limited by law."],["Termination","Either party can end this agreement at any time with 14 days' written notice, or immediately if the other materially breaches it and does not put it right within 14 days of being told. On termination the Client pays for work done to the end date (the build at the share completed, hourly work at £100 an hour) and, once paid, receives everything produced to that point. The deposit covers work already done and is not refundable. Clauses 5, 7, 10, 12 and 15 continue after termination."],["Confidentiality","Each party keeps the other's non-public information confidential and uses it only for this work. The Supplier may name the Client and describe the work in general terms in its portfolio unless the Client asks it not to."],["Independent contractor","The Supplier works as an independent contractor, chooses how the work is done, and may use subcontractors while remaining responsible for their work."],["Events outside control","Neither party is liable for delays caused by events beyond its reasonable control, such as platform outages, illness or natural disasters, provided it tells the other party promptly."],["General","This document is the whole agreement and replaces earlier discussions. Changes are only valid in writing (email is enough) agreed by both parties. Notices are given by email to each party's usual address. If any clause is unenforceable, the rest still applies. Neither party may transfer this agreement without the other's written consent. This agreement is governed by the law of England and Wales, and the courts of England and Wales have exclusive jurisdiction."]],"signatories":[["Name","Amy Schrier","Rob Honeybul"],["Position","CEO","Director"],["Signature","",""],["Date","",""]]},"issuer":{"company":"Fohm AI","email":"rob@fohm.io","phone":"+44 7432 590745"},"logo":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 657.76 196\" width=\"657.76\" height=\"196\">\u003cpath fill=\"#F4401B\" d=\"M41.4 168.0V62.19999999999999Q41.4 49.599999999999994 45.7 42.19999999999999Q50.0 34.79999999999998 57.8 31.39999999999999Q65.6 28.0 76.2 28.0H87.2V50.39999999999999H80.4Q74.0 50.39999999999999 71.2 52.99999999999999Q68.4 55.599999999999994 68.4 61.8V168.0ZM28.0 90.39999999999999V68.8H89.4V90.39999999999999Z\"/>\u003cg transform=\"translate(78.29 43.29) scale(0.37556)\" fill=\"#F4401B\">\u003cdefs>\u003cclipPath id=\"sym12\">\u003ccircle cx=\"200\" cy=\"200\" r=\"144\"/>\u003c/clipPath>\u003c/defs>\u003cpath clip-path=\"url(#sym12)\" d=\"M56.00 182.72 L59.60 184.06 L63.20 185.39 L66.80 186.70 L70.40 187.97 L74.00 189.21 L77.60 190.41 L81.20 191.55 L84.80 192.64 L88.40 193.66 L92.00 194.61 L95.60 195.49 L99.20 196.29 L102.80 197.00 L106.40 197.62 L110.00 198.14 L113.60 198.57 L117.20 198.90 L120.80 199.11 L124.40 199.22 L128.00 199.22 L131.60 199.11 L135.20 198.88 L138.80 198.53 L142.40 198.07 L146.00 197.48 L149.60 196.78 L153.20 195.97 L156.80 195.03 L160.40 193.98 L164.00 192.82 L167.60 191.55 L171.20 190.16 L174.80 188.67 L178.40 187.07 L182.00 185.37 L185.60 183.58 L189.20 181.69 L192.80 179.71 L196.40 177.65 L200.00 175.50 L203.60 173.28 L207.20 171.00 L210.80 168.64 L214.40 166.23 L218.00 163.76 L221.60 161.25 L225.20 158.69 L228.80 156.10 L232.40 153.47 L236.00 150.82 L239.60 148.15 L243.20 145.46 L246.80 142.77 L250.40 140.07 L254.00 137.37 L257.60 134.68 L261.20 132.00 L264.80 129.34 L268.40 126.69 L272.00 124.07 L275.60 121.48 L279.20 118.92 L282.80 116.39 L286.40 113.90 L290.00 111.46 L293.60 109.05 L297.20 106.68 L300.80 104.37 L304.40 102.09 L308.00 99.87 L311.60 97.69 L315.20 95.55 L318.80 93.47 L322.40 91.42 L326.00 89.43 L329.60 87.47 L333.20 85.55 L336.80 83.67 L340.40 81.83 L344.00 80.01 L344 354 L56 354 Z\"/>\u003ccircle cx=\"107.84\" cy=\"139.84\" r=\"18\"/>\u003ccircle cx=\"161.84\" cy=\"115.84\" r=\"11\"/>\u003ccircle cx=\"203.84\" cy=\"139.84\" r=\"7\"/>\u003c/g>\u003cpath fill=\"#F4401B\" d=\"M224.4 168.0V28.0H251.0V85.39999999999999H251.8Q257.0 76.19999999999999 265.4 71.29999999999998Q273.8 66.39999999999999 285.2 66.39999999999999Q297.20000000000005 66.39999999999999 305.6 71.69999999999999Q314.0 77.0 318.4 87.19999999999999Q322.8 97.39999999999999 322.8 112.4V168.0H296.0V114.8Q296.0 102.39999999999999 291.1 95.79999999999998Q286.2 89.19999999999999 275.4 89.19999999999999Q268.4 89.19999999999999 263.0 92.5Q257.6 95.8 254.5 101.9Q251.4 108.0 251.4 116.8V168.0Z\"/>\u003cpath fill=\"#F4401B\" d=\"M333.8 168.0V68.8H357.40000000000003L359.6 85.39999999999999H360.40000000000003Q365.0 76.0 373.20000000000005 71.19999999999999Q381.40000000000003 66.39999999999999 392.20000000000005 66.39999999999999Q399.6 66.39999999999999 405.90000000000003 68.39999999999999Q412.20000000000005 70.39999999999999 417.0 74.69999999999999Q421.8 79.0 425.0 86.0H425.8Q431.40000000000003 76.8 439.70000000000005 71.6Q448.0 66.39999999999999 460.8 66.39999999999999Q472.20000000000005 66.39999999999999 480.6 71.69999999999999Q489.0 77.0 493.5 87.19999999999999Q498.0 97.39999999999999 498.0 112.4V168.0H471.20000000000005V114.8Q471.20000000000005 102.39999999999999 466.40000000000003 95.79999999999998Q461.6 89.19999999999999 451.40000000000003 89.19999999999999Q444.6 89.19999999999999 439.8 92.1Q435.0 95.0 432.20000000000005 100.7Q429.40000000000003 106.4 429.40000000000003 114.8V168.0H402.6V114.8Q402.6 102.39999999999999 397.8 95.79999999999998Q393.0 89.19999999999999 382.6 89.19999999999999Q376.6 89.19999999999999 371.6 92.5Q366.6 95.8 363.70000000000005 101.9Q360.8 108.0 360.8 116.8V168.0Z\"/>\u003crect x=\"530.00\" y=\"28.00\" width=\"2.40\" height=\"140.00\" fill=\"#F4401B\"/>\u003cpath fill=\"#F4401B\" d=\"M562.4 126.0 581.12 70.0H593.76L612.24 126.0H603.76L587.6 75.36H587.28L570.8 126.0ZM571.68 108.96000000000001 573.92 102.56H600.24L602.48 108.96000000000001ZM618.16 126.0V70.0H626.16V126.0Z\"/>\u003c/svg>\n","symbol":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 400\" width=\"400\" height=\"400\">\u003cg transform=\"translate(-22.22 -47.66) scale(1.11111)\" fill=\"#F4401B\">\u003cdefs>\u003cclipPath id=\"sym15\">\u003ccircle cx=\"200\" cy=\"200\" r=\"144\"/>\u003c/clipPath>\u003c/defs>\u003cpath clip-path=\"url(#sym15)\" d=\"M56.00 182.72 L59.60 184.06 L63.20 185.39 L66.80 186.70 L70.40 187.97 L74.00 189.21 L77.60 190.41 L81.20 191.55 L84.80 192.64 L88.40 193.66 L92.00 194.61 L95.60 195.49 L99.20 196.29 L102.80 197.00 L106.40 197.62 L110.00 198.14 L113.60 198.57 L117.20 198.90 L120.80 199.11 L124.40 199.22 L128.00 199.22 L131.60 199.11 L135.20 198.88 L138.80 198.53 L142.40 198.07 L146.00 197.48 L149.60 196.78 L153.20 195.97 L156.80 195.03 L160.40 193.98 L164.00 192.82 L167.60 191.55 L171.20 190.16 L174.80 188.67 L178.40 187.07 L182.00 185.37 L185.60 183.58 L189.20 181.69 L192.80 179.71 L196.40 177.65 L200.00 175.50 L203.60 173.28 L207.20 171.00 L210.80 168.64 L214.40 166.23 L218.00 163.76 L221.60 161.25 L225.20 158.69 L228.80 156.10 L232.40 153.47 L236.00 150.82 L239.60 148.15 L243.20 145.46 L246.80 142.77 L250.40 140.07 L254.00 137.37 L257.60 134.68 L261.20 132.00 L264.80 129.34 L268.40 126.69 L272.00 124.07 L275.60 121.48 L279.20 118.92 L282.80 116.39 L286.40 113.90 L290.00 111.46 L293.60 109.05 L297.20 106.68 L300.80 104.37 L304.40 102.09 L308.00 99.87 L311.60 97.69 L315.20 95.55 L318.80 93.47 L322.40 91.42 L326.00 89.43 L329.60 87.47 L333.20 85.55 L336.80 83.67 L340.40 81.83 L344.00 80.01 L344 354 L56 354 Z\"/>\u003ccircle cx=\"107.84\" cy=\"139.84\" r=\"18\"/>\u003ccircle cx=\"161.84\" cy=\"115.84\" r=\"11\"/>\u003ccircle cx=\"203.84\" cy=\"139.84\" r=\"7\"/>\u003c/g>\u003c/svg>\n"}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script id="quote-script">(() => {
+  const dataEl = document.getElementById('quote-data')
+  const state = JSON.parse(dataEl.textContent)
+  const app = document.getElementById('quote-app')
+  let editing = false
+  let dirty = false
+  let readOnly = false
+
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+
+  // Every piece of copy is an element carrying the path of its value in state.quote.
+  const field = (tag, path, value, cls = '') => `<${tag}${cls ? ` class="${cls}"` : ''} data-path="${path}">${md(value)}</${tag}>`
+  const pairRows = (list, key) => list.map((r, i) =>
+    `<tr>${field('th', `${key}.${i}.0`, r[0]).replace('<th', '<th scope="row"')}${field('td', `${key}.${i}.1`, r[1])}</tr>`).join('')
+
+  const render = () => {
+    const q = state.quote
+    const t = q.timeline
+    app.innerHTML = `
+    <div class="bar" role="toolbar" aria-label="Quote actions">
+      <span class="status" id="status" aria-live="polite">${editing ? 'Editing: click any text to change it, then Save.' : esc(q.number)}</span>
+      ${editing
+        ? `<button type="button" id="discard">Discard</button><button type="button" class="primary" id="save" ${dirty ? '' : 'disabled'}>Save</button>`
+        : `${readOnly ? '' : '<button type="button" id="edit">Edit</button>'}<button type="button" class="primary" id="pdf" hidden>Download PDF</button>`}
+    </div>
+    <div class="wrap${editing ? ' editing' : ''}">
+    <article class="sheet" id="sheet">
+      <header>
+        <div class="logo">${state.logo}</div>
+        <div class="tag"><strong>Quote</strong>${field('span', 'number', q.number)}</div>
+      </header>
+      ${field('h1', 'title', q.title)}
+      ${field('p', 'kind', q.kind, 'kind')}
+
+      <div class="table parties"><table class="muted-cells"><tbody>${pairRows(q.parties, 'parties')}</tbody></table></div>
+      <div class="table"><table class="muted-cells"><tbody>${pairRows(q.meta, 'meta')}</tbody></table></div>
+
+      <section><h2>Summary</h2>${field('p', 'summary', q.summary, 'summary')}</section>
+
+      <section>${field('h2', 'scopeTitle', q.scopeTitle)}
+        <div class="table"><table class="muted-cells stack"><tbody>${pairRows(q.scope, 'scope')}</tbody></table></div>
+      </section>
+
+      <section><h2>Not included</h2>
+        <ul class="dash">${q.excluded.map((e, i) => field('li', `excluded.${i}`, e)).join('')}</ul>
+      </section>
+
+      <section>${field('h2', 'timeline.title', t.title)}
+        ${t.intro ? field('p', 'timeline.intro', t.intro, 'muted') : ''}
+        <div class="table"><table class="stack">
+          <thead><tr>${t.head.map((h, i) => field('th', `timeline.head.${i}`, h, i === 2 ? 'num' : '')).join('')}</tr></thead>
+          <tbody>${t.rows.map((r, i) => `<tr>
+            ${field('td', `timeline.rows.${i}.0`, r[0]).replace('<td', '<td style="font-weight:600;white-space:nowrap"')}
+            ${field('td', `timeline.rows.${i}.1`, r[1], 'muted')}
+            ${field('td', `timeline.rows.${i}.2`, r[2], 'num')}</tr>`).join('')}</tbody>
+        </table></div>
+        ${field('p', 'timeline.note', t.note, 'note')}
+      </section>
+
+      <section><h2>Price</h2>
+        <div class="table"><table>
+          <thead><tr><th>#</th><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead>
+          <tbody>${q.lines.map((l, i) => `<tr>${l.map((c, j) => field('td', `lines.${i}.${j}`, c, j >= 2 ? 'num' : '')).join('')}</tr>`).join('')}</tbody>
+        </table></div>
+        <div class="total">${field('span', 'totalLabel', q.totalLabel)}${field('strong', 'total', q.total)}</div>
+        ${field('p', 'priceNote', q.priceNote, 'note')}
+        <div class="keep"><h3>Payment schedule</h3>
+          <div class="table"><table class="stack">
+            <thead><tr><th>Invoice</th><th>When it is raised</th><th class="num">Amount</th><th class="num">Due</th></tr></thead>
+            <tbody>${q.schedule.map((r, i) => `<tr>
+              ${field('td', `schedule.${i}.0`, r[0]).replace('<td', '<td style="font-weight:600"')}
+              ${field('td', `schedule.${i}.1`, r[1], 'muted')}
+              ${field('td', `schedule.${i}.2`, r[2], 'num')}
+              ${field('td', `schedule.${i}.3`, r[3], 'num muted')}</tr>`).join('')}</tbody>
+          </table></div>
+        </div>
+        <div class="keep"><h3>How to pay</h3>${field('p', 'howToPay', q.howToPay ?? 'Bank transfer to the account on the invoice, quoting the invoice number.', 'muted')}</div>
+      </section>
+
+      ${q.terms.length ? `<section><h2>Terms</h2><ul class="dash">${q.terms.map((e, i) => field('li', `terms.${i}`, e)).join('')}</ul></section>` : ''}
+
+      <section><h2>Agreement terms</h2>
+        ${field('p', 'agreementIntro', q.agreementIntro, 'muted')}
+        <ol class="clauses">${q.clauses.map((c, i) => `<li><div>${field('strong', `clauses.${i}.0`, c[0])}${field('span', `clauses.${i}.1`, c[1])}</div></li>`).join('')}</ol>
+      </section>
+
+      <section class="keep"><h2>Signatures</h2>
+        ${field('p', 'signaturesIntro', q.signaturesIntro ?? 'By signing, both parties agree to this quote and its agreement terms. A signed copy returned by email is binding.', 'muted')}
+        <div class="table"><table class="signatures">
+          <thead><tr><th></th>${field('th', 'signHead.0', q.signHead?.[0] ?? 'For Catalyst Planet')}${field('th', 'signHead.1', q.signHead?.[1] ?? 'For Fohm AI')}</tr></thead>
+          <tbody>${q.signatories.map((r, i) => `<tr>${field('th', `signatories.${i}.0`, r[0]).replace('<th', '<th scope="row"')}${field('td', `signatories.${i}.1`, r[1])}${field('td', `signatories.${i}.2`, r[2])}</tr>`).join('')}</tbody>
+        </table></div>
+      </section>
+
+      <footer>
+        <span class="mark">${state.symbol}${esc(state.issuer.company)} · ${esc(q.number)}</span>
+        <span>${esc(state.issuer.email)} · ${esc(state.issuer.phone)}</span>
+      </footer>
+    </article>
+    </div>`
+    if (editing) app.querySelectorAll('[data-path]').forEach((el) => {
+      el.contentEditable = 'true'
+      el.spellcheck = true
+    })
+    wire()
+  }
+
+  // Text from an edited element, keeping bold as **…** and nothing else.
+  const fromNode = (node) => {
+    if (node.nodeType === 3) return node.nodeValue
+    if (node.nodeName === 'BR') return ' '
+    const inner = Array.from(node.childNodes).map(fromNode).join('')
+    if ((node.nodeName === 'STRONG' || node.nodeName === 'B') && inner.trim()) return `**${inner}**`
+    return inner
+  }
+  const valueOf = (el) => Array.from(el.childNodes).map(fromNode).join('').replace(/ /g, ' ').replace(/\s+/g, ' ').replace(/\*\*\s*\*\*/g, '').trim()
+
+  const setPath = (obj, path, value) => {
+    const keys = path.split('.')
+    const last = keys.pop()
+    const parent = keys.reduce((o, k) => (o[k] ??= /^\d+$/.test(k) ? [] : {}), obj)
+    parent[last] = value
+  }
+
+  const collect = () => app.querySelectorAll('[data-path]').forEach((el) => setPath(state.quote, el.dataset.path, valueOf(el)))
+
+  const say = (text) => { const s = document.getElementById('status'); if (s) s.textContent = text }
+
+  // The complete page, as the Artifact tool publishes it, rebuilt from state.
+  const RESET = ':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}'
+  const json = (v) => JSON.stringify(v).replace(/</g, '\\u003c')
+  const documentHtml = () => {
+    const q = state.quote
+    const content = `<title>${esc(q.number)} ${esc(q.title)}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style id="quote-style">${document.getElementById('quote-style').textContent}</style>
+<div id="quote-app"></div>
+<script type="application/json" id="quote-data">${json(state)}<\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>
+<script id="quote-script">${document.getElementById('quote-script').textContent}<\/script>
+`
+    return `<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>${RESET}</style></head><body>${content}</body></html>`
+  }
+
+  const save = async () => {
+    collect()
+    const btn = document.getElementById('save')
+    if (btn) btn.disabled = true
+    say('Saving…')
+    const artifact = await window.claude?.use?.('artifact')
+    if (!artifact) {
+      say('Saving isn’t available in this view. Your edits stay on screen until you leave.')
+      if (btn) btn.disabled = false
+      return
+    }
+    try {
+      await artifact.publish(documentHtml())
+      say('Saved. Loading the new version…')
+    } catch (e) {
+      const code = e?.code
+      if (code === 'conflict') say('A newer version was saved elsewhere. Loading it now.')
+      else if (code === 'not_writer' || code === 'not_granted' || code === 'consent_required' || code === 'capability_disabled' || code === 'not_declared') {
+        readOnly = true
+        editing = false
+        render()
+        say('This copy is read-only for you, so edits can’t be saved.')
+      } else if (code === 'rate_limited') {
+        say('Saving too often. Wait a moment, then Save again.')
+        if (btn) btn.disabled = false
+      } else {
+        say('The save didn’t go through. Try Save again.')
+        if (btn) btn.disabled = false
+      }
+    }
+  }
+
+  let downloads = null
+  const pdf = async () => {
+    const btn = document.getElementById('pdf')
+    if (!downloads || !window.html2pdf) return
+    btn.disabled = true
+    say('Making the PDF…')
+    document.body.classList.add('pdf')
+    try {
+      const q = state.quote
+      const blob = await window.html2pdf().set({
+        margin: [14, 14, 16, 14],
+        filename: `${q.number}.pdf`,
+        image: {type: 'jpeg', quality: 0.96},
+        html2canvas: {scale: 2, useCORS: true, backgroundColor: '#ffffff'},
+        jsPDF: {unit: 'mm', format: 'a4', orientation: 'portrait'},
+        pagebreak: {mode: ['css', 'legacy'], avoid: ['tr', '.keep', '.total', '.clauses li', 'h2', 'h3']},
+      }).from(document.getElementById('sheet')).outputPdf('blob')
+      document.body.classList.remove('pdf')
+      await downloads.save({filename: `Fohm AI ${q.number} ${q.title.replace(/[^\w\s-]/g, '')}.pdf`, data: blob})
+      say('PDF saved.')
+    } catch (e) {
+      document.body.classList.remove('pdf')
+      if (e?.code === 'declined') say(state.quote.number)
+      else say('The PDF couldn’t be made here. Try again in a moment.')
+    } finally {
+      btn.disabled = false
+    }
+  }
+
+  function wire() {
+    document.getElementById('edit')?.addEventListener('click', () => { editing = true; dirty = false; render(); say('Editing: click any text to change it, then Save.') })
+    document.getElementById('discard')?.addEventListener('click', () => { editing = false; dirty = false; state.quote = JSON.parse(dataEl.textContent).quote; render() })
+    document.getElementById('save')?.addEventListener('click', save)
+    const pdfBtn = document.getElementById('pdf')
+    if (pdfBtn) { pdfBtn.hidden = !(downloads && window.html2pdf); pdfBtn.addEventListener('click', pdf) }
+    if (editing) {
+      app.querySelector('.wrap').addEventListener('input', () => {
+        if (dirty) return
+        dirty = true
+        const b = document.getElementById('save')
+        if (b) b.disabled = false
+      })
+      // Paste as plain text so no outside formatting comes in.
+      app.querySelector('.wrap').addEventListener('paste', (e) => {
+        e.preventDefault()
+        const text = (e.clipboardData || window.clipboardData).getData('text/plain')
+        document.execCommand('insertText', false, text.replace(/\s+/g, ' '))
+      })
+      // Enter ends the field instead of adding a line break.
+      app.querySelector('.wrap').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.matches('[data-path]')) { e.preventDefault(); e.target.blur() }
+      })
+    }
+  }
+
+  render()
+  window.claude?.use?.('downloads').then((d) => { downloads = d; const b = document.getElementById('pdf'); if (b) b.hidden = !(d && window.html2pdf) }).catch(() => {})
+})()
+</script>
