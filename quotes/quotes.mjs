@@ -7,39 +7,20 @@ export const issuer = {
   phone: '+44 7432 590745',
 }
 
-const client = {
-  name: 'Rob Honeybul',
-  email: 'rob@fohm.io',
-  address: '[Client address]',
-  company: '[If applicable]',
-  vat: '[If applicable]',
-}
-
-const supplier = {
-  name: 'Fohm AI (Rob Honeybul, Director)',
-  email: 'rob@fohm.io · +44 7432 590745',
-  address: '[Fohm AI registered address]',
-  company: '[Fohm AI company number]',
-  vat: '[VAT number, or "Not VAT registered"]',
-}
-
-const bank = [
-  ['Account name', '[Account name]'],
-  ['Sort code', '[00-00-00]'],
-  ['Account number', '[00000000]'],
+const parties = [
+  ['Prepared for (the Client)', 'Amy Schrier, CEO, Catalyst Planet'],
+  ['From (the Supplier)', 'Fohm AI · Rob Honeybul, Director · rob@fohm.io · +44 7432 590745'],
 ]
 
 const signatories = [
-  ['Name', 'Rob Honeybul', 'Rob Honeybul'],
-  ['Position', '', 'Director'],
+  ['Name', 'Amy Schrier', 'Rob Honeybul'],
+  ['Position', 'CEO', 'Director'],
   ['Signature', '', ''],
   ['Date', '', ''],
 ]
 
-const vatLine = 'VAT [at 20%, or "not charged": confirm]'
-
 const general = (scope) =>
-  `This document is the whole agreement and replaces earlier discussions. Changes are only valid in writing (email is enough) agreed by both parties. Notices go to the email addresses above. If any clause is unenforceable, the rest still applies. Neither party may transfer this agreement without the other's written consent. This agreement is governed by the law of England and Wales, and the courts of England and Wales have exclusive jurisdiction.${scope}`
+  `This document is the whole agreement and replaces earlier discussions. Changes are only valid in writing (email is enough) agreed by both parties. Notices are given by email to each party's usual address. If any clause is unenforceable, the rest still applies. Neither party may transfer this agreement without the other's written consent. This agreement is governed by the law of England and Wales, and the courts of England and Wales have exclusive jurisdiction.${scope}`
 
 const liability = (extra) =>
   `Each party's total liability under this agreement is limited to the fees paid under it. Neither party is liable for indirect or consequential loss, including lost profits${extra}. Nothing here limits liability for death or personal injury caused by negligence, for fraud, or for anything else that cannot be limited by law.`
@@ -53,8 +34,7 @@ export const quotes = [
     number: 'FOHM-Q-2026-001',
     kind: 'Quote and development agreement',
     title: 'AI trip search for Squarespace',
-    client,
-    supplier,
+    parties,
     meta: [
       ['Reference', 'FOHM-Q-2026-001 (quote this on all payments)'],
       ['Date issued', '4 November 2026'],
@@ -91,19 +71,15 @@ export const quotes = [
     lines: [
       ['1', 'AI trip search plugin for Squarespace: build, installation and handover, as above', '1', '£2,500.00', '£2,500.00'],
     ],
-    subtotal: '£2,500.00',
-    vat: vatLine,
-    vatAmount: '[£0.00]',
     totalLabel: 'Total due for the build',
     total: '£2,500.00',
     priceNote:
-      '**Optional, after handover:** bug fixes and extra development at £100.00 per hour (plus VAT if applicable). Each request or bug is reviewed within one week, then a timeline and estimate are agreed with you before work starts. Nothing is billed beyond the agreed estimate without your written approval.',
+      '**Optional, after handover:** bug fixes and extra development at £100.00 per hour. Each request or bug is reviewed within one week, then a timeline and estimate are agreed with you before work starts. Nothing is billed beyond the agreed estimate without your written approval.',
     schedule: [
       ['Deposit (50%)', 'On signing this agreement', '£1,250.00', 'Before kick-off'],
       ['Balance (50%)', 'At handover (milestone 4)', '£1,250.00', '14 days from invoice'],
       ['Hourly work', 'Monthly in arrears, with hours itemised', '£100.00 / hour', '14 days from invoice'],
     ],
-    bank,
     terms: [
       '**Hosting and AI usage.** These start at no cost to you. If usage grows to the point where those costs rise over time, we will review the terms together before anything changes.',
       '**Requirements.** A Squarespace plan that allows code injection, and access to the site for installation.',
@@ -133,8 +109,7 @@ export const quotes = [
     number: 'FOHM-Q-2026-002',
     kind: 'Quote and advisory agreement',
     title: 'Advisory: website build quotes from US developers',
-    client,
-    supplier,
+    parties,
     meta: [
       ['Reference', 'FOHM-Q-2026-002 (quote this on all payments)'],
       ['Date issued', '4 November 2026'],
@@ -170,16 +145,12 @@ export const quotes = [
       ['1', 'Advisory, 4 to 15 November 2026', '1', '£0.00', 'No charge'],
       ['2', 'Concluding the developer quotes, from 16 November 2026: three US developer quotes (2 × Next.js + Sanity, 1 × WordPress), comparison and recommendation, about 4 hours', '1', '£1,000.00', '£1,000.00'],
     ],
-    subtotal: '£1,000.00',
-    vat: vatLine,
-    vatAmount: '[£0.00]',
     totalLabel: 'Total due',
     total: '£1,000.00',
     priceNote: 'The £1,000 is a fixed fee: it does not go up if the work takes longer than 4 hours.',
     schedule: [
       ['Advisory fee', '16 November 2026, when the paid work starts', '£1,000.00', '14 days from invoice'],
     ],
-    bank,
     terms: [],
     agreementIntro: 'Once signed by both parties, this quote is the agreement between the Client and Fohm AI (the Supplier) for the advisory above.',
     clauses: [

@@ -17,13 +17,8 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
 const rows = (list, cell = (c) => `<td>${md(c)}</td>`) => list.map((r) => `<tr>${r.map(cell).join('')}</tr>`).join('\n')
 
-const parties = (q) => {
-  const fields = [['Name', 'name'], ['Email', 'email'], ['Address', 'address'], ['Company no.', 'company'], ['VAT no.', 'vat']]
-  return `<table class="grid parties">
-    <thead><tr><th></th><th>Client</th><th>Supplier</th></tr></thead>
-    <tbody>${fields.map(([label, key]) => `<tr><th scope="row">${label}</th><td>${md(q.client[key])}</td><td>${md(q.supplier[key])}</td></tr>`).join('')}</tbody>
-  </table>`
-}
+const parties = (q) =>
+  `<table class="grid parties"><tbody>${q.parties.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${md(v)}</td></tr>`).join('')}</tbody></table>`
 
 const section = (title, body, cls = '') => `<section class="${cls}"><h2>${esc(title)}</h2>${body}</section>`
 
@@ -60,7 +55,7 @@ const page = (q) => `<!doctype html>
   tr { break-inside: avoid; }
   th, td { text-align: left; vertical-align: top; padding: 2mm 3mm 2mm 0; border-bottom: 1px solid var(--line); }
   thead th { font-size: 7.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding-top: 0; }
-  tbody th { font-weight: 600; width: 30mm; }
+  tbody th { font-weight: 600; width: 46mm; }
   .grid td { color: var(--muted); }
   .parties { margin-top: 10mm; }
   .parties td:first-of-type { color: var(--ink); }
@@ -71,8 +66,6 @@ const page = (q) => `<!doctype html>
   .num { text-align: right; white-space: nowrap; padding-right: 0; padding-left: 5mm; }
   .keep { break-inside: avoid; }
   .lines td.item { width: 100%; }
-  .lines tr.sum td { font-weight: 600; border-bottom: 0; padding-top: 2.2mm; }
-  .lines tr.vat td { color: var(--muted); }
   .total { display: flex; justify-content: space-between; align-items: center; gap: 8mm; margin-top: 3mm; padding: 5mm 6mm; background: var(--signal); color: var(--paper); break-inside: avoid; }
   .total span { font-size: 8pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
   .total strong { font-size: 22pt; line-height: 1; letter-spacing: -0.02em; }
@@ -90,7 +83,6 @@ const page = (q) => `<!doctype html>
   .signatures { break-inside: avoid; }
   .signatures td { height: 11mm; }
   .signatures tbody th { width: 30mm; }
-  .bank { width: auto; min-width: 90mm; }
 </style>
 </head>
 <body>
@@ -121,8 +113,6 @@ const page = (q) => `<!doctype html>
       <thead><tr><th>#</th><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead>
       <tbody>
         ${q.lines.map(([n, item, qty, unit, amount]) => `<tr><td>${esc(n)}</td><td class="item">${md(item)}</td><td class="num">${esc(qty)}</td><td class="num">${esc(unit)}</td><td class="num">${esc(amount)}</td></tr>`).join('')}
-        <tr class="sum"><td></td><td>Subtotal</td><td></td><td></td><td class="num">${esc(q.subtotal)}</td></tr>
-        <tr class="vat"><td></td><td>${esc(q.vat)}</td><td></td><td></td><td class="num">${esc(q.vatAmount)}</td></tr>
       </tbody>
     </table>
     <div class="total"><span>${esc(q.totalLabel)}</span><strong>${esc(q.total)}</strong></div>
@@ -131,8 +121,7 @@ const page = (q) => `<!doctype html>
     <table class="grid"><thead><tr><th>Invoice</th><th>When it is raised</th><th class="num">Amount</th><th class="num">Due</th></tr></thead>
     <tbody>${q.schedule.map((r) => `<tr><td style="color:var(--ink);font-weight:600">${md(r[0])}</td><td>${md(r[1])}</td><td class="num" style="color:var(--ink)">${md(r[2])}</td><td class="num">${md(r[3])}</td></tr>`).join('')}</tbody></table></div>
     <div class="keep"><h3>How to pay</h3>
-    <p class="muted">Bank transfer, quoting the invoice number.</p>
-    <table class="grid bank"><tbody>${q.bank.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</tbody></table></div>`)}
+    <p class="muted">Bank transfer to the account on the invoice, quoting the invoice number.</p></div>`)}
 
   ${q.terms.length ? section('Terms', `<ul class="dash">${q.terms.map((t) => `<li>${md(t)}</li>`).join('')}</ul>`) : ''}
 
@@ -140,7 +129,7 @@ const page = (q) => `<!doctype html>
     <ol class="clauses">${q.clauses.map(([t, d]) => `<li><div><strong>${esc(t)}</strong><span>${md(d)}</span></div></li>`).join('')}</ol>`)}
 
   ${section('Signatures', `<p class="muted">By signing, both parties agree to this quote and its agreement terms. A signed copy returned by email is binding.</p>
-    <table class="grid signatures"><thead><tr><th></th><th>For the Client</th><th>For Fohm AI</th></tr></thead>
+    <table class="grid signatures"><thead><tr><th></th><th>For Catalyst Planet</th><th>For Fohm AI</th></tr></thead>
     <tbody>${q.signatories.map(([k, a, b]) => `<tr><th scope="row">${esc(k)}</th><td style="color:var(--ink)">${esc(a)}</td><td style="color:var(--ink)">${esc(b)}</td></tr>`).join('')}</tbody></table>`, 'signatures')}
 </div>
 </body>

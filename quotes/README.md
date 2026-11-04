@@ -12,4 +12,4 @@ Client quotes in the Fohm AI brand (paper, signal orange, DM Sans, the logo from
 NODE_PATH=$(npm root -g) node quotes/build.mjs   # needs playwright
 ```
 
-The wording is kept in step with the Docs versions on claude.ai. Bracketed values (addresses, company and VAT numbers, bank details) are placeholders to fill in before sending.
+The wording is kept in step with the Docs versions on claude.ai.
