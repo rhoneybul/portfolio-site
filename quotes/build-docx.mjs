@@ -12,6 +12,18 @@ const {
   ShadingType, AlignmentType, Footer, PageNumber, TabStopType, LevelFormat, TableLayoutType, VerticalAlign, CharacterSet,
 } = createRequire(import.meta.url)('docx')
 
+const docxRequire = createRequire(createRequire(import.meta.url).resolve('docx'))
+const JSZip = docxRequire('jszip')
+
+// docx-js writes the embedded font's key in lower case; the schema (and Word) want upper-case hex.
+// Same GUID, so the font's obfuscation still matches.
+const upperFontKeys = async (buffer) => {
+  const zip = await JSZip.loadAsync(buffer)
+  const xml = await zip.file('word/fontTable.xml').async('string')
+  zip.file('word/fontTable.xml', xml.replace(/w:fontKey="(\{[^"]+\})"/g, (_, key) => `w:fontKey="${key.toUpperCase()}"`))
+  return zip.generateAsync({type: 'nodebuffer', compression: 'DEFLATE'})
+}
+
 const here = dirname(fileURLToPath(import.meta.url))
 const out = join(here, 'dist')
 const SIGNAL = 'F4401B', INK = '161616', MUTED = '5F5F5F', LINE = 'DEDEDE', FONT = 'DM Sans'
@@ -195,6 +207,6 @@ const doc = (q) => new Document({
 
 mkdirSync(out, {recursive: true})
 for (const q of quotes) {
-  writeFileSync(join(out, `${q.file}.docx`), await Packer.toBuffer(doc(q)))
+  writeFileSync(join(out, `${q.file}.docx`), await upperFontKeys(await Packer.toBuffer(doc(q))))
   console.log(`${q.file}.docx`)
 }
