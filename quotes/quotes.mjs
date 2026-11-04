@@ -1,14 +1,14 @@
 // Fohm AI quotes, as data. build.mjs lays each out in the brand and renders it to A4 PDF.
 const rob = {
   name: 'Rob Honeybul',
-  email: 'honeybulr@gmail.com',
+  email: 'rob@fohm.io',
 }
 
 export const issuer = {
   company: 'Fohm AI',
   name: 'Rob Honeybul',
   role: 'Director',
-  email: 'honeybulr@gmail.com',
+  email: 'rob@fohm.io',
   whatsapp: '+44 7432 590745',
   site: 'portfolio-site-web-lime.vercel.app',
 }
