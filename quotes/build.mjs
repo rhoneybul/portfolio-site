@@ -104,10 +104,10 @@ const page = (q) => `<!doctype html>
 
   ${section('Not included', `<ul class="dash">${q.excluded.map((e) => `<li>${md(e)}</li>`).join('')}</ul>`)}
 
-  ${section(q.timeline.title, `${q.timeline.intro ? `<p class="muted">${md(q.timeline.intro)}</p>` : ''}
+  ${q.timeline && section(q.timeline.title, `${q.timeline.intro ? `<p class="muted">${md(q.timeline.intro)}</p>` : ''}
     <table class="grid"><thead><tr>${q.timeline.head.map((h, i) => `<th${i === 2 ? ' class="num"' : ''}>${esc(h)}</th>`).join('')}</tr></thead>
     <tbody>${q.timeline.rows.map((r) => `<tr><td style="color:var(--ink);font-weight:600;white-space:nowrap">${md(r[0])}</td><td>${md(r[1])}</td><td class="num" style="color:var(--ink)">${md(r[2])}</td></tr>`).join('')}</tbody></table>
-    <p class="note">${md(q.timeline.note)}</p>`)}
+    <p class="note">${md(q.timeline.note)}</p>`) || ''}
 
   ${section('Price', `<table class="lines">
       <thead><tr><th>#</th><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead>
@@ -117,11 +117,11 @@ const page = (q) => `<!doctype html>
     </table>
     <div class="total"><span>${esc(q.totalLabel)}</span><strong>${esc(q.total)}</strong></div>
     <p class="note">${md(q.priceNote)}</p>
-    <div class="keep"><h3>Payment schedule</h3>
+    <div class="keep"><h3>Payment schedule</h3>${q.scheduleIntro ? `<p class="muted">${md(q.scheduleIntro)}</p>` : ''}
     <table class="grid"><thead><tr><th>Invoice</th><th>When it is raised</th><th class="num">Amount</th><th class="num">Due</th></tr></thead>
     <tbody>${q.schedule.map((r) => `<tr><td style="color:var(--ink);font-weight:600">${md(r[0])}</td><td>${md(r[1])}</td><td class="num" style="color:var(--ink)">${md(r[2])}</td><td class="num">${md(r[3])}</td></tr>`).join('')}</tbody></table></div>
     <div class="keep"><h3>How to pay</h3>
-    <p class="muted">Bank transfer to the account on the invoice, quoting the invoice number.</p></div>`)}
+    <p class="muted">${md(q.howToPay ?? 'Bank transfer to the account on the invoice, quoting the invoice number.')}</p></div>`)}
 
   ${q.terms.length ? section('Terms', `<ul class="dash">${q.terms.map((t) => `<li>${md(t)}</li>`).join('')}</ul>`) : ''}
 

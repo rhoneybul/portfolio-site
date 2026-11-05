@@ -145,12 +145,14 @@ const body = (q) => [
   heading('Not included'),
   ...dashList(q.excluded),
 
+  ...(q.timeline ? [
   heading(q.timeline.title),
-  ...(q.timeline.intro ? [para(q.timeline.intro)] : []),
-  table([2900, WIDTH - 2900 - 1500, 1500],
-    [q.timeline.head[0], q.timeline.head[1], {text: q.timeline.head[2], align: RIGHT}],
-    q.timeline.rows.map(([a, b, c]) => [{runs: ink(a)}, {runs: runs(b)}, {runs: runs(c, {color: INK}), align: RIGHT}])),
-  new Paragraph({spacing: {before: 120, after: 0}, children: runs(q.timeline.note)}),
+    ...(q.timeline.intro ? [para(q.timeline.intro)] : []),
+    table([2900, WIDTH - 2900 - 1500, 1500],
+      [q.timeline.head[0], q.timeline.head[1], {text: q.timeline.head[2], align: RIGHT}],
+      q.timeline.rows.map(([a, b, c]) => [{runs: ink(a)}, {runs: runs(b)}, {runs: runs(c, {color: INK}), align: RIGHT}])),
+    new Paragraph({spacing: {before: 120, after: 0}, children: runs(q.timeline.note)}),
+  ] : []),
 
   heading('Price'),
   table([500, WIDTH - 500 - 600 - 1500 - 1500, 600, 1500, 1500],
@@ -164,12 +166,13 @@ const body = (q) => [
   new Paragraph({spacing: {before: 160, after: 0}, children: runs(q.priceNote)}),
 
   subheading('Payment schedule'),
+  ...(q.scheduleIntro ? [para(q.scheduleIntro)] : []),
   table([1900, WIDTH - 1900 - 2000 - 2300, 2000, 2300],
     ['Invoice', 'When it is raised', {text: 'Amount', align: RIGHT}, {text: 'Due', align: RIGHT}],
     q.schedule.map(([a, b, c, d]) => [{runs: ink(a)}, {runs: runs(b)}, {runs: runs(c, {color: INK}), align: RIGHT}, {runs: runs(d), align: RIGHT}])),
 
   subheading('How to pay'),
-  para('Bank transfer to the account on the invoice, quoting the invoice number.'),
+  para(q.howToPay ?? 'Bank transfer to the account on the invoice, quoting the invoice number.'),
 
   ...(q.terms.length ? [heading('Terms'), ...dashList(q.terms)] : []),
 
