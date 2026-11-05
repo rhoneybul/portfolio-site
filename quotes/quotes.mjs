@@ -112,7 +112,7 @@ export const quotes = [
     parties,
     meta: [
       ['Reference', 'FOHM-CP-2026-002'],
-      ['Date issued', '4 November 2026'],
+      ['Date issued', '5 November 2026'],
       ['Valid until', '15 November 2026'],
       ['Currency', 'GBP'],
     ],
@@ -133,11 +133,11 @@ export const quotes = [
     timeline: null,
     lines: [
       ['1', 'Advisory, 4 to 15 November 2026', '1', '£0.00', 'No charge'],
-      ['2', 'Concluding the developer quotes, from 16 November 2026: three US developer quotes (2 × Next.js + Sanity, 1 × WordPress), comparison and recommendation, about 4 hours', '1', '£1,000.00', '£1,000.00'],
+      ['2', 'Concluding the developer quotes, from 16 November 2026: three US developer quotes (2 × Next.js + Sanity, 1 × WordPress), comparison and recommendation, between 5 and 10 hours charged at a discounted rate', '1', '£1,000.00', '£1,000.00'],
     ],
     totalLabel: 'Total due',
     total: '£1,000.00',
-    priceNote: 'The £1,000 is a fixed fee: it does not go up if the work takes longer than 4 hours.',
+    priceNote: 'The work is estimated at between 5 and 10 hours, charged at a discounted rate as a fixed fee of £1,000: it does not go up if the work takes longer.',
     scheduleIntro: 'If you would like to arrange a separate payment schedule please let me know and we can discuss alternatives.',
     howToPay: 'I will send bank details via invoice once the proposal is accepted.',
     schedule: [
