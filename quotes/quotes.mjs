@@ -117,11 +117,11 @@ export const quotes = [
       ['Currency', 'GBP'],
     ],
     summary:
-      'Technical advisory to scope migration and AI enablement for Catalyst Planet. **Advisory until 15 November 2026 is provided free of charge.** Subsequent to that the work required will be between 5 and 10 hours to finalise the quotes and provide the recommendations. I will bill this at a discounted rate as a **fixed £1,000** and we aim to have the quotes and recommendations completed by the end of the year.',
+      'Technical advisory to scope migration and AI enablement for Catalyst Planet, with quotes from developers who have a presence in the US. **Advisory until 15 November 2026 is provided free of charge.** Subsequent to that the work required will be between 5 and 10 hours to finalise the quotes and provide the recommendations. I will bill this at a discounted rate as a **fixed £1,000** and we aim to have the quotes and recommendations completed by the end of the year.',
     scopeTitle: 'Deliverables',
     scope: [
-      ['2 × Next.js + Sanity quotes', 'Two written quotes from US-based developers or studios for building the site on Next.js, with Sanity as the content editor.'],
-      ['1 × WordPress quote', 'One written quote from a US-based developer or studio for building the same site on WordPress.'],
+      ['2 × Next.js + Sanity quotes', 'Two written quotes from developers or studios with a presence in the US for building the site on Next.js, with Sanity as the content editor.'],
+      ['1 × WordPress quote', 'One written quote from a developer or studio with a presence in the US for building the same site on WordPress.'],
       ['Comparison and recommendation', 'A side-by-side of price, timeline, what each includes and leaves out, and the running costs of each platform, with my recommendation.'],
       ['Advisory throughout', 'Calls and messages as needed through the period: questions on the quotes, the developers and the choice between platforms.'],
     ],
@@ -133,7 +133,7 @@ export const quotes = [
     timeline: null,
     lines: [
       ['1', 'Advisory, 4 to 15 November 2026', '1', '£0.00', 'No charge'],
-      ['2', 'Concluding the developer quotes, from 16 November 2026: three US developer quotes (2 × Next.js + Sanity, 1 × WordPress), comparison and recommendation, between 5 and 10 hours charged at a discounted rate', '1', '£1,000.00', '£1,000.00'],
+      ['2', 'Concluding the developer quotes, from 16 November 2026: three quotes from developers with a presence in the US (2 × Next.js + Sanity, 1 × WordPress), comparison and recommendation, between 5 and 10 hours charged at a discounted rate', '1', '£1,000.00', '£1,000.00'],
     ],
     totalLabel: 'Total due',
     total: '£1,000.00',
