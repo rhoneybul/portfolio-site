@@ -1,15 +1,15 @@
-// Fohm AI quotes, as data, kept word for word with the Docs versions on claude.ai.
+// Fohm quotes, as data, kept word for word with the Docs versions on claude.ai.
 // build.mjs lays each out in the brand and renders it to A4 PDF. **bold** is the only markup.
 
 export const issuer = {
-  company: 'Fohm AI',
+  company: 'Fohm',
   email: 'rob@fohm.io',
   phone: '+44 7432 590745',
 }
 
 const parties = [
   ['Prepared for (the Client)', 'Amy Schrier, CEO, Catalyst Planet'],
-  ['From (the Supplier)', 'Fohm AI · Rob Honeybul, Director · rob@fohm.io · +44 7432 590745'],
+  ['From (the Supplier)', 'Fohm · Rob Honeybul, Director · rob@fohm.io · +44 7432 590745'],
 ]
 
 const signatories = [
@@ -84,7 +84,7 @@ export const quotes = [
       '**Hosting and AI usage.** These start at no cost to you. If usage grows to the point where those costs rise over time, we will review the terms together before anything changes.',
       '**Requirements.** A Squarespace plan that allows code injection, and access to the site for installation.',
     ],
-    agreementIntro: 'Once signed by both parties, this quote is the agreement between the Client and Fohm AI (the Supplier) for the work above.',
+    agreementIntro: 'Once signed by both parties, this quote is the agreement between the Client and Fohm (the Supplier) for the work above.',
     clauses: [
       ['Scope and changes', 'The Supplier delivers the work in What you get. Anything outside it, or any change to it, is a change request: the Supplier reviews it within one week and confirms the cost and timeline in writing before starting. Approved changes are billed at £100 an hour.'],
       ['Client responsibilities', "The Client gives timely access to the Squarespace site, the trip catalogue and the accounts needed, gives feedback within 5 working days of a request, and confirms it has the rights to all content supplied. Delays on the Client's side move the delivery dates accordingly."],
@@ -144,7 +144,7 @@ export const quotes = [
       ['Advisory fee', '16 November 2026, when the paid work starts', '£1,000.00', '14 days from invoice'],
     ],
     terms: [],
-    agreementIntro: 'Once signed by both parties, this quote is the agreement between the Client and Fohm AI (the Supplier) for the advisory above.',
+    agreementIntro: 'Once signed by both parties, this quote is the agreement between the Client and Fohm (the Supplier) for the advisory above.',
     clauses: [
       ['Scope and changes', 'The Supplier delivers the deliverables above. Anything outside them, such as more quotes, other platforms or managing the build, is a change request: the Supplier confirms the cost and timeline in writing before starting, billed at £250 an hour.'],
       ['Free advisory period', 'Advisory until 15 November 2026 is free in line with our current engagement.'],

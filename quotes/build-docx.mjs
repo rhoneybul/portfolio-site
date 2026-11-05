@@ -1,4 +1,4 @@
-// Builds each quote in quotes.mjs as an editable, Fohm AI branded Word file in dist/.
+// Builds each quote in quotes.mjs as an editable, Fohm branded Word file in dist/.
 // NODE_PATH=$(npm root -g) node quotes/build-docx.mjs   (needs the docx package)
 // DM Sans (OFL, quotes/fonts) is embedded, so Word shows the brand type without it installed.
 import {readFileSync, writeFileSync, mkdirSync} from 'node:fs'
@@ -30,7 +30,7 @@ const SIGNAL = 'F4401B', INK = '161616', MUTED = '5F5F5F', LINE = 'DEDEDE', FONT
 const PAGE_W = 11906, MARGIN = 1020, WIDTH = PAGE_W - 2 * MARGIN
 const pt = (n) => n * 2
 
-const logo = readFileSync(join(here, '..', 'brand', 'png', 'fohm-logo-horizontal-signal.png'))
+const logo = readFileSync(join(here, '..', 'brand', 'png', 'fohm-wordmark-signal.png'))
 const symbol = readFileSync(join(here, '..', 'brand', 'png', 'fohm-symbol-signal.png'))
 
 // **bold** is the only markup in quotes.mjs.
@@ -125,7 +125,7 @@ const footer = (q) => new Footer({children: [new Paragraph({
 
 const body = (q) => [
   new Paragraph({tabStops: [{type: TabStopType.RIGHT, position: WIDTH}], children: [
-    new ImageRun({type: 'png', data: logo, transformation: {width: 165, height: 49}}),
+    new ImageRun({type: 'png', data: logo, transformation: {width: 130, height: 47}}),
     new TextRun({text: '\t'}),
     new TextRun({text: 'QUOTE', bold: true, color: SIGNAL, size: pt(20), font: FONT}),
   ]}),
@@ -182,7 +182,7 @@ const body = (q) => [
 
   heading('Signatures'),
   para('By signing, both parties agree to this quote and its agreement terms. A signed copy returned by email is binding.', {after: 160}),
-  table([2200, (WIDTH - 2200) / 2, (WIDTH - 2200) / 2], ['', 'For Catalyst Planet', 'For Fohm AI'],
+  table([2200, (WIDTH - 2200) / 2, (WIDTH - 2200) / 2], ['', 'For Catalyst Planet', 'For Fohm'],
     q.signatories.map(([k, a, b]) => [
       {runs: ink(k)},
       {runs: runs(a || ' ', {color: INK, size: k === 'Signature' ? 22 : 9.5})},
@@ -191,7 +191,7 @@ const body = (q) => [
 ]
 
 const doc = (q) => new Document({
-  creator: 'Fohm AI',
+  creator: 'Fohm',
   title: `${q.number}: ${q.title}`,
   fonts: [{name: FONT, data: readFileSync(join(here, 'fonts', 'dmsans-400.ttf')), characterSet: CharacterSet.ANSI}],
   styles: {default: {document: {run: {font: FONT, size: pt(9.5), color: INK}}}},

@@ -1,4 +1,4 @@
-// Builds each quote in quotes.mjs as a Fohm AI branded HTML page and an A4 PDF beside it.
+// Builds each quote in quotes.mjs as a Fohm branded HTML page and an A4 PDF beside it.
 // NODE_PATH=$(npm root -g) node quotes/build.mjs   (needs playwright)
 import {readFileSync, writeFileSync, mkdirSync} from 'node:fs'
 import {dirname, join} from 'node:path'
@@ -10,7 +10,7 @@ const {chromium} = createRequire(import.meta.url)('playwright')
 const here = dirname(fileURLToPath(import.meta.url))
 const out = join(here, 'dist')
 const svg = (name) => readFileSync(join(here, '..', 'brand', 'svg', name), 'utf8').replace(/<title>.*?<\/title>/, '')
-const logo = svg('fohm-logo-horizontal-signal.svg')
+const logo = svg('fohm-wordmark-signal.svg')
 const symbol = svg('fohm-symbol-signal.svg')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -27,7 +27,7 @@ const page = (q) => `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fohm AI ${esc(q.number)}</title>
+<title>Fohm ${esc(q.number)}</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <style>
   :root { --signal: #F4401B; --paper: #F6F6F6; --ink: #161616; --muted: #5f5f5f; --line: #dedede; }
@@ -39,7 +39,7 @@ const page = (q) => `<!doctype html>
   .doc { padding: 0 16mm; }
   .cover { padding-top: 16mm; }
   header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
-  header .logo svg { width: 46mm; height: auto; display: block; }
+  header .logo svg { width: 36mm; height: auto; display: block; }
   header .tag { text-align: right; color: var(--signal); text-transform: uppercase; font-size: 8pt; font-weight: 600; letter-spacing: 0.04em; }
   header .tag strong { display: block; font-size: 20pt; line-height: 1; letter-spacing: -0.02em; margin-bottom: 4px; }
   h1 { margin: 12mm 0 4mm; font-weight: 700; font-size: 28pt; line-height: 1.02; letter-spacing: -0.035em; color: var(--signal); text-wrap: balance; }
@@ -129,7 +129,7 @@ const page = (q) => `<!doctype html>
     <ol class="clauses">${q.clauses.map(([t, d]) => `<li><div><strong>${esc(t)}</strong><span>${md(d)}</span></div></li>`).join('')}</ol>`)}
 
   ${section('Signatures', `<p class="muted">By signing, both parties agree to this quote and its agreement terms. A signed copy returned by email is binding.</p>
-    <table class="grid signatures"><thead><tr><th></th><th>For Catalyst Planet</th><th>For Fohm AI</th></tr></thead>
+    <table class="grid signatures"><thead><tr><th></th><th>For Catalyst Planet</th><th>For Fohm</th></tr></thead>
     <tbody>${q.signatories.map(([k, a, b]) => `<tr><th scope="row">${esc(k)}</th><td style="color:var(--ink)">${esc(a)}</td><td style="color:var(--ink)">${esc(b)}</td></tr>`).join('')}</tbody></table>`, 'signatures')}
 </div>
 </body>
