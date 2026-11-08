@@ -40,7 +40,7 @@ export function TopBar({settings, active}: {settings: Settings; active?: 'work' 
         </Link>
         ,
         <Link href="/blog" className={active === 'blog' ? 'is-active' : undefined}>
-          Blog <sup className="soon">soon</sup>
+          Blog
         </Link>
         ,
         <Link href="/#contact">Let’s talk</Link>

@@ -2,11 +2,11 @@ import type {Metadata} from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import {notFound} from 'next/navigation'
-import {client} from '@/sanity/client'
 import {sanityFetch} from '@/sanity/live'
-import {POST_QUERY, POST_SLUGS_QUERY} from '@/sanity/queries'
+import {POST_QUERY} from '@/sanity/queries'
 import {getSettings} from '@/sanity/settings'
 import {urlFor} from '@/sanity/image'
+import {postTeaser} from '@/post-teaser'
 import {TopBar} from '@/components/top-bar'
 import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
@@ -16,14 +16,10 @@ type Props = {params: Promise<{slug: string}>}
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', {day: 'numeric', month: 'long', year: 'numeric'})
 
-export async function generateStaticParams() {
-  return client.withConfig({useCdn: false}).fetch(POST_SLUGS_QUERY)
-}
-
 export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {data: post} = await sanityFetch({query: POST_QUERY, params: await params, stega: false})
   if (!post) return {}
-  return {title: post.title ?? undefined, description: post.excerpt ?? undefined}
+  return {title: post.title ?? undefined, description: postTeaser(post) || undefined}
 }
 
 export default async function PostPage({params}: Props) {
@@ -43,7 +39,7 @@ export default async function PostPage({params}: Props) {
           </Link>
           <h1 className="post__title">{post.title}</h1>
           <div className="case__intro">
-            <p className="case__summary">{post.excerpt}</p>
+            {post.excerpt && <p className="case__summary">{post.excerpt}</p>}
             <dl className="case__meta">
               <div>
                 <dt className="label">Published</dt>

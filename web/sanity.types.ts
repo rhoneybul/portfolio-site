@@ -570,18 +570,19 @@ export type PRICING_QUERY_RESULT = {
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: POSTS_QUERY
-// Query: *[_type == "post" && defined(slug.current)] | order(publishedAt desc){  _id, title, "slug": slug.current, publishedAt, excerpt}
+// Query: *[_type == "post" && defined(slug.current)] | order(publishedAt desc){  _id, title, "slug": slug.current, publishedAt, excerpt,  "opening": pt::text(body[style == "normal" && !defined(listItem)][0])}
 export type POSTS_QUERY_RESULT = Array<{
   _id: string;
   title: string | null;
   slug: string | null;
   publishedAt: string | null;
   excerpt: string | null;
+  opening: string;
 }>;
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: POST_QUERY
-// Query: *[_type == "post" && slug.current == $slug][0]{  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt}}
+// Query: *[_type == "post" && slug.current == $slug][0]{  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt},  "opening": pt::text(body[style == "normal" && !defined(listItem)][0])}
 export type POST_QUERY_RESULT = {
   _id: string;
   title: string | null;
@@ -594,14 +595,8 @@ export type POST_QUERY_RESULT = {
     crop: SanityImageCrop | null;
     alt: string | null;
   } | null;
+  opening: string;
 } | null;
-
-// Source: ../web/src/sanity/queries.ts
-// Variable: POST_SLUGS_QUERY
-// Query: *[_type == "post" && defined(slug.current)]{"slug": slug.current}
-export type POST_SLUGS_QUERY_RESULT = Array<{
-  slug: string | null;
-}>;
 
 // Query TypeMap
 declare global {
@@ -611,9 +606,8 @@ declare global {
     '*[_type == "project" && slug.current == $slug][0]{\n  _id, title, sector, role, period, url, summary, body, outcomes, tags, accent,\n  coverImage{asset, hotspot, crop, alt},\n  "next": *[_type == "project" && defined(slug.current) && order > ^.order] | order(order asc)[0]{title, "slug": slug.current},\n  "first": *[_type == "project" && defined(slug.current)] | order(order asc)[0]{title, "slug": slug.current}\n}': PROJECT_QUERY_RESULT;
     '*[_type == "project" && defined(slug.current)]{"slug": slug.current}': PROJECT_SLUGS_QUERY_RESULT;
     '*[_type == "siteSettings" && _id == "siteSettings"][0]{\n  pricingIntro,\n  pricingPlans[]{_key, name, price, unit, description, includes, action, actionLabel, bookingUrl}\n}': PRICING_QUERY_RESULT;
-    '*[_type == "post" && defined(slug.current)] | order(publishedAt desc){\n  _id, title, "slug": slug.current, publishedAt, excerpt\n}': POSTS_QUERY_RESULT;
-    '*[_type == "post" && slug.current == $slug][0]{\n  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt}\n}': POST_QUERY_RESULT;
-    '*[_type == "post" && defined(slug.current)]{"slug": slug.current}': POST_SLUGS_QUERY_RESULT;
+    '*[_type == "post" && defined(slug.current)] | order(publishedAt desc){\n  _id, title, "slug": slug.current, publishedAt, excerpt,\n  "opening": pt::text(body[style == "normal" && !defined(listItem)][0])\n}': POSTS_QUERY_RESULT;
+    '*[_type == "post" && slug.current == $slug][0]{\n  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt},\n  "opening": pt::text(body[style == "normal" && !defined(listItem)][0])\n}': POST_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

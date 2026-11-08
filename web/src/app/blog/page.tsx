@@ -3,6 +3,7 @@ import Link from 'next/link'
 import {sanityFetch} from '@/sanity/live'
 import {POSTS_QUERY} from '@/sanity/queries'
 import {getSettings} from '@/sanity/settings'
+import {postTeaser} from '@/post-teaser'
 import {TopBar} from '@/components/top-bar'
 import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
@@ -24,17 +25,20 @@ export default async function BlogPage() {
           <h1 className="case__title">Blog</h1>
           {posts.length ? (
             <ol className="work-list blog__list">
-              {posts.map((post) => (
-                <li key={post._id}>
-                  <Link href={`/blog/${post.slug}`} className="post-row">
-                    <span className="post-row__date">
-                      {post.publishedAt && dateFormat.format(new Date(post.publishedAt))}
-                    </span>
-                    <span className="post-row__title">{post.title}</span>
-                    {post.excerpt && <span className="post-row__excerpt">{post.excerpt}</span>}
-                  </Link>
-                </li>
-              ))}
+              {posts.map((post) => {
+                const teaser = postTeaser(post)
+                return (
+                  <li key={post._id}>
+                    <Link href={`/blog/${post.slug}`} className="post-row">
+                      <span className="post-row__date">
+                        {post.publishedAt && dateFormat.format(new Date(post.publishedAt))}
+                      </span>
+                      <span className="post-row__title">{post.title}</span>
+                      {teaser && <span className="post-row__excerpt">{teaser}</span>}
+                    </Link>
+                  </li>
+                )
+              })}
             </ol>
           ) : (
             <>

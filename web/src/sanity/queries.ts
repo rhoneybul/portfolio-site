@@ -41,11 +41,11 @@ export const PRICING_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "s
 }`)
 
 export const POSTS_QUERY = defineQuery(`*[_type == "post" && defined(slug.current)] | order(publishedAt desc){
-  _id, title, "slug": slug.current, publishedAt, excerpt
+  _id, title, "slug": slug.current, publishedAt, excerpt,
+  "opening": pt::text(body[style == "normal" && !defined(listItem)][0])
 }`)
 
 export const POST_QUERY = defineQuery(`*[_type == "post" && slug.current == $slug][0]{
-  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt}
+  _id, title, publishedAt, excerpt, body, coverImage{asset, hotspot, crop, alt},
+  "opening": pt::text(body[style == "normal" && !defined(listItem)][0])
 }`)
-
-export const POST_SLUGS_QUERY = defineQuery(`*[_type == "post" && defined(slug.current)]{"slug": slug.current}`)
