@@ -37,12 +37,12 @@ export const quotes = [
     parties,
     meta: [
       ['Reference', 'FOHM-Q-2026-001 (quote this on all payments)'],
-      ['Date issued', '4 November 2026'],
-      ['Valid until', '4 December 2026'],
+      ['Date issued', '8 November 2026'],
+      ['Valid until', '8 December 2026'],
       ['Currency', 'GBP'],
     ],
     summary:
-      'A Squarespace plugin that lets visitors search your existing trip catalogue in plain English ("a week of surfing in Portugal in May", "family trips under £2,000") and see the trips that match, on your own site, in your own style. **£2,500 fixed**, with bug fixes and extra development afterwards at **£100 an hour**, with each request or bug reviewed within one week and a timeline then agreed.',
+      'A Squarespace plugin that lets visitors search the existing trip catalog using an AI search. This is **£2,500 fixed**, with bug fixes and extra development afterwards at **£100 an hour** with each request or bug reviewed within one week and a timeline then agreed.',
     scopeTitle: 'What you get',
     scope: [
       ['Catalogue indexing', 'Your existing trips, read from your Squarespace site, indexed so the search understands destinations, dates, activities, prices and descriptions.'],
@@ -53,8 +53,7 @@ export const quotes = [
     ],
     excluded: [
       'Monitoring, uptime alerts, error reporting or analytics dashboards',
-      'Booking, payments, enquiry forms or changes to checkout',
-      'Writing, editing or restructuring the trip catalogue itself',
+      'Ongoing maintenance and improvements',
     ],
     timeline: {
       title: 'Delivery',
@@ -62,9 +61,9 @@ export const quotes = [
       head: ['Milestone', 'What happens', 'Target'],
       rows: [
         ['1. Kick-off', 'Deposit paid, access given, search pages agreed', 'Week 0'],
-        ['2. Search working', 'Catalogue indexed and search running on a test page for your review', 'Week 2'],
-        ['3. Installed', 'Search installed on the agreed live pages, styled to your site', 'Week 3'],
-        ['4. Handover', 'Handover guide and source code delivered; acceptance period starts', 'Week 4'],
+        ['2. Search working', 'Catalogue indexed and search running on a test page for your review', 'Week 1'],
+        ['3. Installed', 'Search installed on the agreed live pages, styled to your site', 'Week 2'],
+        ['4. Handover', 'Handover guide and source code delivered; acceptance period starts', 'Week 3'],
       ],
       note: 'Target dates are estimates, not guarantees, and move with any delay in access, feedback or payment.',
     },
@@ -75,6 +74,7 @@ export const quotes = [
     total: '£2,500.00',
     priceNote:
       '**Optional, after handover:** bug fixes and extra development at £100.00 per hour. Each request or bug is reviewed within one week, then a timeline and estimate are agreed with you before work starts. Nothing is billed beyond the agreed estimate without your written approval.',
+    howToPay: 'Bank transfer to the account on each invoice, quoting the invoice number.',
     schedule: [
       ['Deposit (50%)', 'On signing this agreement', '£1,250.00', 'Before kick-off'],
       ['Balance (50%)', 'At handover (milestone 4)', '£1,250.00', '14 days from invoice'],
@@ -82,11 +82,10 @@ export const quotes = [
     ],
     terms: [
       '**Hosting and AI usage.** These start at no cost to you. If usage grows to the point where those costs rise over time, we will review the terms together before anything changes.',
-      '**Requirements.** A Squarespace plan that allows code injection, and access to the site for installation.',
     ],
     agreementIntro: 'Once signed by both parties, this quote is the agreement between the Client and Fohm (the Supplier) for the work above.',
     clauses: [
-      ['Scope and changes', 'The Supplier delivers the work in What you get. Anything outside it, or any change to it, is a change request: the Supplier reviews it within one week and confirms the cost and timeline in writing before starting. Approved changes are billed at £100 an hour.'],
+      ['Scope and changes', 'Anything outside of the agreed delivery, or any change to it, is a change request: the Supplier reviews it within one week and confirms the cost and timeline in writing before starting. Approved changes are billed at £100 an hour.'],
       ['Client responsibilities', "The Client gives timely access to the Squarespace site, the trip catalogue and the accounts needed, gives feedback within 5 working days of a request, and confirms it has the rights to all content supplied. Delays on the Client's side move the delivery dates accordingly."],
       ['Acceptance', 'The Client has 10 working days after handover to report, in writing, anything that does not match the scope, which the Supplier fixes at no charge. If nothing is reported in that time, or the plugin is used on the live site, the work is accepted. Later fixes are billed hourly.'],
       ['Payment', latePayment],
