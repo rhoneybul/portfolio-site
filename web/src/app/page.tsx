@@ -12,6 +12,7 @@ import {ContactSection} from '@/components/contact-section'
 import {RichText} from '@/components/rich-text'
 import {BookCall} from '@/components/book-call'
 import {Arrow} from '@/components/arrow'
+import {Testimonials} from '@/components/testimonials'
 
 function Headline({text, accent}: {text: string; accent?: string | null}) {
   if (!accent || !text.includes(accent)) return <>{text}</>
@@ -27,7 +28,7 @@ function Headline({text, accent}: {text: string; accent?: string | null}) {
 
 export default async function HomePage() {
   const [{data}, settingsMeta] = await Promise.all([sanityFetch({query: HOME_QUERY}), getSettings()])
-  const {settings, services: allServices, projects} = data
+  const {settings, services: allServices, projects, testimonials} = data
   // Main offers lead the page; leadership is its own, separate message
   const services = allServices.filter((s) => stegaClean(s.track) !== 'leadership')
   const leadership = allServices.filter((s) => stegaClean(s.track) === 'leadership')
@@ -130,6 +131,9 @@ export default async function HomePage() {
             ))}
           </ol>
         </section>
+
+        {/* Testimonials: what clients say, straight after the offers they speak to */}
+        <Testimonials items={testimonials} />
 
         {/* Leadership: a separate offer, its own message */}
         {leadership.map((lead) => (
