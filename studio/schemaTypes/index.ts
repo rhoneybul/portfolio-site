@@ -4,7 +4,8 @@ import {post} from './documents/post'
 import {project} from './documents/project'
 import {service} from './documents/service'
 import {siteSettings} from './documents/site-settings'
+import {testimonial} from './documents/testimonial'
 import {link} from './objects/link'
 import {richText} from './objects/rich-text'
 
-export const schemaTypes = [siteSettings, service, project, experience, certification, post, richText, link]
+export const schemaTypes = [siteSettings, service, project, testimonial, experience, certification, post, richText, link]

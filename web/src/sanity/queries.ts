@@ -14,6 +14,9 @@ export const HOME_QUERY = defineQuery(`{
   "projects": *[_type == "project" && defined(slug.current)] | order(order asc){
     _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,
     coverImage{asset, hotspot, crop, alt}
+  },
+  "testimonials": *[_type == "testimonial" && defined(quote)] | order(order asc){
+    _id, quote, name, role, company, "slug": project->slug.current
   }
 }`)
 
@@ -28,7 +31,10 @@ export const PROJECT_QUERY = defineQuery(`*[_type == "project" && slug.current =
   _id, title, sector, role, period, url, summary, body, outcomes, tags, accent,
   coverImage{asset, hotspot, crop, alt},
   "next": *[_type == "project" && defined(slug.current) && order > ^.order] | order(order asc)[0]{title, "slug": slug.current},
-  "first": *[_type == "project" && defined(slug.current)] | order(order asc)[0]{title, "slug": slug.current}
+  "first": *[_type == "project" && defined(slug.current)] | order(order asc)[0]{title, "slug": slug.current},
+  "testimonials": *[_type == "testimonial" && defined(quote) && references(^._id)] | order(order asc){
+    _id, quote, name, role, company
+  }
 }`)
 
 export const PROJECT_SLUGS_QUERY = defineQuery(

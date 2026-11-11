@@ -13,6 +13,7 @@ import {ContactSection} from '@/components/contact-section'
 import {RichText} from '@/components/rich-text'
 import {Marquee} from '@/components/marquee'
 import {Arrow} from '@/components/arrow'
+import {Testimonials} from '@/components/testimonials'
 
 type Props = {params: Promise<{slug: string}>}
 
@@ -108,6 +109,8 @@ export default async function ProjectPage({params}: Props) {
               )}
             </aside>
           </div>
+
+          <Testimonials items={project.testimonials} />
 
           {next?.slug && (
             <Link href={`/work/${next.slug}`} className="next-project">

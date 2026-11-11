@@ -457,7 +457,8 @@ main {
   filter: grayscale(1) contrast(1.05);
 }
 
-.byline figcaption {
+.byline figcaption,
+.testimonial__by {
   display: grid;
   gap: 2px;
   font-size: 14px;
@@ -466,7 +467,8 @@ main {
   color: var(--accent);
 }
 
-.byline figcaption span:first-child {
+.byline figcaption span:first-child,
+.testimonial__by span:first-child {
   font-weight: 600;
 }
 
@@ -652,6 +654,53 @@ a.proof:hover .proof__arrow {
   line-height: 1.6;
   color: var(--muted);
   max-width: 52ch;
+}
+
+/* ---------- Testimonials: a client's words, set large ---------- */
+
+.testimonials {
+  display: grid;
+  gap: clamp(80px, 10vw, 160px);
+  padding: clamp(120px, 14vw, 220px) var(--gutter) 0 calc(var(--gutter) + var(--indent));
+}
+
+.testimonial {
+  display: grid;
+  gap: clamp(24px, 3vw, 40px);
+  justify-items: start;
+  max-width: 1040px;
+}
+
+/* One giant mark in the display face, as the section titles are set. The glyph's ink
+   runs from 0.70em to 0.45em above the baseline: this line height puts its top at the
+   box's top, and the height ends the box where the ink does. */
+.testimonial__mark {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(120px, 14vw, 220px);
+  line-height: 0.72;
+  height: 0.25em;
+  color: var(--accent);
+}
+
+.testimonial__quote {
+  max-width: 28em;
+  margin: 0;
+  font-size: clamp(24px, 2.8vw, 40px);
+  font-weight: 300;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+  text-wrap: pretty;
+}
+
+.testimonial__by a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.testimonial__by a:hover {
+  color: var(--ink);
 }
 
 /* ---------- Work list (ANDSAVU minimal) ---------- */
