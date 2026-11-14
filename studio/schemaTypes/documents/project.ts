@@ -14,6 +14,21 @@ export const project = defineType({
       options: {source: 'title'},
       validation: (rule) => rule.required(),
     }),
+    defineField({
+      name: 'kind',
+      title: 'Where it shows',
+      description:
+        'Work: products built through Fohm (the portfolio). Background: roles held before it (career history).',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Work', value: 'work'},
+          {title: 'Background', value: 'background'},
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'work',
+    }),
     defineField({name: 'sector', type: 'string', description: 'e.g. "Consumer cycling app"'}),
     defineField({name: 'role', type: 'string'}),
     defineField({name: 'period', type: 'string', description: 'e.g. "2026 — Present"'}),
