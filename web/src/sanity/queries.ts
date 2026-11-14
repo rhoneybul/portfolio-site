@@ -12,7 +12,7 @@ export const HOME_QUERY = defineQuery(`{
     proof[]{_key, title, detail, url, "slug": project->slug.current}
   },
   "projects": *[_type == "project" && defined(slug.current)] | order(order asc){
-    _id, title, "slug": slug.current, sector, role, period, summary, tags, accent,
+    _id, title, "slug": slug.current, kind, sector, role, period, summary, tags, accent,
     coverImage{asset, hotspot, crop, alt}
   },
   "testimonials": *[_type == "testimonial" && defined(quote)] | order(order asc){

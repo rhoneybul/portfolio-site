@@ -13,6 +13,7 @@ import {RichText} from '@/components/rich-text'
 import {BookCall} from '@/components/book-call'
 import {Arrow} from '@/components/arrow'
 import {Testimonials} from '@/components/testimonials'
+import {WorkList} from '@/components/work-list'
 
 // Rendered on every visit with fresh Sanity data, as the blog is (see blog/layout.tsx): a cached copy
 // only refreshes on a live event, which reaches the site only while someone has it open, so a project
@@ -35,6 +36,8 @@ function Headline({text, accent}: {text: string; accent?: string | null}) {
 export default async function HomePage() {
   const [{data}, settingsMeta] = await Promise.all([sanityFetch({query: HOME_QUERY}), getSettings()])
   const {settings, services: allServices, projects, testimonials} = data
+  const background = projects.filter((p) => stegaClean(p.kind) === 'background')
+  const work = projects.filter((p) => stegaClean(p.kind) !== 'background')
   // Main offers lead the page; leadership is its own, separate message
   const services = allServices.filter((s) => stegaClean(s.track) !== 'leadership')
   const leadership = allServices.filter((s) => stegaClean(s.track) === 'leadership')
@@ -162,37 +165,23 @@ export default async function HomePage() {
           </section>
         ))}
 
-        {/* Work */}
+        {/* Work: products built through Fohm. Background: roles held before it. A project with no
+            kind set is work, so a new one shows there until it is filed. */}
         <section id="work" className="section">
           <header className="section__head">
             <h2 className="section__title">Work</h2>
           </header>
-          <ol className="work-list">
-            {projects.map((project) => (
-              <li key={project._id}>
-                <Link href={`/work/${project.slug}`} className="work-row">
-                  <span className="work-row__title">{project.title}</span>
-                  <span className="work-row__meta">
-                    <span>{project.sector}</span>
-                    <span>{project.role}</span>
-                  </span>
-                  <span className="work-row__arrow">
-                    <Arrow />
-                  </span>
-                  {project.coverImage?.asset && (
-                    <Image
-                      src={urlFor(project.coverImage).width(640).height(420).url()}
-                      alt=""
-                      width={640}
-                      height={420}
-                      className="work-row__preview"
-                    />
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ol>
+          <WorkList projects={work} />
         </section>
+
+        {!!background.length && (
+          <section id="background" className="section">
+            <header className="section__head">
+              <h2 className="section__title">Background</h2>
+            </header>
+            <WorkList projects={background} />
+          </section>
+        )}
 
         <ContactSection settings={settingsMeta} />
       </main>

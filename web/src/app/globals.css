@@ -758,6 +758,33 @@ a.proof:hover .proof__arrow {
   box-shadow: 10px 10px 0 var(--ink);
 }
 
+/* A project with no cover image previews as a card in its accent colour, the size of a cover */
+.work-row__preview--card {
+  display: grid;
+  align-content: end;
+  gap: 6px;
+  aspect-ratio: 640 / 420;
+  padding: 18px 20px;
+  background: var(--accent-soft);
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+}
+
+.work-row__preview--card span {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.work-row__preview--card small {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .work-row > span {
   transition: transform 0.35s var(--ease), color 0.25s;
 }
