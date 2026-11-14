@@ -14,6 +14,12 @@ import {BookCall} from '@/components/book-call'
 import {Arrow} from '@/components/arrow'
 import {Testimonials} from '@/components/testimonials'
 
+// Rendered on every visit with fresh Sanity data, as the blog is (see blog/layout.tsx): a cached copy
+// only refreshes on a live event, which reaches the site only while someone has it open, so a project
+// published at a quiet moment stayed off the site until the next deploy.
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 function Headline({text, accent}: {text: string; accent?: string | null}) {
   if (!accent || !text.includes(accent)) return <>{text}</>
   const [before, after] = text.split(accent)
