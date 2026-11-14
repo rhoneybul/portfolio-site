@@ -31,10 +31,12 @@ export function TopBar({settings, active}: {settings: Settings; active?: 'work' 
         {settings?.availability?.label && <span className="top-bar__status">{settings.availability.label}.</span>}
       </Link>
       <nav className="top-bar__nav" aria-label="Main">
-        <Link href="/#work" className={active === 'work' ? 'is-active' : undefined}>
+        {/* Links to a section of the home page are plain links: a full load always lands on the
+            section, and brings the home page fresh. */}
+        <a href="/#work" className={active === 'work' ? 'is-active' : undefined}>
           Work
-        </Link>
-        ,<Link href="/#services">Services</Link>,
+        </a>
+        ,<a href="/#services">Services</a>,
         <Link href="/pricing" className={active === 'pricing' ? 'is-active' : undefined}>
           Pricing
         </Link>
@@ -43,7 +45,7 @@ export function TopBar({settings, active}: {settings: Settings; active?: 'work' 
           Blog
         </Link>
         ,
-        <Link href="/#contact">Let’s talk</Link>
+        <a href="/#contact">Let’s talk</a>
       </nav>
     </header>
   )

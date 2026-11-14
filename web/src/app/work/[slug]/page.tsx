@@ -15,6 +15,12 @@ import {Marquee} from '@/components/marquee'
 import {Arrow} from '@/components/arrow'
 import {Testimonials} from '@/components/testimonials'
 
+// Rendered on every visit with fresh Sanity data, as the blog is (see blog/layout.tsx): a cached copy
+// only refreshes on a live event, which reaches the site only while someone has it open, so a project
+// published at a quiet moment stayed off the site until the next deploy.
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 type Props = {params: Promise<{slug: string}>}
 
 export async function generateStaticParams() {
@@ -41,9 +47,9 @@ export default async function ProjectPage({params}: Props) {
       <TopBar settings={settings} active="work" />
       <main>
         <article className="case">
-          <Link href="/#work" className="label back">
+          <a href="/#work" className="label back">
             ←︎ All work
-          </Link>
+          </a>
           <h1 className="case__title">{project.title}</h1>
           <Marquee items={[project.sector ?? '', project.sector ?? '']} className="marquee-role" />
 

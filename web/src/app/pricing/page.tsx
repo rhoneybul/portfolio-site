@@ -10,6 +10,10 @@ import {BookCall} from '@/components/book-call'
 import {Marquee} from '@/components/marquee'
 import {Arrow} from '@/components/arrow'
 
+// Fresh on every visit, like the home page and the blog: plans edited in the Studio show at once.
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 export const metadata: Metadata = {title: 'Pricing'}
 
 export default async function PricingPage() {
