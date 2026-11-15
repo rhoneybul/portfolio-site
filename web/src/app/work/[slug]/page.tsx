@@ -14,6 +14,7 @@ import {RichText} from '@/components/rich-text'
 import {Marquee} from '@/components/marquee'
 import {Arrow} from '@/components/arrow'
 import {Testimonials} from '@/components/testimonials'
+import {Logo} from '@/components/logo'
 
 // Rendered on every visit with fresh Sanity data, as the blog is (see blog/layout.tsx): a cached copy
 // only refreshes on a live event, which reaches the site only while someone has it open, so a project
@@ -50,6 +51,7 @@ export default async function ProjectPage({params}: Props) {
           <a href="/#work" className="label back">
             ←︎ All work
           </a>
+          <Logo image={project.logo} className="case__logo" pixels={88} />
           <h1 className="case__title">{project.title}</h1>
           <Marquee items={[project.sector ?? '', project.sector ?? '']} className="marquee-role" />
 
