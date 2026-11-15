@@ -563,6 +563,9 @@ main {
 }
 
 .proof__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-family: var(--display);
   font-weight: 700;
   letter-spacing: -0.035em;
@@ -570,6 +573,11 @@ main {
   line-height: 0.95;
   color: var(--accent);
   transition: color 0.25s;
+}
+
+.proof__logo {
+  width: 1em;
+  height: 1em;
 }
 
 .proof__arrow {
@@ -756,6 +764,32 @@ a.proof:hover .proof__arrow {
   transition: opacity 0.3s, transform 0.3s var(--ease);
   pointer-events: none;
   box-shadow: 10px 10px 0 var(--ink);
+}
+
+/* Logos: app icons, favicons and brand marks cropped to one rounded square */
+.logo {
+  flex: none;
+  object-fit: cover;
+  border-radius: 22%;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.work-row__title {
+  display: flex;
+  align-items: center;
+  gap: 0.22em;
+}
+
+.work-row__logo {
+  width: 0.62em;
+  height: 0.62em;
+}
+
+.case__logo {
+  display: block;
+  width: clamp(56px, 6vw, 88px);
+  height: clamp(56px, 6vw, 88px);
+  margin: 0 0 24px calc(var(--gutter) + var(--indent));
 }
 
 /* A project with no cover image previews as a card in its accent colour, the size of a cover */

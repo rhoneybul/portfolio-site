@@ -14,6 +14,7 @@ import {BookCall} from '@/components/book-call'
 import {Arrow} from '@/components/arrow'
 import {Testimonials} from '@/components/testimonials'
 import {WorkList} from '@/components/work-list'
+import {Logo} from '@/components/logo'
 
 // Rendered on every visit with fresh Sanity data, as the blog is (see blog/layout.tsx): a cached copy
 // only refreshes on a live event, which reaches the site only while someone has it open, so a project
@@ -191,7 +192,14 @@ export default async function HomePage() {
   )
 }
 
-type ProofItem = {_key: string; title: string | null; detail: string | null; url: string | null; slug: string | null}
+type ProofItem = {
+  _key: string
+  title: string | null
+  detail: string | null
+  url: string | null
+  slug: string | null
+  logo: Parameters<typeof Logo>[0]['image']
+}
 
 function Proof({items}: {items: ProofItem[]}) {
   return (
@@ -201,7 +209,10 @@ function Proof({items}: {items: ProofItem[]}) {
           const href = p.slug ? `/work/${p.slug}` : p.url
           const inner = (
             <>
-              <span className="proof__title">{p.title}</span>
+              <span className="proof__title">
+                <Logo image={p.logo} className="proof__logo" pixels={36} />
+                {p.title}
+              </span>
               {href && (
                 <span className="proof__arrow">
                   <Arrow />

@@ -47,6 +47,12 @@ export const project = defineType({
       options: {layout: 'tags'},
     }),
     defineField({
+      name: 'logo',
+      title: 'Logo',
+      description: 'A square logo or app icon, shown beside the name across the site',
+      type: 'image',
+    }),
+    defineField({
       name: 'coverImage',
       type: 'image',
       options: {hotspot: true},

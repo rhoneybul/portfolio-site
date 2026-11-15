@@ -9,11 +9,11 @@ export const HOME_QUERY = defineQuery(`{
   },
   "services": *[_type == "service"] | order(order asc){
     _id, title, track, need, summary,
-    proof[]{_key, title, detail, url, "slug": project->slug.current}
+    proof[]{_key, title, detail, url, "slug": project->slug.current, "logo": project->logo{asset}}
   },
   "projects": *[_type == "project" && defined(slug.current)] | order(order asc){
     _id, title, "slug": slug.current, kind, sector, role, period, summary, tags, accent,
-    coverImage{asset, hotspot, crop, alt}
+    logo{asset}, coverImage{asset, hotspot, crop, alt}
   },
   "testimonials": *[_type == "testimonial" && defined(quote)] | order(order asc){
     _id, quote, name, role, company, "slug": project->slug.current
@@ -29,7 +29,7 @@ export const SETTINGS_QUERY = defineQuery(`*[_type == "siteSettings" && _id == "
 
 export const PROJECT_QUERY = defineQuery(`*[_type == "project" && slug.current == $slug][0]{
   _id, title, sector, role, period, url, summary, body, outcomes, tags, accent,
-  coverImage{asset, hotspot, crop, alt},
+  logo{asset}, coverImage{asset, hotspot, crop, alt},
   "next": *[_type == "project" && defined(slug.current) && order > ^.order] | order(order asc)[0]{title, "slug": slug.current},
   "first": *[_type == "project" && defined(slug.current)] | order(order asc)[0]{title, "slug": slug.current},
   "testimonials": *[_type == "testimonial" && defined(quote) && references(^._id)] | order(order asc){

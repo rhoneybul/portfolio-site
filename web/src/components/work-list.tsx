@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {urlFor} from '@/sanity/image'
 import {Arrow} from '@/components/arrow'
+import {Logo} from '@/components/logo'
 
 type Project = {
   _id: string
@@ -10,6 +11,7 @@ type Project = {
   sector: string | null
   role: string | null
   accent: string | null
+  logo: Parameters<typeof urlFor>[0] & {asset?: unknown} | null
   coverImage: Parameters<typeof urlFor>[0] & {asset?: unknown} | null
 }
 
@@ -21,7 +23,10 @@ export function WorkList({projects}: {projects: Project[]}) {
       {projects.map((project) => (
         <li key={project._id}>
           <Link href={`/work/${project.slug}`} className="work-row">
-            <span className="work-row__title">{project.title}</span>
+            <span className="work-row__title">
+              <Logo image={project.logo} className="work-row__logo" pixels={80} />
+              {project.title}
+            </span>
             <span className="work-row__meta">
               <span>{project.sector}</span>
               <span>{project.role}</span>
