@@ -315,7 +315,7 @@ def card_front():
 def card_back():
     W, H, m = 850, 550, 50
     rows = [
-        ('Email', 'honeybulr@gmail.com'),
+        ('Email', 'rob@fohm.io'),
         ('WhatsApp', '+44 7432 590745'),
         ('LinkedIn', '/in/robert-honeybul'),
         ('Book', 'cal.com/robert-honeybul-priy5n'),
