@@ -5,7 +5,7 @@
  * Claude when there's a key (content.ts), else straight from the visitor's answers, so a prototype
  * always builds. Plain logic, tested in Node (fill.test.ts).
  */
-import {slugify, type Options} from './options.ts'
+import {slugify, type Options} from './options'
 
 export interface Content {
   hello: string[]
