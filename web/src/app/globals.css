@@ -1389,6 +1389,55 @@ a.proof:hover .proof__arrow {
   outline-offset: 2px;
 }
 
+.photos__pick--wait {
+  display: block;
+  animation: photos-wait 1s ease-in-out infinite alternate;
+}
+
+@keyframes photos-wait {
+  to {
+    opacity: 0.45;
+  }
+}
+
+/* What the photos were found for: a row that scrolls sideways on a phone. */
+.photos__terms {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+
+.photos__terms::-webkit-scrollbar {
+  display: none;
+}
+
+.photos__term {
+  flex: none;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.photos__term.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photos__pick--wait {
+    animation: none;
+  }
+}
+
 .photos__credit {
   font-size: 13px;
   color: var(--muted);

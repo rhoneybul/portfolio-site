@@ -3,9 +3,9 @@
 import {useEffect, useRef, useState, type CSSProperties, type FormEvent} from 'react'
 import {Arrow} from '@/components/arrow'
 import {Mark, goalsOf, type Pic} from '@/components/app-prototype'
-import {PhotoSearch, search} from '@/components/photo-search'
+import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
-import {ACCENTS, SECTIONS, asked, emptyAnswers, photoSearchFor, resolveOptions, type Answers} from '@/app-builder/options'
+import {ACCENTS, SECTIONS, asked, emptyAnswers, resolveOptions, type Answers} from '@/app-builder/options'
 
 /**
  * The app builder: asks what a first look at the visitor's app needs, one question to a screen in
@@ -57,18 +57,18 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
     if ((top.current?.getBoundingClientRect().top ?? 0) < 0) top.current?.scrollIntoView({block: 'start', behavior: 'smooth'})
   }, [at, phase])
 
-  // Photos for every slot, found from what they told us: the first goal (or the app they picked), then each goal.
+  // Photos for every slot, found from what they told us: the photo step's searches, then each goal.
   useEffect(() => {
     if (phase !== 'built') return
     let live = true
-    const terms = [photoSearchFor(answers), ...goalsOf(options)].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 4)
-    Promise.all(terms.map((t) => search(t).catch(() => [])))
+    ideasFor(answers)
+      .then((ideas) => {
+        const terms = [...ideas, ...goalsOf(options)].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
+        return Promise.all(terms.map((t) => search(t).catch(() => [])))
+      })
       .then((lists) => {
-        if (!live) return
-        // The first of each search, then the rest of the first, so slots vary.
-        const ordered = [...lists.map((l) => l[0]), ...lists.flatMap((l) => l.slice(1, 4))].filter(Boolean)
-        const seen = new Set<string>()
-        setGallery(ordered.filter((f) => !seen.has(f.url) && seen.add(f.url)).map((f) => ({url: f.url, credit: f.credit})))
+        // The first of each search, then the second of each, so slots vary.
+        if (live) setGallery(mixed(lists, 16).map((f) => ({url: f.url, credit: f.credit})))
       })
       .catch(() => {})
     return () => {
@@ -226,7 +226,7 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
           </div>
         ) : q.key === 'photo' ? (
           <PhotoSearch
-            start={photoSearchFor(answers)}
+            answers={answers}
             value={value}
             onChange={(url, credit) => {
               setAnswers({...answers, photo: url, photoCredit: credit})

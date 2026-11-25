@@ -111,7 +111,7 @@ export const QUESTIONS: Question[] = [
       {value: 'no', label: 'No, design me one', hint: 'Three or four ideas, judged at the size of a home-screen icon'},
     ],
   },
-  {key: 'photo', section: 'Look and feel', ask: 'A photo for the app', why: 'The landing page, onboarding and Home lead with it. Search open-licence photos, or paste a link to your own.', example: 'surfing big waves'},
+  {key: 'photo', section: 'Look and feel', ask: 'A photo for the app', why: 'The landing page, onboarding and Home lead with it. Here are a few found from what you’ve told us: pick one, search your own words, or paste a link to your own.', example: 'surfing big waves'},
 
   // About you: what the research needs first
   {key: 'audience', section: 'About you', ask: 'How big is your audience today?', why: 'Followers, a mailing list, clients: the app sells to them first.', example: '12k on Instagram, 2,000 on the mailing list'},
@@ -121,14 +121,6 @@ export const QUESTIONS: Question[] = [
 
 /** Colours that keep white text at 4.5:1 on them, for "Pick one for me". */
 export const ACCENTS = ['#2F6B4F', '#1B5E9A', '#B5432C', '#6B4FA0', '#0F766E', '#A34A0B', '#BE185D', '#3F4A5A', '#4D6B12', '#8A2E3B', '#2E5E8C', '#7A4B2A']
-
-/** What to search photos for first: the first goal they named, else what the app they picked is about. */
-export function photoSearchFor(a: Answers) {
-  const goals = (a.goals || '').split(':').pop()?.split(/,|\n| and /)[0]?.trim()
-  if (goals) return goals
-  const byTemplate: Record<string, string> = {naz: 'big wave surfing', etapa: 'road cycling', aluzam: 'acoustic guitar', 'naz-surf': 'surfing wave', 'strawberry-fields': 'backcountry skiing'}
-  return byTemplate[a.template] ?? (a.idea || '').split(/\s+/).slice(0, 4).join(' ')
-}
 
 export const asked = (a: Answers) => QUESTIONS.filter((q) => !q.when || q.when(a))
 export const emptyAnswers = (): Answers => Object.fromEntries(QUESTIONS.map((q) => [q.key, q.default ?? '']))
