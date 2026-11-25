@@ -16,15 +16,32 @@ import {claudePrompt} from '@/app-builder/prompt'
 
 type Phase = 'asking' | 'building' | 'built'
 
-const KEPT = 'fohm-app-builder'
+/** The real app's build (the prototype job): where it has got to, and its address once it's live. */
+type Real = {state: 'idle' | 'starting' | 'waiting' | 'building' | 'ready' | 'failed'; id?: string; url?: string; error?: string; started?: number}
 
-export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; className?: string}) {
+/** A build not live by now has gone wrong somewhere. */
+const GIVE_UP = 20 * 60_000
+
+const KEPT = 'fohm-app-builder'
+const KEPT_REAL = 'fohm-app-builder-real'
+
+const REAL_LINE: Record<Real['state'], string> = {
+  idle: '',
+  starting: 'Starting the build…',
+  waiting: 'In the queue. It usually starts within a minute.',
+  building: 'Building your app from the template. This takes three or four minutes.',
+  ready: 'Your app is live, in demo mode: everything works, and nothing is saved beyond your browser.',
+  failed: 'The build didn’t finish. Try again, or send me your answers.',
+}
+
+export function AppBuilder({whatsapp, className, prototypes = false}: {whatsapp?: string | null; className?: string; prototypes?: boolean}) {
   const [answers, setAnswers] = useState<Answers>(emptyAnswers)
   const [step, setStep] = useState(0)
   const [phase, setPhase] = useState<Phase>('asking')
   const [error, setError] = useState<string | null>(null)
   const [built, setBuilt] = useState(0)
   const [copied, setCopied] = useState(false)
+  const [real, setReal] = useState<Real>({state: 'idle'})
   const input = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
   const top = useRef<HTMLDivElement>(null)
 
@@ -45,12 +62,45 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
     }
   }, [answers])
 
+  // A build under way carries on through a refresh.
+  useEffect(() => {
+    try {
+      const kept = sessionStorage.getItem(KEPT_REAL)
+      if (kept) setReal(JSON.parse(kept))
+    } catch {
+      // No storage: no build to carry on.
+    }
+  }, [])
+  useEffect(() => {
+    try {
+      if (real.id) sessionStorage.setItem(KEPT_REAL, JSON.stringify(real))
+    } catch {
+      // No storage: nothing kept.
+    }
+  }, [real])
+
+  // Ask where the build has got to every ten seconds until it's live or has failed.
+  useEffect(() => {
+    if (!real.id || (real.state !== 'waiting' && real.state !== 'building')) return
+    if (real.started && Date.now() - real.started > GIVE_UP) return setReal((r) => ({...r, state: 'failed'}))
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/prototype/${real.id}`, {cache: 'no-store'})
+        const next = (await res.json()) as {state: Real['state']; url?: string}
+        setReal((r) => ({...r, state: next.state, url: next.url ?? r.url}))
+      } catch {
+        setReal((r) => ({...r}))
+      }
+    }, 10_000)
+    return () => clearTimeout(t)
+  }, [real])
+
   const questions = asked(answers)
   const at = Math.min(step, questions.length - 1)
   const q = questions[at]
   const {options, errors} = resolveOptions(answers)
   const steps = buildSteps(options)
-  const brief = useMemo(() => claudePrompt(options, answers), [options, answers])
+  const brief = useMemo(() => claudePrompt(options, answers, real.state === 'ready' ? real.url : undefined), [options, answers, real])
 
   useEffect(() => {
     if (phase === 'asking') input.current?.focus({preventScroll: true})
@@ -97,6 +147,17 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
     }
   }
 
+  const buildReal = async () => {
+    setReal({state: 'starting'})
+    try {
+      const res = await fetch('/api/prototype', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({answers})})
+      const body = (await res.json()) as {id?: string; url?: string; error?: string}
+      setReal(res.ok && body.id ? {state: 'waiting', id: body.id, url: body.url, started: Date.now()} : {state: 'failed', error: body.error})
+    } catch {
+      setReal({state: 'failed'})
+    }
+  }
+
   const download = () => {
     const url = URL.createObjectURL(new Blob([brief], {type: 'text/markdown'}))
     const a = document.createElement('a')
@@ -123,16 +184,43 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
                 This is the app fohm-scaffold makes from your answers, as a prototype: tap through it. Below it, everything it
                 comes with, and a brief with every answer filled in to paste into Claude.
               </p>
-              <a className="btn btn-primary" href="#brief">
-                Get the brief for Claude <Arrow />
+              {prototypes && (real.state === 'idle' || real.state === 'failed') && (
+                <button type="button" className="btn btn-primary" onClick={buildReal}>
+                  {real.state === 'failed' ? 'Try building it again' : 'Build my real app'} <Arrow />
+                </button>
+              )}
+              {real.state !== 'idle' && (
+                <p className={`builder__real builder__real--${real.state}`} role="status">
+                  {real.error ?? REAL_LINE[real.state]}
+                </p>
+              )}
+              {real.state === 'ready' && real.url && (
+                <a className="btn btn-primary" href={real.url} target="_blank" rel="noreferrer">
+                  Open {options.name} <Arrow />
+                </a>
+              )}
+              <a className={prototypes ? 'text-btn' : 'btn btn-primary'} href="#brief">
+                Get the brief for Claude {prototypes ? null : <Arrow />}
               </a>
-              <button type="button" className="text-btn" onClick={() => setPhase('asking')}>
+              <button
+                type="button"
+                className="text-btn"
+                onClick={() => {
+                  setPhase('asking')
+                  setReal({state: 'idle'})
+                  try {
+                    sessionStorage.removeItem(KEPT_REAL)
+                  } catch {
+                    // No storage: nothing to clear.
+                  }
+                }}
+              >
                 Change my answers
               </button>
             </div>
           )}
         </div>
-        {phase === 'built' && <AppPrototype o={options} />}
+        {phase === 'built' && <AppPrototype o={options} live={real.state === 'ready' ? real.url : undefined} />}
 
         {phase === 'built' && (
           <section className="manifest" aria-labelledby="manifest-title">
