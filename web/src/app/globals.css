@@ -1269,6 +1269,47 @@ a.proof:hover .proof__arrow {
   background: var(--accent-soft);
 }
 
+.builder__template {
+  position: relative;
+  display: grid;
+}
+
+.builder__template .builder__kind {
+  padding-right: 120px;
+}
+
+.builder__see {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.builder__see:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 600px) {
+  .builder__template .builder__kind {
+    padding-right: 18px;
+    padding-bottom: 44px;
+  }
+
+  .builder__see {
+    top: auto;
+    right: auto;
+    bottom: 10px;
+    left: 18px;
+  }
+}
+
 .builder__colour {
   display: flex;
   align-items: center;
