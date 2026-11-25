@@ -50,7 +50,7 @@ export const SECTIONS = ['The idea', 'The name', 'The people', 'Onboarding', 'Th
 export const QUESTIONS: Question[] = [
   // The idea
   {key: 'idea', section: 'The idea', ask: 'In a sentence, what does it do, and for whom?', example: 'A pocket surf coach that tells beginners what to work on next, between lessons.', long: true, flag: 'idea'},
-  {key: 'business', section: 'The idea', ask: 'Whose business is it, and what do they sell already?', example: 'A Cornwall surf school: retreats, private coaching and video analysis.', long: true, flag: 'business'},
+  {key: 'business', section: 'The idea', ask: 'What do you do today?', why: 'Your business, coaching or content, and what people already pay you for. Leave it blank if the app is a new idea.', example: 'I run a surf school in Cornwall: lessons, retreats and video analysis.', long: true, flag: 'business'},
   {
     key: 'kind',
     section: 'The idea',
