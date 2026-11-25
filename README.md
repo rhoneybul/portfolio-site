@@ -69,5 +69,6 @@ Asks everything fohm-scaffold's first phase asks, shows the app as a clickable p
 | `ANTHROPIC_API_KEY` (optional) | Without it, the app's content comes from the answers alone. |
 | `PROTOTYPE_MODEL` (optional) | The Claude model for the content (default `claude-opus-5-5` at low effort; `claude-haiku-5-5` is cheaper). |
 | `PROTOTYPE_HOURLY_LIMIT` (optional) | How many builds may start in an hour across everyone (default 6). |
+| `SLACK_WEBHOOK_URL` (optional) | A Slack incoming webhook for the Fohm channel. It hears when someone builds an app in the builder, starts a real build, takes the brief, taps WhatsApp, or leaves their details with "I'm interested". |
 | `SCAFFOLD_REF` (optional) | The scaffold branch to build from (the latest work until it merges to `main`). |
 | `PROTOTYPE_TEAM_ID`, `PROTOTYPE_PROJECT` (optional) | The Vercel team and project prototypes go to (default this team and `fohm-prototypes`). |
