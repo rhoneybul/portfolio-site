@@ -6,7 +6,6 @@ import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {Marquee} from '@/components/marquee'
 import {AppBuilder} from '@/components/app-builder'
-import {prototypesOn} from '@/app-builder/deploy'
 
 export const metadata: Metadata = {
   title: 'App builder',
@@ -35,7 +34,7 @@ export default async function AppBuilderPage() {
               straight into Claude. The same foundations as Etapa and Naz.
             </p>
           </div>
-          <AppBuilder whatsapp={settings?.whatsapp} prototypes={prototypesOn()} className={`${display.variable} ${text.variable}`} />
+          <AppBuilder whatsapp={settings?.whatsapp} className={`${display.variable} ${text.variable}`} />
         </section>
         <ContactSection settings={settings} />
       </main>
