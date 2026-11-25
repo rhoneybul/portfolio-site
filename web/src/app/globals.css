@@ -1310,6 +1310,97 @@ a.proof:hover .proof__arrow {
   }
 }
 
+.builder__shuffle {
+  flex: none;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+}
+
+.photos {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+}
+
+.photos__bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.photos__bar input,
+.photos__own input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1.5px solid var(--line);
+  border-radius: 0;
+  background: none;
+  font: 400 clamp(17px, 1.5vw, 20px) / 1.35 var(--sans);
+  color: var(--ink);
+}
+
+.photos__bar input:focus,
+.photos__own input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.photos__bar .text-btn {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  min-height: 44px;
+}
+
+.photos__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(30%, 140px), 1fr));
+  gap: 8px;
+}
+
+.photos__pick {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 0;
+  background: var(--line);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.photos__pick img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photos__pick.is-on {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.photos__credit {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.photos__own {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
 .builder__colour {
   display: flex;
   align-items: center;

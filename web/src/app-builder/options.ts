@@ -31,7 +31,7 @@ export const TEMPLATES: (Choice & {kind: Kind; coach: 'yes' | 'no' | null})[] = 
   {value: 'aluzam', label: 'Like Aluzam', hint: 'Guitar practice with a real teacher: lessons, a practice plan and feedback', url: 'https://aluzam.app', kind: 'coaching', coach: 'yes'},
   {value: 'naz-surf', label: 'Like Naz Surf', hint: 'A surf game in the browser, on real big-wave spots', url: 'https://play.naz.surf', kind: 'game', coach: null},
   {value: 'strawberry-fields', label: 'Like Strawberry Fields', hint: 'A backcountry ski and snowboard game on real mountains', url: 'https://strawberry-fields-peach.vercel.app', kind: 'game', coach: null},
-  {value: 'other', label: 'Something else', hint: 'People sign up, write to you and get replies, and you see it all on a dashboard', kind: 'app', coach: null},
+  {value: 'other', label: 'Something else', hint: 'Programs to follow, and a real person who answers: you see everything on a dashboard', kind: 'coaching', coach: 'yes'},
 ]
 const templateOf = (a: Answers) => TEMPLATES.find((x) => x.value === a.template) ?? TEMPLATES[0]
 const kindOf = (a: Answers) => templateOf(a).kind
@@ -55,16 +55,16 @@ export interface Question {
   when?: (a: Answers) => boolean
 }
 
-const yesNo = (yes: string, no: string): Choice[] => [
-  {value: 'yes', label: 'Yes', hint: yes},
-  {value: 'no', label: 'No', hint: no},
-]
 const coaching = (a: Answers) => kindOf(a) === 'coaching'
 const notGame = (a: Answers) => kindOf(a) !== 'game'
-const hasCoach = (a: Answers) => (a.coach || 'yes') === 'yes'
 
-export const SECTIONS = ['The idea', 'The name', 'The people', 'Onboarding', 'The method', 'Look and feel', 'The business', 'Research'] as const
+export const SECTIONS = ['The idea', 'The name', 'Onboarding', 'The method', 'Look and feel', 'About you'] as const
 
+/**
+ * Only what a first look at the app needs. Everything else the scaffold takes (the words for the
+ * people and the person who runs it, the business's details, the domain, the app id, the price)
+ * has a sensible default here, and the brief asks Claude to settle it with the owner later.
+ */
 export const QUESTIONS: Question[] = [
   // The idea
   {key: 'idea', section: 'The idea', ask: 'In a sentence, what does it do, and for whom?', example: 'A pocket surf coach that tells beginners what to work on next, between lessons.', long: true, flag: 'idea'},
@@ -77,27 +77,7 @@ export const QUESTIONS: Question[] = [
     default: 'naz',
     choices: TEMPLATES.map(({value, label, hint, url}) => ({value, label, hint, url})),
   },
-  {
-    key: 'coach',
-    section: 'The idea',
-    ask: 'Is there a real person in the app, or does it run on its own?',
-    default: 'no',
-    flag: 'coach',
-    // The apps above say it themselves; only something else is asked.
-    when: (a) => templateOf(a).value === 'other',
-    choices: [
-      {value: 'yes', label: 'A real person', hint: 'You or your team answer people and follow their progress'},
-      {value: 'no', label: 'It runs on its own', hint: 'Nobody behind it: the app speaks as itself'},
-    ],
-  },
-  {
-    key: 'routes',
-    section: 'The idea',
-    ask: 'Do members plan routes on a map?',
-    default: 'no',
-    flag: 'routes',
-    choices: yesNo('Routes snapped to real roads and paths, with Mapbox', 'No maps'),
-  },
+  {key: 'doing', section: 'The idea', ask: 'What should people be doing in the app?', why: 'We write the headline and the landing page from it.', example: 'Following a training plan for bigger waves, a few short sessions a week.', long: true},
 
   // The name
   {key: 'name', section: 'The name', ask: 'What is the app called?', why: 'A working name is fine: the naming round can find a better one.', example: 'Tidepool', required: true, flag: 'name'},
@@ -105,89 +85,52 @@ export const QUESTIONS: Question[] = [
     key: 'nameSure',
     section: 'The name',
     ask: 'Are you sure of that name?',
-    why: 'The bundle id, the domain and the App Store record carry it, so it’s settled before they’re made.',
     default: 'no',
     choices: [
       {value: 'yes', label: 'Yes, that’s the name'},
-      {value: 'no', label: 'No, run a naming round', hint: '12 to 15 names, each checked for domains, store clashes and trade marks'},
+      {value: 'no', label: 'No, find me a better one', hint: 'A naming round: names checked for domains, store clashes and trade marks'},
     ],
   },
-  {
-    key: 'nameStyle',
-    section: 'The name',
-    ask: 'Which kind of name?',
-    multi: true,
-    when: (a) => a.nameSure !== 'yes',
-    choices: [
-      {value: 'evocative', label: 'Evocative, not literal', hint: 'Strava, Runna, Whoop'},
-      {value: 'place-led', label: 'Place-led', hint: 'Naz, from Nazaré'},
-      {value: 'coined', label: 'Coined', hint: 'A new word'},
-      {value: 'descriptive', label: 'Descriptive', hint: 'Says what it does'},
-    ],
-  },
-  {key: 'namesLiked', section: 'The name', ask: 'Names you like, in any category, and why', example: 'Strava: short, sounds like effort. Calm: says the feeling.', long: true, when: (a) => a.nameSure !== 'yes'},
-  {key: 'namesDisliked', section: 'The name', ask: 'What you dislike in a name', example: 'Puns, jargon, anything ending in -ly', when: (a) => a.nameSure !== 'yes'},
-
-  // The people
-  {key: 'memberWord', section: 'The people', ask: 'What do you call the people who use it?', example: 'student', default: 'member', flag: 'member-word'},
-  {key: 'ownerWord', section: 'The people', ask: 'What do you call the person who runs it?', why: 'Coach for a coaching app with a coach, team with no coach, else owner.', example: 'coach', flag: 'owner-word'},
-  {key: 'tagline', section: 'The people', ask: 'One line on what it does for people', why: 'The landing page’s headline.', example: 'Practise every day, with your coach beside you.', flag: 'tagline'},
-  {key: 'description', section: 'The people', ask: 'A sentence or two under it: what it does, for whom, and what changes for them', why: 'The landing page and the description search engines and shared links show.', example: 'Short sessions between lessons, at your level, with your coach watching your progress.', long: true},
 
   // Onboarding (Naz's)
-  {key: 'keyValue', section: 'Onboarding', ask: 'The app’s key value, as a question', why: 'The first thing a new member reads, over a photo.', example: 'Want to feel more comfortable in bigger waves?', when: notGame},
-  {key: 'interests', section: 'Onboarding', ask: 'What are members here for? Four to six words, comma-separated', why: 'A grid of tiles: what they pick comes first in the app.', example: 'Strength, Breath-holds, Mobility, Spots, Courses, Kit', when: notGame},
-  {key: 'firstNumber', section: 'Onboarding', ask: 'A first number a member can measure there and then, safely, in minutes', why: 'Optional. It starts their progress on day one.', example: 'A dry breath-hold, timed', when: notGame},
-  {key: 'week', section: 'Onboarding', ask: 'How much can a member usually give it?', why: 'Days a week and minutes a session.', example: '3 days a week, 30 minutes', when: notGame},
-  {key: 'goals', section: 'Onboarding', ask: 'What do members train for: places, events or trips?', why: 'The catalogue of goals, each with a real photo, and the courses that prepare for them.', example: 'Big-wave spots: Nazaré, Mavericks, Jaws', long: true, when: notGame},
+  {key: 'keyValue', section: 'Onboarding', ask: 'The question your app answers', why: 'The first thing a new member reads, over a photo.', example: 'Want to feel more comfortable in bigger waves?', when: notGame},
+  {key: 'interests', section: 'Onboarding', ask: 'What are people here for? A few words, comma-separated', why: 'Tiles in onboarding: what they pick comes first in the app.', example: 'Strength, Breath-holds, Mobility, Spots', when: notGame},
+  {key: 'goals', section: 'Onboarding', ask: 'What do people work towards: places, events or trips?', example: 'Big-wave spots: Nazaré, Mavericks, Jaws', when: notGame},
 
   // The method
-  {key: 'levels', section: 'The method', ask: 'The levels members move through, and a skill or two at each', why: 'The path, in your own words.', example: 'Foam board: paddling, pop-ups. Green waves: angling, trimming. Reef: duck-dives, reading sets.', long: true, when: coaching},
-  {key: 'placing', section: 'The method', ask: 'The questions that tell you where someone starts', example: 'How long have you surfed? Can you catch green waves on your own?', long: true, when: coaching},
-  {key: 'content', section: 'The method', ask: 'Links to the videos, posts and courses you already publish', why: 'The library points at them.', example: 'youtube.com/@yourschool, instagram.com/yourschool', long: true, when: notGame},
-  {key: 'price', section: 'The method', ask: 'What would members pay for Pro?', why: 'Stripe sells it on the web; you can give it from the dashboard too.', example: '£9.99 a month or £59.99 a year, with a week free'},
+  {key: 'levels', section: 'The method', ask: 'The levels people move through, and a skill or two at each', why: 'The path, in your own words.', example: 'Foam board: paddling, pop-ups. Green waves: angling, trimming. Reef: duck-dives, reading sets.', long: true, when: coaching},
+  {key: 'content', section: 'The method', ask: 'Links to the videos, posts and courses you already publish', why: 'The library points at them.', example: 'youtube.com/@yourschool, instagram.com/yourschool', when: notGame},
 
   // Look and feel
-  {key: 'inspiration', section: 'Look and feel', ask: 'Apps you like the look and feel of (comma-separated)', why: 'Their screens are pulled from Mobbin and adopted within the house style.', example: 'Speak, Ahead, Strava', flag: 'inspiration'},
-  {key: 'notInspiration', section: 'Look and feel', ask: 'And any you don’t', example: 'Anything that feels like a spreadsheet'},
-  {key: 'navigation', section: 'Look and feel', ask: 'A tab bar, and which three to five tabs? Or one hub screen with everything off it?', example: 'Tabs: Home, Train, Spots, You', default: ''},
-  {key: 'accent', section: 'Look and feel', ask: 'The one accent colour, from your brand', why: 'It marks what to press and what’s live now. Everything else is black, white and grey.', example: '#2F6B4F', default: '#2F6B4F', flag: 'accent'},
+  {key: 'inspiration', section: 'Look and feel', ask: 'Apps you like the look and feel of', why: 'Their screens are pulled from Mobbin and adopted within the house style.', example: 'Speak, Ahead, Strava', flag: 'inspiration'},
+  {key: 'accent', section: 'Look and feel', ask: 'Your colour', why: 'It marks what to press and what’s live now. Everything else is black, white and grey.', example: '#2F6B4F', default: '#2F6B4F', flag: 'accent'},
   {
     key: 'logo',
     section: 'Look and feel',
-    ask: 'Do you have a logo or artwork?',
+    ask: 'Do you have a logo?',
     default: 'no',
     choices: [
       {value: 'yes', label: 'Yes, I’ll send it', hint: 'Traced into the mark, the app icon and the favicon, never redrawn'},
-      {value: 'no', label: 'No, run the logo round', hint: 'Three or four concepts, judged at the size of a home-screen icon'},
+      {value: 'no', label: 'No, design me one', hint: 'Three or four ideas, judged at the size of a home-screen icon'},
     ],
   },
-  {key: 'photo', section: 'Look and feel', ask: 'A link to a photo of what members train for, or your people', why: 'The landing page, onboarding and Home lead with it. Your own, or an open licence.', example: 'https://upload.wikimedia.org/…/photo.jpg'},
-  {
-    key: 'ownPhotos',
-    section: 'Look and feel',
-    ask: 'Do you have photos of your own the app may use?',
-    default: 'no',
-    choices: yesNo('Your business’s photos, with your written permission recorded', 'Open-licence photos only, each credited'),
-  },
+  {key: 'photo', section: 'Look and feel', ask: 'A photo for the app', why: 'The landing page, onboarding and Home lead with it. Search open-licence photos, or paste a link to your own.', example: 'surfing big waves'},
 
-  // The business
-  {key: 'operator', section: 'The business', ask: 'Who runs it (person or company, for the privacy policy)?', example: 'Tidepool Ltd', flag: 'operator'},
-  {key: 'country', section: 'The business', ask: 'Which country is the business in?', why: 'For registering it, tax, the domain and the trade-mark check.', example: 'United Kingdom', default: '', flag: 'country'},
-  {key: 'registration', section: 'The business', ask: 'The business’s registration, as the terms should show it', why: 'Blank if it isn’t registered yet.', example: 'company number 01234567, registered in England and Wales', default: '', flag: 'registration'},
-  {key: 'address', section: 'The business', ask: 'The registered office address', why: 'For the terms and privacy policy; a UK company must show it. Blank if it isn’t registered yet.', example: '1 High Street, Bristol BS1 1AA', default: '', flag: 'address'},
-  {key: 'supportEmail', section: 'The business', ask: 'Support email address', example: 'hello@tidepool.app', flag: 'support-email'},
-  {key: 'domain', section: 'The business', ask: 'Domain it will live at', why: 'Blank if it isn’t decided.', example: 'tidepool.app', default: '', flag: 'domain'},
-  {key: 'bundleId', section: 'The business', ask: 'iOS and Android app id (reverse domain)', example: 'app.tidepool', flag: 'bundle-id'},
-
-  // Research: the open questions
-  {key: 'audience', section: 'Research', ask: 'How big is your audience today?', why: 'Followers, a mailing list, clients: the app sells to them first.', example: '12k on Instagram, 2,000 on the mailing list, 300 clients a year'},
-  {key: 'revenue', section: 'Research', ask: 'What do you earn from it now, roughly, and from what?', example: '£80k a year, mostly retreats'},
-  {key: 'time', section: 'Research', ask: 'How much time can you give the app each week?', example: 'Two hours, replying to clips'},
-  {key: 'ambition', section: 'Research', ask: 'What would success look like in a year?', example: '500 paying members, and the coaching waitlist gone', long: true},
-  {key: 'budget', section: 'Research', ask: 'A budget for running costs and the store accounts?', example: '£100 a month'},
-  {key: 'rights', section: 'Research', ask: 'Do you own the content you’d put in it?', why: 'Videos, programs, photos.', example: 'Yes, all filmed by us'},
+  // About you: what the research needs first
+  {key: 'audience', section: 'About you', ask: 'How big is your audience today?', why: 'Followers, a mailing list, clients: the app sells to them first.', example: '12k on Instagram, 2,000 on the mailing list'},
+  {key: 'ambition', section: 'About you', ask: 'What would success look like in a year?', example: '500 paying members, and the coaching waitlist gone', long: true},
 ]
+
+/** Colours that keep white text at 4.5:1 on them, for "Pick one for me". */
+export const ACCENTS = ['#2F6B4F', '#1B5E9A', '#B5432C', '#6B4FA0', '#0F766E', '#A34A0B', '#BE185D', '#3F4A5A', '#4D6B12', '#8A2E3B', '#2E5E8C', '#7A4B2A']
+
+/** What to search photos for first: the first goal they named, else what the app they picked is about. */
+export function photoSearchFor(a: Answers) {
+  const goals = (a.goals || '').split(':').pop()?.split(/,|\n| and /)[0]?.trim()
+  if (goals) return goals
+  const byTemplate: Record<string, string> = {naz: 'big wave surfing', etapa: 'road cycling', aluzam: 'acoustic guitar', 'naz-surf': 'surfing wave', 'strawberry-fields': 'backcountry skiing'}
+  return byTemplate[a.template] ?? (a.idea || '').split(/\s+/).slice(0, 4).join(' ')
+}
 
 export const asked = (a: Answers) => QUESTIONS.filter((q) => !q.when || q.when(a))
 export const emptyAnswers = (): Answers => Object.fromEntries(QUESTIONS.map((q) => [q.key, q.default ?? '']))
@@ -228,13 +171,20 @@ export interface Options extends Answers {
   kind: Kind
 }
 
+/** A headline from what people do in the app: its first clause, as a sentence, when it's short enough to lead a page. */
+function headline(doing: string) {
+  const first = doing.split(/[.;:\n]/)[0].trim()
+  if (!first || first.length > 70) return ''
+  return `${first.charAt(0).toUpperCase()}${first.slice(1)}.`
+}
+
 /** The scaffolder's resolveOptions: fills the defaults that depend on other answers, then checks them. */
 export function resolveOptions(input: Answers): {options: Options; errors: Record<string, string>} {
   const t = (k: string) => (input[k] ?? '').trim()
   const name = t('name')
   const template = templateOf(input)
   const kind = template.kind
-  const coach = kind !== 'game' && (template.coach ? template.coach === 'yes' : t('coach') === 'yes')
+  const coach = kind !== 'game' && template.coach === 'yes'
   const domain = cleanDomain(t('domain'))
   const slug = slugify(name)
   const address = NOT_YET.has(t('address').toLowerCase()) ? '' : t('address').replace(/^at\s+/i, '')
@@ -258,6 +208,7 @@ export function resolveOptions(input: Answers): {options: Options; errors: Recor
       .join(', '),
     tagline:
       t('tagline') ||
+      headline(t('doing')) ||
       (kind === 'game'
         ? `${name}: a quick game to play anywhere.`
         : kind === 'coaching'

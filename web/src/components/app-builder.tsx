@@ -3,8 +3,9 @@
 import {useEffect, useMemo, useRef, useState, type FormEvent} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppPrototype} from '@/components/app-prototype'
+import {PhotoSearch} from '@/components/photo-search'
 import {OFF_UNTIL_SET, whatYouGet} from '@/app-builder/manifest'
-import {SECTIONS, asked, buildSteps, emptyAnswers, resolveOptions, type Answers} from '@/app-builder/options'
+import {ACCENTS, SECTIONS, asked, buildSteps, emptyAnswers, photoSearchFor, resolveOptions, type Answers} from '@/app-builder/options'
 import {claudePrompt} from '@/app-builder/prompt'
 
 /**
@@ -295,6 +296,15 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
               )
             })}
           </div>
+        ) : q.key === 'photo' ? (
+          <PhotoSearch
+            start={photoSearchFor(answers)}
+            value={value}
+            onChange={(url, credit) => {
+              setAnswers({...answers, photo: url, photoCredit: credit})
+              setError(null)
+            }}
+          />
         ) : q.key === 'accent' ? (
           <div className="builder__colour">
             <input
@@ -304,6 +314,13 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
               onChange={(e) => set(e.target.value.toUpperCase())}
             />
             <input ref={input} id={`q-${q.key}`} value={value} onChange={(e) => set(e.target.value)} placeholder={`e.g. ${q.example}`} />
+            <button
+              type="button"
+              className="text-btn builder__shuffle"
+              onClick={() => set(ACCENTS.filter((c) => c !== value.toUpperCase())[Math.floor(Math.random() * (ACCENTS.length - 1))])}
+            >
+              Pick one for me
+            </button>
           </div>
         ) : q.long ? (
           <textarea
