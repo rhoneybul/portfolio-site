@@ -1389,6 +1389,51 @@ a.proof:hover .proof__arrow {
   background: #f2f2f6;
 }
 
+.interest__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 20px 32px;
+  max-width: 760px;
+}
+
+.interest__form label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.interest__wide {
+  grid-column: 1 / -1;
+}
+
+.interest__form input,
+.interest__form textarea {
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1.5px solid var(--line);
+  border-radius: 0;
+  background: none;
+  font: 400 18px / 1.4 var(--sans);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.interest__form input:focus,
+.interest__form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.interest__trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
 /* The prototype: the scaffold template's own house style (template/src/lib/theme.ts), not the site's */
 
 .builder__sections {

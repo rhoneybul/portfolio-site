@@ -3,6 +3,7 @@ import {NextResponse} from 'next/server'
 import {QUESTIONS, resolveOptions, type Answers} from '@/app-builder/options'
 import {makeApp} from '@/app-builder/make'
 import {deploy, prototypesOn, underCap} from '@/app-builder/deploy'
+import {appLines, toSlack} from '@/app-builder/slack'
 
 // Downloading the scaffold, one Claude call and the upload: well under a minute, with room.
 export const maxDuration = 300
@@ -27,9 +28,11 @@ export async function POST(request: Request) {
     if (!(await underCap())) return NextResponse.json({error: 'Lots of apps are being built right now. Try again in an hour.'}, {status: 429})
     const files = await makeApp(options, randomBytes(6).toString('hex'))
     const {id, url} = await deploy(files, {prototype: options.slug, kind: options.kind})
+    await toSlack([':rocket: Someone is building their real app', ...appLines(options, answers), `Live in about a minute at ${url}`])
     return NextResponse.json({id, url})
   } catch (error) {
     console.error('[prototype] start', error)
+    await toSlack([':warning: A real app build didn’t start', ...appLines(options, answers), String(error instanceof Error ? error.message : error).slice(0, 300)])
     return NextResponse.json({error: 'The build couldn’t start. Try again in a minute.'}, {status: 502})
   }
 }
