@@ -1987,6 +1987,44 @@ a.proof:hover .proof__arrow {
   font-variant-numeric: tabular-nums;
 }
 
+.dash__tiles .dash__tile-name {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.steps {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--x-surface);
+  font-size: 14px;
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--x-accent);
+  color: var(--x-on-accent);
+  font: 600 12px var(--x-d);
+}
+
 .dash__tiles .is-needs strong {
   color: var(--x-needs-you);
 }
