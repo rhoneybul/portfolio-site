@@ -67,13 +67,13 @@ function Dashboard({o, pic}: {o: Options; pic: (n: number) => Pic | undefined}) 
           <p className="dash__title">People</p>
           <div className="dash__tiles">
             {[
-              ['128', members],
-              ['64', 'active this week'],
-              ['23', 'on Pro'],
-              ['2', 'need you'],
+              [`${members.charAt(0).toUpperCase()}${members.slice(1)}`, 'everyone who has joined'],
+              ['Active', 'this week'],
+              ['On Pro', 'paying'],
+              ['Needs you', 'to reply'],
             ].map(([n, l], i) => (
-              <div key={l} className={i === 3 ? 'is-needs' : undefined}>
-                <strong>{n}</strong>
+              <div key={n} className={i === 3 ? 'is-needs' : undefined}>
+                <strong className="dash__tile-name">{n}</strong>
                 <span>{l}</span>
               </div>
             ))}
@@ -90,7 +90,7 @@ function Dashboard({o, pic}: {o: Options; pic: (n: number) => Pic | undefined}) 
                   )}
                 </span>
                 <span className="dash__name">{p}</span>
-                <span className="dash__meta">{['Sent a clip', 'Finished week 3', 'Started Pro', 'Joined today'][i]}</span>
+                <span className="dash__meta">{['Sent a clip', 'Finished a week', 'Started Pro', 'Joined today'][i]}</span>
                 {i === 0 && <span className="dash__badge">Needs you</span>}
               </div>
             ))}
@@ -105,8 +105,8 @@ function Slack({o}: {o: Options}) {
   const msgs: [string, string, string][] = [
     ['New sign-up', `Priya Shah joined ${o.name} on iPhone`, 'just now'],
     ['Pro started', 'Tom Reilly started Pro, yearly', '4 min'],
-    [o.kind === 'game' ? 'New best score' : 'Needs a reply', o.kind === 'game' ? 'Ana Costa scored 412' : 'Priya sent a clip for feedback', '12 min'],
-    ['Onboarding', '9 people finished onboarding today', '1 h'],
+    [o.kind === 'game' ? 'New best score' : 'Needs a reply', o.kind === 'game' ? 'Ana Costa set a new best score' : 'Priya sent a clip for feedback', '12 min'],
+    ['Onboarding', 'Sam Okafor finished onboarding', '1 h'],
   ]
   return (
     <div className="slack">
@@ -131,33 +131,23 @@ function Slack({o}: {o: Options}) {
 }
 
 function Funnel({o}: {o: Options}) {
-  const steps: [string, number][] = [
-    ['Saw the landing page', 100],
-    ['Signed up', 46],
-    ['Finished onboarding', 38],
-    [o.kind === 'game' ? 'Played a round' : 'Did a first session', 31],
-    ['Started Pro', 9],
-  ]
-  const week = [12, 18, 15, 22, 27, 25, 33, 38, 36, 44, 49, 53]
-  const max = Math.max(...week)
+  const steps = ['Saw the landing page', 'Signed up', 'Finished onboarding', o.kind === 'game' ? 'Played a round' : 'Did a first session', 'Started Pro']
   return (
     <div className="panel">
-      <p className="panel__title">Onboarding into Pro, last 30 days</p>
-      <div className="funnel">
-        {steps.map(([l, n]) => (
-          <div key={l} className="funnel__row">
-            <span>{l}</span>
-            <span className="funnel__bar">
-              <span style={{width: `${n}%`}} />
-            </span>
-            <strong>{n}%</strong>
-          </div>
+      <p className="panel__title">The funnel it tracks, from the first screen to Pro</p>
+      <ol className="steps">
+        {steps.map((l) => (
+          <li key={l}>{l}</li>
+        ))}
+      </ol>
+      <p className="panel__title">Dashboards made for you in PostHog</p>
+      <div className="checks">
+        {['Onboarding', 'What people skip', 'Who comes back', 'Pro'].map((d) => (
+          <span key={d}>
+            <i /> {d}
+          </span>
         ))}
       </div>
-      <p className="panel__title">Weekly active {o.memberWord}s</p>
-      <svg className="spark" viewBox="0 0 220 60" preserveAspectRatio="none" aria-label="Weekly active, rising">
-        <polyline points={week.map((v, i) => `${(i / (week.length - 1)) * 220},${58 - (v / max) * 54}`).join(' ')} />
-      </svg>
     </div>
   )
 }
@@ -172,16 +162,14 @@ function Monitoring({o}: {o: Options}) {
   ]
   return (
     <div className="panel">
-      <p className="panel__title">Errors, last 7 days</p>
+      <p className="panel__title">Errors reported to Sentry</p>
       <div className="issues">
-        <div className="issues__row is-resolved">
-          <span>TypeError in the checkout screen</span>
-          <em>Resolved in 1.4.2</em>
-        </div>
-        <div className="issues__row">
-          <span>Slow sign-in on Android</span>
-          <em>3 people · watching</em>
-        </div>
+        {['The web app', 'The iPhone and Android apps', 'The server'].map((w) => (
+          <div key={w} className="issues__row">
+            <span>{w}</span>
+            <em>Watched</em>
+          </div>
+        ))}
       </div>
       <p className="panel__title">{(o.domain || `${o.slug}.app`) + '/api/health'}</p>
       <div className="checks">
@@ -208,19 +196,13 @@ function Payments({o}: {o: Options}) {
         <span className="plan-card__name">
           <Mark size={22} /> {o.name} Pro
         </span>
-        <strong>£9.99</strong>
-        <span>a month, or £59.99 a year with a week free</span>
-        <span className="plan-card__pill">Start your free week</span>
+        <span>Your price, monthly or yearly, with a free trial if you want one</span>
+        <span className="plan-card__pill">Start Pro</span>
       </div>
-      <div className="dash__tiles dash__tiles--light">
-        {[
-          ['£1,840', 'this month'],
-          ['23', 'on Pro'],
-          ['4.1%', 'cancelled'],
-        ].map(([n, l]) => (
-          <div key={l}>
-            <strong>{n}</strong>
-            <span>{l}</span>
+      <div className="issues">
+        {['Bought on the web, through Stripe', 'Opens in the iPhone and Android apps', 'Given or taken away from your dashboard'].map((w) => (
+          <div key={w} className="issues__row">
+            <span>{w}</span>
           </div>
         ))}
       </div>
