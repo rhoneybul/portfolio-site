@@ -1,61 +1,70 @@
 'use client'
 
 import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
-import {onAccent, soften, type Options} from '@/app-builder/options'
+import {interestsOf, liftedAccent, needsYou, onAccent, soften, type Options} from '@/app-builder/options'
 
 /**
- * The screens fohm-scaffold's template draws, as a clickable prototype in a phone: the landing
- * page, the member app and the owner's dashboard, in the visitor's name, words and colour. Drawn
- * from template/src (components/ui.tsx, landing.tsx, app/onboarding.tsx, home.tsx, path.tsx,
- * game.tsx, admin/) with the template's sample progression, so it looks like what the scaffold
- * makes on day one. Nothing here is stored.
+ * The screens fohm-scaffold's template draws, as a clickable prototype in a phone, in the house
+ * style it ships with (template/src/lib/theme.ts and DESIGN.md: Space Grotesk 600 and DM Sans, a
+ * cool grey canvas, white cards, hairline rows, the ink pill with an accent disc, the floating tab
+ * bar), with the visitor's name, words, colour, photo, onboarding and method. Nothing is stored.
  */
 
 type ScreenId = 'landing' | 'onboarding' | 'home' | 'path' | 'game' | 'dashboard'
 
-const SCREEN_NAMES: Record<ScreenId, string> = {
-  landing: 'Landing page',
-  onboarding: 'Where are you at?',
-  home: 'Home',
-  path: 'Your path',
-  game: 'The game',
-  dashboard: 'Dashboard',
-}
-
-const screensFor = (kind: Options['kind']): ScreenId[] =>
-  kind === 'coaching'
-    ? ['landing', 'onboarding', 'home', 'path', 'dashboard']
-    : kind === 'game'
-      ? ['landing', 'home', 'game', 'dashboard']
-      : ['landing', 'home', 'dashboard']
-
-// The template's sample progression (src/lib/progression.ts), which the coach's own replaces.
-const LEVELS = [
-  {id: 'start', title: 'Getting started', summary: 'The first things everyone needs, done safely and with confidence.', skills: [['The basics', 'Everything else is built on this.'], ['A routine you keep', 'Little and often beats once in a while.']]},
-  {id: 'building', title: 'Building', summary: 'Turning the basics into something reliable.', skills: [['Consistency', 'Doing it well most of the time, not once.'], ['Using feedback', 'The fastest way forward is someone who can see what you can’t.']]},
-  {id: 'progressing', title: 'Progressing', summary: 'Stretching into harder things, with a plan.', skills: [['A real challenge', 'Growth happens just past comfortable.'], ['Reviewing your progress', 'Seeing how far you’ve come keeps you going.']]},
+const screensFor = (o: Options): {id: ScreenId; name: string}[] => [
+  {id: 'landing', name: 'Landing page'},
+  ...(o.kind === 'game' ? [] : [{id: 'onboarding' as const, name: 'Onboarding'}]),
+  {id: 'home', name: 'Home'},
+  ...(o.kind === 'coaching' ? [{id: 'path' as const, name: o.coach === 'yes' ? 'Your path' : 'Your program'}] : []),
+  ...(o.kind === 'game' ? [{id: 'game' as const, name: 'The game'}] : []),
+  {id: 'dashboard', name: 'Dashboard'},
 ]
-const ASSESSMENT = [
-  {question: 'How much have you done before?', answers: ['Never, or only once or twice', 'A few times, and I know the basics', 'Regularly, and I want to push on']},
-  {question: 'How confident do you feel?', answers: ['Not yet', 'Getting there', 'Confident']},
-]
-const FEATURES = [
-  {title: 'Start in a minute', body: 'Create an account and you are in. Nothing to install on the web.'},
-  {title: 'On your phone and laptop', body: 'The same account on the web, iPhone and Android.'},
-  {title: 'A real person behind it', body: 'Everything you do reaches the people who run it, and they reply.'},
-]
-const SAMPLE_PEOPLE = ['Sam Okafor', 'Priya Shah', 'Tom Reilly', 'Ana Costa']
 
 const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1)
 
+// The template's sample progression (src/lib/progression.ts), used where the visitor gave none.
+const SAMPLE_LEVELS = [
+  {title: 'Getting started', skills: ['The basics', 'A routine you keep']},
+  {title: 'Building', skills: ['Consistency', 'Using feedback']},
+  {title: 'Progressing', skills: ['A real challenge', 'Reviewing your progress']},
+]
+
+/** "Foam board: paddling, pop-ups. Green waves: angling." as levels and their skills. */
+function levelsOf(o: Options) {
+  const parsed = (o.levels || '')
+    .split(/\n|\.\s+|;\s*/)
+    .map((chunk) => chunk.trim().replace(/\.$/, ''))
+    .filter(Boolean)
+    .map((chunk) => {
+      const [title, rest] = chunk.split(/:\s*/, 2)
+      return {title: cap(title.trim()), skills: (rest ?? '').split(/,\s*|\s+and\s+/).map((s) => cap(s.trim())).filter(Boolean)}
+    })
+    .filter((l) => l.title)
+  return parsed.length ? parsed.map((l) => ({...l, skills: l.skills.length ? l.skills : ['The basics']})) : SAMPLE_LEVELS
+}
+
+/** The first goal they named: "Big-wave spots: Nazaré, Mavericks" is Nazaré. */
+function firstGoal(o: Options) {
+  const g = o.goals || ''
+  const list = g.includes(':') ? g.split(':')[1] : g
+  return list.split(/,|\n| and /)[0]?.trim() || 'Your goal'
+}
+
+const firstPlacing = (o: Options) => {
+  const q = (o.placing || '').split('?')[0]?.trim()
+  return q ? `${q}?` : 'How much have you done before?'
+}
+
+const SAMPLE_PEOPLE = ['Sam Okafor', 'Priya Shah', 'Tom Reilly', 'Ana Costa']
+
 export function AppPrototype({o}: {o: Options}) {
-  const screens = screensFor(o.kind)
+  const screens = screensFor(o)
   const [screen, setScreen] = useState<ScreenId>('landing')
-  const [level, setLevel] = useState(0)
-  const [got, setGot] = useState<Set<string>>(new Set())
+  const [done, setDone] = useState<Set<string>>(new Set())
   const scroller = useRef<HTMLDivElement>(null)
 
-  // A new kind of app starts again from its landing page.
+  // A different kind of app starts again from its landing page.
   useEffect(() => setScreen('landing'), [o.kind])
 
   const go = (s: ScreenId) => {
@@ -64,329 +73,500 @@ export function AppPrototype({o}: {o: Options}) {
   }
 
   const vars = {
-    '--p-accent': o.accent,
-    '--p-on-accent': onAccent(o.accent),
-    '--p-accent-soft': soften(o.accent),
+    '--x-accent': o.accent,
+    '--x-on-accent': onAccent(o.accent),
+    '--x-accent-soft': soften(o.accent),
+    '--x-dash-accent': liftedAccent(o.accent),
+    '--x-on-dash': onAccent(liftedAccent(o.accent)),
+    '--x-needs-you': needsYou(o.accent),
   } as CSSProperties
 
-  const s = {go, level, setLevel, got, setGot, o}
+  const props: Props = {o, go, done, setDone}
+  const tabbed = screen === 'home' || screen === 'path' || screen === 'game'
 
   return (
     <div className="proto" style={vars}>
       <nav className="proto__tabs" aria-label="Screens">
-        {screens.map((id) => (
-          <button key={id} type="button" className={id === screen ? 'is-active' : undefined} onClick={() => go(id)}>
-            {SCREEN_NAMES[id]}
+        {screens.map((s) => (
+          <button key={s.id} type="button" className={s.id === screen ? 'is-active' : undefined} onClick={() => go(s.id)}>
+            {s.name}
           </button>
         ))}
       </nav>
       <div className={`proto__phone${screen === 'dashboard' ? ' proto__phone--dark' : ''}`}>
-        <div className="proto__status" aria-hidden>
-          <span>9:41</span>
-          <span>{o.domain || `${o.slug}.vercel.app`}</span>
+        <div className="proto__screen x" ref={scroller}>
+          {screen === 'landing' && <Landing {...props} />}
+          {screen === 'onboarding' && <Onboarding {...props} />}
+          {screen === 'home' && <Home {...props} />}
+          {screen === 'path' && <Path {...props} />}
+          {screen === 'game' && <Game {...props} />}
+          {screen === 'dashboard' && <Dashboard {...props} />}
         </div>
-        <div className="proto__screen" ref={scroller}>
-          {screen === 'landing' && <Landing {...s} />}
-          {screen === 'onboarding' && <Onboarding {...s} />}
-          {screen === 'home' && <Home {...s} />}
-          {screen === 'path' && <Path {...s} />}
-          {screen === 'game' && <Game {...s} />}
-          {screen === 'dashboard' && <Dashboard {...s} />}
-        </div>
+        {tabbed && <TabBar {...props} at={screen} />}
       </div>
     </div>
   )
 }
 
-type Props = {
-  o: Options
-  go: (s: ScreenId) => void
-  level: number
-  setLevel: (n: number) => void
-  got: Set<string>
-  setGot: (s: Set<string>) => void
-}
+type Props = {o: Options; go: (s: ScreenId) => void; done: Set<string>; setDone: (s: Set<string>) => void}
 
-function Btn({children, onClick, secondary, disabled}: {children: ReactNode; onClick?: () => void; secondary?: boolean; disabled?: boolean}) {
+// ---------- The kit ----------
+
+const Icon = ({d, size = 22}: {d: string; size?: number}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d={d} />
+  </svg>
+)
+const ARROW = 'M5 12h14M13 6l6 6-6 6'
+const CHEVRON = 'M9 6l6 6-6 6'
+const IMAGE = 'M4 4h16v16H4zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M20 15l-5-5L5 20'
+const HOME = 'M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z'
+const TREND = 'M23 6l-9.5 9.5-5-5L1 18M17 6h6v6'
+const BOOK = 'M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2zM22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z'
+const USER = 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8'
+const PLAY = 'M6 4l14 8-14 8z'
+const FLAG = 'M4 22V4s1-1 4-1 5 2 8 2 4-1 4-1v11s-1 1-4 1-5-2-8-2-4 1-4 1'
+
+/** The ink pill with the accent disc: the one thing to press. */
+function Primary({children, onClick, disabled}: {children: ReactNode; onClick?: () => void; disabled?: boolean}) {
   return (
-    <button type="button" className={`p-btn${secondary ? ' p-btn--secondary' : ''}`} onClick={onClick} disabled={disabled}>
-      {children}
+    <button type="button" className="x-primary" onClick={onClick} disabled={disabled}>
+      <span>{children}</span>
+      <span className="x-primary__disc">
+        <Icon d={ARROW} size={20} />
+      </span>
     </button>
   )
 }
 
-/** The app's mark until the owner's own artwork is traced: its initial on the accent. */
-function Mark({o, size = 32}: {o: Options; size?: number}) {
+/** A photo slot: the visitor's photo, or the template's clean stand-in on the track grey. */
+function Photo({o, className, children}: {o: Options; className?: string; children?: ReactNode}) {
   return (
-    <span className="p-mark" style={{width: size, height: size, fontSize: size * 0.5}} aria-hidden>
-      {o.name.charAt(0).toUpperCase()}
+    <div className={`x-photo ${className ?? ''}`}>
+      {o.photo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={o.photo} alt="" referrerPolicy="no-referrer" />
+      ) : (
+        <span className="x-photo__stand-in">
+          <Icon d={IMAGE} size={26} />
+        </span>
+      )}
+      {children}
+    </div>
+  )
+}
+
+function Avatar({name, size = 56}: {name: string; size?: number}) {
+  return (
+    <span className="x-avatar" style={{width: size, height: size, fontSize: size * 0.42}} aria-hidden>
+      {name.charAt(0)}
     </span>
   )
 }
 
+function Row({title, line, lead, onClick, chevron = true}: {title: string; line?: string; lead?: ReactNode; onClick?: () => void; chevron?: boolean}) {
+  return (
+    <button type="button" className="x-row" onClick={onClick}>
+      {lead}
+      <span className="x-row__text">
+        <span className="x-row__title">{title}</span>
+        {line && <span className="x-row__line">{line}</span>}
+      </span>
+      {chevron && (
+        <span className="x-row__chevron">
+          <Icon d={CHEVRON} size={20} />
+        </span>
+      )}
+    </button>
+  )
+}
+
+function Dots({at, of}: {at: number; of: number}) {
+  return (
+    <span className="x-dots" aria-label={`Step ${at + 1} of ${of}`}>
+      {Array.from({length: of}, (_, i) => (
+        <span key={i} className={i === at ? 'is-on' : i < at ? 'is-past' : undefined} />
+      ))}
+    </span>
+  )
+}
+
+function TabBar({o, go, at}: Props & {at: ScreenId}) {
+  const tabs: {id: ScreenId | null; label: string; d: string}[] = [
+    {id: 'home', label: 'Home', d: HOME},
+    ...(o.kind === 'coaching' ? [{id: 'path' as const, label: o.coach === 'yes' ? 'Path' : 'Program', d: TREND}] : []),
+    ...(o.kind === 'game' ? [{id: 'game' as const, label: 'Play', d: PLAY}] : []),
+    {id: null, label: 'Library', d: BOOK},
+    {id: null, label: 'You', d: USER},
+  ]
+  return (
+    <nav className="x-tabbar" aria-label="Tabs">
+      {tabs.map((t) => (
+        <button key={t.label} type="button" className={t.id === at ? 'is-on' : undefined} onClick={() => t.id && go(t.id)}>
+          <Icon d={t.d} />
+          <span>{t.label}</span>
+        </button>
+      ))}
+    </nav>
+  )
+}
+
+// ---------- The screens ----------
+
 function Landing({o, go}: Props) {
   return (
-    <div className="p-landing">
-      <div className="p-landing__bar">
-        <span className="p-brand">
-          <Mark o={o} size={26} />
-          {o.name}
-        </span>
-        <button type="button" className="p-link" onClick={() => go('home')}>
-          Sign in
+    <div className="x-landing">
+      <Photo o={o} className="x-landing__photo">
+        <div className="x-landing__bar">
+          <span className="x-landing__name">{o.name}</span>
+          <button type="button" className="x-landing__signin" onClick={() => go('home')}>
+            Sign in
+          </button>
+        </div>
+      </Photo>
+      <div className="x-landing__body">
+        <h3 className="x-hero">{o.tagline}</h3>
+        <p className="x-body">
+          {o.description || `${o.idea || 'What this app does, for whom, and what changes for them once they use it.'}`}
+        </p>
+        <Primary onClick={() => go(o.kind === 'game' ? 'home' : 'onboarding')}>Get started</Primary>
+        <button type="button" className="x-link" onClick={() => go('home')}>
+          I already have an account
         </button>
       </div>
-      <h3 className="p-hero">{o.tagline}</h3>
-      <div className="p-row">
-        <Btn onClick={() => go(o.kind === 'coaching' ? 'onboarding' : 'home')}>Get started</Btn>
-        <Btn secondary onClick={() => go('home')}>
-          Sign in
-        </Btn>
-      </div>
-      {FEATURES.map((f) => (
-        <div key={f.title} className="p-card">
-          <p className="p-heading">{f.title}</p>
-          <p className="p-body">{f.body}</p>
-        </div>
-      ))}
-      <div className="p-foot">
-        <span>© {o.operator}</span>
-        <span>Privacy</span>
-        <span>Terms</span>
-      </div>
     </div>
   )
 }
 
-function Onboarding({o, go, setLevel}: Props) {
-  const [answers, setAnswers] = useState<(number | null)[]>([null, null])
-  const complete = answers.every((a) => a !== null)
-  // The template's assess(): most votes wins, the earliest level on a tie.
-  const placed = complete
-    ? [0, 1, 2].reduce((best, l) => (answers.filter((a) => a === l).length > answers.filter((a) => a === best).length ? l : best), 0)
-    : null
+function Onboarding({o, go}: Props) {
+  const interests = interestsOf(o)
+  const steps = ['hello', 'placing', 'interests', 'week', 'ready'] as const
+  const [at, setAt] = useState(0)
+  const [picked, setPicked] = useState<string[]>([])
+  const [placed, setPlaced] = useState<number | null>(null)
+  const [days, setDays] = useState(3)
+  const [minutes, setMinutes] = useState(30)
+  const levels = levelsOf(o)
+  const step = steps[at]
+  const next = () => (at < steps.length - 1 ? setAt(at + 1) : go('home'))
+  const dotted = steps.length - 2
+
+  const helloLines = [
+    o.keyValue || 'Want to get better at it, week by week?',
+    o.idea || 'It’s built a little at a time, at your level.',
+    `${o.name} starts you where you are and shows you what to do next.`,
+  ]
+  const [line, setLine] = useState(0)
+
+  if (step === 'hello')
+    return (
+      <div className="x-onb x-onb--hello">
+        <Photo o={o} className="x-onb__photo" />
+        <button type="button" className="x-skip" onClick={() => go('home')}>
+          Skip
+        </button>
+        <div className="x-onb__foot">
+          <p className="x-onb__line">{helloLines[line]}</p>
+          <Dots at={line} of={helloLines.length} />
+          <Primary onClick={() => (line < helloLines.length - 1 ? setLine(line + 1) : next())}>
+            {line < helloLines.length - 1 ? 'Continue' : 'Get started'}
+          </Primary>
+        </div>
+      </div>
+    )
+
   return (
-    <div className="p-page">
-      <h3 className="p-title">Where are you at?</h3>
-      <p className="p-body">A few questions, so {o.name} starts you in the right place.</p>
-      {ASSESSMENT.map((q, qi) => (
-        <div key={q.question} className="p-stack" role="radiogroup" aria-label={q.question}>
-          <p className="p-heading">{q.question}</p>
-          {q.answers.map((a, ai) => (
-            <button
-              key={a}
-              type="button"
-              role="radio"
-              aria-checked={answers[qi] === ai}
-              className={`p-choice${answers[qi] === ai ? ' is-on' : ''}`}
-              onClick={() => setAnswers(answers.map((x, i) => (i === qi ? ai : x)))}
-            >
-              {a}
-            </button>
-          ))}
-        </div>
-      ))}
-      {placed !== null && (
-        <div className="p-stack">
-          <p className="p-heading">You’ll start at “{LEVELS[placed].title}”</p>
-          <p className="p-small">{LEVELS[placed].summary}</p>
-        </div>
+    <div className="x-onb">
+      <div className="x-onb__top">
+        <Dots at={at - 1} of={dotted} />
+        <button type="button" className="x-skip x-skip--light" onClick={next}>
+          Skip
+        </button>
+      </div>
+
+      {step === 'placing' && (
+        <>
+          <h3 className="x-display">{firstPlacing(o)}</h3>
+          <div className="x-card x-card--rows">
+            {['Never, or only once or twice', 'A few times, and I know the basics', 'Regularly, and I want to push on'].map((label, i) => (
+              <Row
+                key={label}
+                title={label}
+                chevron={false}
+                lead={<span className={`x-radio${placed === i ? ' is-on' : ''}`} />}
+                onClick={() => {
+                  setPlaced(Math.min(i, levels.length - 1))
+                  setTimeout(next, 180)
+                }}
+              />
+            ))}
+          </div>
+        </>
       )}
-      <Btn
-        disabled={!complete}
-        onClick={() => {
-          setLevel(placed ?? 0)
-          go('home')
-        }}
-      >
-        Start
-      </Btn>
+
+      {step === 'interests' && (
+        <>
+          <h3 className="x-display">What are you here for?</h3>
+          <p className="x-body">Pick any. We put them first.</p>
+          <div className="x-grid">
+            {interests.map((w) => (
+              <button
+                key={w}
+                type="button"
+                className={`x-tile${picked.includes(w) ? ' is-on' : ''}`}
+                aria-pressed={picked.includes(w)}
+                onClick={() => setPicked(picked.includes(w) ? picked.filter((x) => x !== w) : [...picked, w])}
+              >
+                {w}
+              </button>
+            ))}
+          </div>
+          <Primary onClick={next}>Continue</Primary>
+        </>
+      )}
+
+      {step === 'week' && (
+        <>
+          <h3 className="x-display">How much can you give it?</h3>
+          <p className="x-body">Be honest: a routine you keep beats one you don’t.</p>
+          <p className="x-label">Days a week</p>
+          <div className="x-chips">
+            {[1, 2, 3, 4, 5, 6].map((d) => (
+              <button key={d} type="button" className={`x-chip${days === d ? ' is-on' : ''}`} onClick={() => setDays(d)}>
+                {d}
+              </button>
+            ))}
+          </div>
+          <p className="x-label">Minutes a session</p>
+          <div className="x-chips">
+            {[15, 20, 30, 45, 60].map((m) => (
+              <button key={m} type="button" className={`x-chip${minutes === m ? ' is-on' : ''}`} onClick={() => setMinutes(m)}>
+                {m}
+              </button>
+            ))}
+          </div>
+          <div className="x-card x-numeral">
+            <span className="x-stat">{Math.round(((days * minutes) / 60) * 10) / 10}</span>
+            <span className="x-body">hours a week</span>
+          </div>
+          <Primary onClick={next}>Continue</Primary>
+        </>
+      )}
+
+      {step === 'ready' && (
+        <>
+          <h3 className="x-display">Where you start</h3>
+          <Photo o={o} className="x-photocard">
+            <span className="x-photocard__shade" />
+            <span className="x-photocard__text">
+              <span className="x-photocard__title">
+                {o.kind === 'coaching' ? `You’ll start at ${levels[placed ?? 0].title}` : `Your ${o.name}`}
+              </span>
+              <span className="x-photocard__line">
+                {days} days a week, {minutes} minutes a session
+              </span>
+            </span>
+          </Photo>
+          <div className="x-card x-card--rows">
+            {(picked.length ? picked : interests.slice(0, 3)).map((w) => (
+              <Row key={w} title={w} line="First in your app" chevron={false} />
+            ))}
+          </div>
+          <Primary onClick={() => go('home')}>Start</Primary>
+        </>
+      )}
     </div>
   )
 }
 
-function nextUp(level: number, got: Set<string>) {
-  const skills = LEVELS.slice(level).flatMap((l) => l.skills.map((s) => ({title: s[0], level: l.title})))
-  const left = skills.filter((s) => !got.has(s.title))
-  return {next: left.slice(0, 3), current: left[0]?.level, finished: skills.length - left.length, total: skills.length}
-}
-
-function Home({o, go, level, got}: Props) {
-  const path = nextUp(level, got)
+function Home({o, go}: Props) {
+  const levels = levelsOf(o)
+  const today = (new Date().getDay() + 6) % 7
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening'
+  const coach = o.coach === 'yes'
   return (
-    <div className="p-page">
-      <h3 className="p-title">Hi, Sam</h3>
-      {o.kind === 'coaching' && (
-        <div className="p-card">
-          <p className="p-small">
-            {path.current ? `${path.current} · ${path.finished} of ${path.total} skills` : 'Every skill done'}
-          </p>
-          <p className="p-heading">{path.next.length ? 'Next up' : 'You’ve finished the path'}</p>
-          {path.next.map((s) => (
-            <p key={s.title} className="p-body">
-              - {s.title}
-            </p>
-          ))}
-          <Btn>Check in</Btn>
-          <Btn secondary onClick={() => go('path')}>
-            Your path
-          </Btn>
-          <p className="p-small">Check in after you practise.</p>
-        </div>
+    <div className="x-page">
+      <div className="x-greeting">
+        <h3 className="x-hero">{greeting}, Sam</h3>
+        <Avatar name="Sam" />
+      </div>
+
+      <div className="x-card x-card--rows">
+        <Row title="Getting started" line={o.tagline} chevron={false} lead={<span className="x-well"><Icon d={FLAG} size={20} /></span>} />
+        {(o.kind === 'game'
+          ? ['Play your first round', 'Set your best score', 'Tell us what you think']
+          : o.kind === 'coaching'
+            ? ['Find your level', 'Check in after you practise', coach ? `Ask your ${o.ownerWord} something` : 'Save a goal']
+            : ['Write your first entry', 'Add your photo', 'Save a goal']
+        ).map((t, i) => (
+          <Row key={t} title={t} line={['A few questions, to see where you start', 'How it went, in a tap', coach ? 'A question, or a clip for feedback' : 'It comes back on Home'][i]} lead={<span className="x-radio" />} />
+        ))}
+      </div>
+
+      {o.kind !== 'game' && (
+        <Photo o={o} className="x-photocard x-photocard--tall">
+          <span className="x-badge">
+            <span className="x-badge__dot" />
+            Your goal
+          </span>
+          <span className="x-photocard__shade" />
+          <span className="x-photocard__text">
+            <span className="x-photocard__title">{firstGoal(o)}</span>
+            <span className="x-photocard__line">{o.kind === 'coaching' ? `Up next: ${levels[0].skills[0]}` : 'Saved, with what gets you there'}</span>
+          </span>
+        </Photo>
       )}
+
       {o.kind === 'game' && (
-        <div className="p-card">
-          <p className="p-heading">Catch the dot</p>
-          <p className="p-body">Your best: 0 points</p>
-          <Btn onClick={() => go('game')}>Play</Btn>
-        </div>
+        <Photo o={o} className="x-photocard x-photocard--tall">
+          <span className="x-photocard__shade" />
+          <span className="x-photocard__text">
+            <span className="x-photocard__title">Catch the dot</span>
+            <span className="x-photocard__line">Your best: 0 points</span>
+          </span>
+        </Photo>
       )}
-      <div className="p-card">
-        <p className="p-heading">
-          {o.kind === 'coaching' ? `Ask your ${o.ownerWord}` : o.kind === 'game' ? 'Send feedback' : 'Write something'}
-        </p>
-        {o.kind === 'coaching' && (
-          <p className="p-small">A question, or a clip for feedback: attach a video, or paste a link to one.</p>
-        )}
-        <span className="p-label">Title</span>
-        <span className="p-input" />
-        <span className="p-label">Details</span>
-        <span className="p-input p-input--tall" />
-        {o.kind === 'coaching' && <Btn secondary>Attach a video</Btn>}
-        <Btn>Save</Btn>
-      </div>
-      <div className="p-card">
-        <p className="p-heading">{o.kind === 'coaching' ? 'My first clip' : 'First thoughts'}</p>
-        <p className="p-body">{o.kind === 'coaching' ? 'Is my timing right on this one?' : 'Loving it so far.'}</p>
-        <div className="p-reply">
-          <p className="p-small p-small--accent">Reply</p>
-          <p className="p-body">
-            {o.kind === 'coaching' ? 'Nearly. Start a beat earlier and send me another.' : `Thanks, Sam. Glad you’re here.`}
-          </p>
+
+      <div className="x-card">
+        <p className="x-heading">This week</p>
+        <div className="x-week">
+          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+            <span key={i} className={`x-day${i === today ? ' is-today' : ''}`}>
+              <span>{d}</span>
+              <span className="x-day__ring" />
+            </span>
+          ))}
         </div>
       </div>
-      {o.kind === 'coaching' && <Btn secondary>Library</Btn>}
-      <Btn secondary>Your account</Btn>
+
+      {o.kind === 'coaching' && <Primary onClick={() => go('path')}>{coach ? 'Your path' : 'Your program'}</Primary>}
+      {o.kind === 'game' && <Primary onClick={() => go('game')}>Play</Primary>}
+      <div className="x-tabbar-room" />
     </div>
   )
 }
 
-function Path({o, go, level, got, setGot}: Props) {
-  const path = nextUp(level, got)
-  const toggle = (t: string) => {
-    const n = new Set(got)
-    if (n.has(t)) n.delete(t)
-    else n.add(t)
-    setGot(n)
+function Path({o, done, setDone}: Props) {
+  const levels = levelsOf(o)
+  const all = levels.flatMap((l) => l.skills)
+  const finished = all.filter((s) => done.has(s)).length
+  const current = levels.find((l) => l.skills.some((s) => !done.has(s)))
+  const toggle = (s: string) => {
+    const n = new Set(done)
+    if (n.has(s)) n.delete(s)
+    else n.add(s)
+    setDone(n)
   }
   return (
-    <div className="p-page">
-      <h3 className="p-title">Your path</h3>
-      <p className="p-body">
-        {path.finished} of {path.total} skills{path.current ? `, working on “${path.current}”` : ': all done'}
+    <div className="x-page">
+      <h3 className="x-hero">{o.coach === 'yes' ? 'Your path' : 'Your program'}</h3>
+      <p className="x-body">
+        {finished} of {all.length} skills{current ? `, working on ${current.title}` : ': all done'}
       </p>
-      <div className="p-progress" role="progressbar" aria-valuemin={0} aria-valuemax={path.total} aria-valuenow={path.finished}>
-        <span style={{width: `${(path.finished / path.total) * 100}%`}} />
+      <div className="x-progress" role="progressbar" aria-valuemin={0} aria-valuemax={all.length} aria-valuenow={finished}>
+        <span style={{width: `${(finished / all.length) * 100}%`}} />
       </div>
-      {LEVELS.slice(level).map((l) => (
-        <div key={l.id} className={`p-card${l.title === path.current ? ' p-card--current' : ''}`}>
-          <p className="p-heading">{l.title}</p>
-          <p className="p-small">{l.summary}</p>
-          {l.skills.map(([title, why]) => (
-            <button key={title} type="button" role="checkbox" aria-checked={got.has(title)} className="p-skill" onClick={() => toggle(title)}>
-              <span className={`p-check${got.has(title) ? ' is-on' : ''}`} aria-hidden />
-              <span>
-                <strong>{title}</strong>
-                <span className="p-small">{why}</span>
-                {got.has(title) && title === 'The basics' && (
-                  <span className="p-small p-small--accent">
-                    {cap(o.ownerWord)}: Lovely. Keep it up.
-                  </span>
-                )}
-              </span>
-            </button>
-          ))}
+      {levels.map((l) => (
+        <div key={l.title} className="x-section">
+          <p className="x-heading">{l.title}</p>
+          <div className="x-card x-card--rows">
+            {l.skills.map((s) => (
+              <Row
+                key={s}
+                title={s}
+                line={done.has(s) ? (o.coach === 'yes' ? `${cap(o.ownerWord)}: lovely, keep it up` : 'Done') : 'Tap when you’ve got it'}
+                chevron={false}
+                lead={<span className={`x-check${done.has(s) ? ' is-on' : ''}`} />}
+                onClick={() => toggle(s)}
+              />
+            ))}
+          </div>
         </div>
       ))}
-      <Btn secondary onClick={() => go('home')}>
-        Back
-      </Btn>
+      <div className="x-tabbar-room" />
     </div>
   )
 }
 
-function Game({go}: Props) {
+function Game({o}: Props) {
   const [points, setPoints] = useState(0)
   const [streak, setStreak] = useState(0)
   const [dot, setDot] = useState({x: 40, y: 30})
-  const move = () => setDot({x: 8 + Math.random() * 74, y: 8 + Math.random() * 74})
   return (
-    <div className="p-page">
-      <h3 className="p-title">Catch the dot</h3>
-      <div className="p-row p-row--between">
-        <p className="p-heading">{points} points</p>
-        <p className="p-heading">30s</p>
+    <div className="x-page">
+      <h3 className="x-hero">Catch the dot</h3>
+      <div className="x-split">
+        <span className="x-stat x-stat--small">{points}</span>
+        <span className="x-body">points · 30s</span>
       </div>
-      <div
-        className="p-board"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) setStreak(0)
-        }}
-      >
+      <div className="x-board" onClick={(e) => e.target === e.currentTarget && setStreak(0)}>
         <button
           type="button"
           aria-label="The dot"
-          className="p-dot"
+          className="x-dot"
           style={{left: `${dot.x}%`, top: `${dot.y}%`}}
           onClick={() => {
             setPoints(points + streak + 1)
             setStreak(streak + 1)
-            move()
+            setDot({x: 8 + Math.random() * 74, y: 8 + Math.random() * 74})
           }}
         />
       </div>
-      <p className="p-body" style={{textAlign: 'center'}}>
-        Tap the dot before it moves. Each catch in a row is worth one more point.
-      </p>
-      <Btn secondary onClick={() => go('home')}>
-        Back
-      </Btn>
+      <p className="x-body">Tap the dot before it moves. Each catch in a row is worth one more point, in {o.name}.</p>
+      <div className="x-tabbar-room" />
     </div>
   )
 }
 
 function Dashboard({o}: Props) {
   const coaching = o.kind === 'coaching'
+  const members = `${o.memberWord}s`
   return (
-    <div className="p-page p-dash">
-      <div className="p-dash__tabs">
+    <div className="x-page x-dash">
+      <div className="x-dash__tabs">
         <span className="is-on">People</span>
         <span>Activity</span>
         <span>Settings</span>
       </div>
-      <h3 className="p-title">People</h3>
-      <p className="p-small">Everyone with an account, with what needs you on top.</p>
-      <p className="p-dash__section">Needs you</p>
-      <div className="p-dash__card">
-        <div className="p-row p-row--between">
-          <strong>{SAMPLE_PEOPLE[1]}</strong>
-          <span className="p-badge p-badge--highlight">Needs a reply</span>
+      <h3 className="x-hero">People</h3>
+      <p className="x-body">Everyone with an account, with what needs you on top.</p>
+      <div className="x-dash__stats">
+        <div>
+          <span className="x-stat x-stat--small">{SAMPLE_PEOPLE.length}</span>
+          <span>{members}</span>
         </div>
-        <span className="p-small">{coaching ? 'Sent a clip: “Is my timing right on this one?”' : o.kind === 'game' ? 'Feedback: “Can there be a harder level?”' : 'Wrote: “First thoughts”'}</span>
+        <div>
+          <span className="x-stat x-stat--small">1</span>
+          <span>needs you</span>
+        </div>
       </div>
-      <p className="p-dash__section">Everyone ({SAMPLE_PEOPLE.length})</p>
-      {SAMPLE_PEOPLE.map((p, i) => (
-        <div key={p} className="p-dash__card">
-          <div className="p-row p-row--between">
-            <strong>{p}</strong>
-            {i === 2 ? <span className="p-badge p-badge--good">Pro</span> : null}
-          </div>
-          <span className="p-small">
-            {cap(o.memberWord)} ·{' '}
-            {coaching ? `${LEVELS[i % 3].title}, ${i + 1} check-in${i ? 's' : ''}` : o.kind === 'game' ? `Best ${(4 - i) * 37} points` : `${i + 2} entries`}
+      <p className="x-heading">Needs you</p>
+      <div className="x-dash__card">
+        <Avatar name={SAMPLE_PEOPLE[1]} size={40} />
+        <span className="x-row__text">
+          <span className="x-row__title">{SAMPLE_PEOPLE[1]}</span>
+          <span className="x-row__line">
+            {coaching ? (o.coach === 'yes' ? 'Sent a clip for feedback' : 'Wrote to the team') : o.kind === 'game' ? 'Sent feedback' : 'Wrote something'}
           </span>
-        </div>
-      ))}
+        </span>
+        <span className="x-dash__badge">Needs a reply</span>
+      </div>
+      <p className="x-heading">Everyone ({SAMPLE_PEOPLE.length})</p>
+      <div className="x-dash__list">
+        {SAMPLE_PEOPLE.map((p, i) => (
+          <div key={p} className="x-dash__row">
+            <Avatar name={p} size={40} />
+            <span className="x-row__text">
+              <span className="x-row__title">{p}</span>
+              <span className="x-row__line">
+                {cap(o.memberWord)} · {coaching ? levelsOf(o)[i % levelsOf(o).length].title : o.kind === 'game' ? `Best ${(4 - i) * 37}` : `${i + 2} entries`}
+              </span>
+            </span>
+            {i === 2 && <span className="x-dash__pro">Pro</span>}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

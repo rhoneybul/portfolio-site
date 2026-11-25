@@ -1,53 +1,65 @@
 'use client'
 
-import {useEffect, useRef, useState, type FormEvent} from 'react'
+import {useEffect, useMemo, useRef, useState, type FormEvent} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppPrototype} from '@/components/app-prototype'
 import {OFF_UNTIL_SET, whatYouGet} from '@/app-builder/manifest'
-import {
-  KIND_LABELS,
-  KINDS,
-  QUESTIONS,
-  buildSteps,
-  emptyAnswers,
-  resolveOptions,
-  type Answers,
-  type Kind,
-} from '@/app-builder/options'
+import {SECTIONS, asked, buildSteps, emptyAnswers, resolveOptions, type Answers} from '@/app-builder/options'
+import {claudePrompt} from '@/app-builder/prompt'
 
 /**
- * The outreach app builder: asks what fohm-scaffold's `new` asks, one question to a screen, fills
- * in the same defaults, plays the build, then shows the screens the scaffold makes as a clickable
- * prototype. Nothing is generated or stored; Build it for real sends the answers to Rob.
+ * The app builder: asks everything fohm-scaffold's first phase asks, one question to a screen in
+ * sections, with the scaffolder's own defaults; plays the build; shows the app as a clickable
+ * prototype in the house style; lists everything the app comes with; and hands over a brief for
+ * Claude with every answer filled in. Nothing is generated or stored; answers stay in this tab.
  */
 
 type Phase = 'asking' | 'building' | 'built'
 
-export function AppBuilder({whatsapp}: {whatsapp?: string | null}) {
+const KEPT = 'fohm-app-builder'
+
+export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; className?: string}) {
   const [answers, setAnswers] = useState<Answers>(emptyAnswers)
   const [step, setStep] = useState(0)
   const [phase, setPhase] = useState<Phase>('asking')
   const [error, setError] = useState<string | null>(null)
   const [built, setBuilt] = useState(0)
+  const [copied, setCopied] = useState(false)
   const input = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
   const top = useRef<HTMLDivElement>(null)
 
-  const q = QUESTIONS[step]
+  // Answers survive a refresh in this tab only.
+  useEffect(() => {
+    try {
+      const kept = sessionStorage.getItem(KEPT)
+      if (kept) setAnswers({...emptyAnswers(), ...JSON.parse(kept)})
+    } catch {
+      // No storage: start empty.
+    }
+  }, [])
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(KEPT, JSON.stringify(answers))
+    } catch {
+      // No storage: nothing kept.
+    }
+  }, [answers])
+
+  const questions = asked(answers)
+  const at = Math.min(step, questions.length - 1)
+  const q = questions[at]
   const {options, errors} = resolveOptions(answers)
   const steps = buildSteps(options)
+  const brief = useMemo(() => claudePrompt(options, answers), [options, answers])
 
   useEffect(() => {
     if (phase === 'asking') input.current?.focus({preventScroll: true})
-  }, [step, phase])
+  }, [at, phase])
 
-  // The build, a line at a time.
   useEffect(() => {
     if (phase !== 'building') return
-    if (built >= steps.length) {
-      const t = setTimeout(() => setPhase('built'), 400)
-      return () => clearTimeout(t)
-    }
-    const t = setTimeout(() => setBuilt(built + 1), 380)
+    const finished = built >= steps.length
+    const t = setTimeout(() => (finished ? setPhase('built') : setBuilt(built + 1)), finished ? 400 : 320)
     return () => clearTimeout(t)
   }, [phase, built, steps.length])
 
@@ -56,31 +68,48 @@ export function AppBuilder({whatsapp}: {whatsapp?: string | null}) {
     setError(null)
   }
 
-  const next = (e?: FormEvent) => {
-    e?.preventDefault()
-    const problem = errors[q.key]
-    if (problem) return setError(problem)
-    if (step < QUESTIONS.length - 1) return setStep(step + 1)
+  const forward = () => {
+    if (at < questions.length - 1) return setStep(at + 1)
     setBuilt(0)
     setPhase('building')
     top.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
   }
 
-  const back = () => {
-    setError(null)
-    setStep(Math.max(0, step - 1))
+  const next = (e?: FormEvent) => {
+    e?.preventDefault()
+    if (errors[q.key]) return setError(errors[q.key])
+    forward()
   }
 
-  const editAnswers = () => {
-    setPhase('asking')
-    setStep(0)
+  const skip = () => {
+    setAnswers({...answers, [q.key]: q.default ?? ''})
+    setError(null)
+    forward()
+  }
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(brief)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2400)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  const download = () => {
+    const url = URL.createObjectURL(new Blob([brief], {type: 'text/markdown'}))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${options.slug}-app-brief.md`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   if (phase !== 'asking') {
-    const summary = QUESTIONS.map((x) => `${x.ask}\n${options[x.key] || '(blank)'}`).join('\n\n')
-    const message = `Hi Rob, I tried the app builder on your website. Here are my answers.\n\n${summary}`
+    const message = `Hi Rob, I used the app builder on your website for ${options.name}. I’d like to build it with you.`
     return (
-      <div className="builder builder--built" ref={top}>
+      <div className={`builder builder--built ${className ?? ''}`} ref={top}>
         <div className="builder__log" aria-live="polite">
           <span className="label">{phase === 'built' ? `${options.name} is ready to try` : `Building ${options.name}`}</span>
           <ol>
@@ -91,27 +120,20 @@ export function AppBuilder({whatsapp}: {whatsapp?: string | null}) {
           {phase === 'built' && (
             <div className="builder__next">
               <p>
-                This is the app fohm-scaffold makes from your answers, as a prototype: tap through it. The real one is a
-                web app, iPhone and Android apps, and a dashboard, with sign-in, payments, analytics and email ready to
-                switch on.
+                This is the app fohm-scaffold makes from your answers, as a prototype: tap through it. Below it, everything it
+                comes with, and a brief with every answer filled in to paste into Claude.
               </p>
-              {whatsapp && (
-                <a
-                  className="btn btn-primary"
-                  href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Build it for real <Arrow />
-                </a>
-              )}
-              <button type="button" className="text-btn" onClick={editAnswers}>
+              <a className="btn btn-primary" href="#brief">
+                Get the brief for Claude <Arrow />
+              </a>
+              <button type="button" className="text-btn" onClick={() => setPhase('asking')}>
                 Change my answers
               </button>
             </div>
           )}
         </div>
         {phase === 'built' && <AppPrototype o={options} />}
+
         {phase === 'built' && (
           <section className="manifest" aria-labelledby="manifest-title">
             <h2 id="manifest-title" className="manifest__title">
@@ -134,46 +156,88 @@ export function AppBuilder({whatsapp}: {whatsapp?: string | null}) {
             </div>
           </section>
         )}
+
+        {phase === 'built' && (
+          <section id="brief" className="manifest brief" aria-labelledby="brief-title">
+            <h2 id="brief-title" className="manifest__title">
+              Your brief for Claude
+            </h2>
+            <p className="manifest__lead">
+              Every answer, the command that creates the app, and what to do next. Paste it into Claude with fohm-scaffold’s
+              new-app skill and it starts where these questions end.
+            </p>
+            <div className="brief__actions">
+              <button type="button" className="btn btn-primary" onClick={copy}>
+                {copied ? 'Copied' : 'Copy the brief'} <Arrow />
+              </button>
+              <button type="button" className="btn btn-outline" onClick={download}>
+                Download it <Arrow />
+              </button>
+              {whatsapp && (
+                <a className="text-btn" href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">
+                  Or build it with me
+                </a>
+              )}
+            </div>
+            <pre className="brief__text" tabIndex={0}>
+              {brief}
+            </pre>
+          </section>
+        )}
       </div>
     )
   }
 
-  const value = answers[q.key]
-  const placeholder = `e.g. ${q.example}`
-  // What a blank answer becomes, by the scaffolder's own defaults.
+  const value = answers[q.key] ?? ''
   const fallback = value.trim() ? '' : `${options[q.key] ?? ''}`
+  const sectionAt = SECTIONS.indexOf(q.section as (typeof SECTIONS)[number])
+  const chosen = value
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean)
 
   return (
-    <div className="builder" ref={top}>
+    <div className={`builder ${className ?? ''}`} ref={top}>
+      <ol className="builder__sections" aria-label="Sections">
+        {SECTIONS.filter((s) => questions.some((x) => x.section === s)).map((s) => (
+          <li key={s} className={s === q.section ? 'is-on' : SECTIONS.indexOf(s) < sectionAt ? 'is-past' : undefined}>
+            {s}
+          </li>
+        ))}
+      </ol>
       <form className="builder__ask" onSubmit={next}>
         <div className="builder__count">
           <span className="label">
-            {String(step + 1).padStart(2, '0')} / {QUESTIONS.length}
+            {String(at + 1).padStart(2, '0')} / {questions.length}
           </span>
           <span className="builder__bar" aria-hidden>
-            <span style={{width: `${((step + 1) / QUESTIONS.length) * 100}%`}} />
+            <span style={{width: `${((at + 1) / questions.length) * 100}%`}} />
           </span>
         </div>
 
         <label className="builder__question" htmlFor={`q-${q.key}`}>
           {q.ask}
         </label>
+        {q.why && <p className="builder__why">{q.why}</p>}
 
         {q.choices ? (
-          <div className="builder__kinds" role="radiogroup" aria-label={q.ask}>
-            {KINDS.map((k: Kind) => (
-              <button
-                key={k}
-                type="button"
-                role="radio"
-                aria-checked={value === k}
-                className={`builder__kind${value === k ? ' is-active' : ''}`}
-                onClick={() => set(k)}
-              >
-                <strong>{KIND_LABELS[k].label}</strong>
-                <span>{KIND_LABELS[k].hint}</span>
-              </button>
-            ))}
+          <div className="builder__kinds" role={q.multi ? 'group' : 'radiogroup'} aria-label={q.ask}>
+            {q.choices.map((c) => {
+              const on = q.multi ? chosen.includes(c.value) : value === c.value
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  role={q.multi ? 'checkbox' : 'radio'}
+                  aria-checked={on}
+                  className={`builder__kind${on ? ' is-active' : ''}`}
+                  onClick={() => set(q.multi ? (on ? chosen.filter((x) => x !== c.value) : [...chosen, c.value]).join(', ') : c.value)}
+                >
+                  <strong>{c.label}</strong>
+                  {c.hint && <span>{c.hint}</span>}
+                </button>
+              )
+            })}
           </div>
         ) : q.key === 'accent' ? (
           <div className="builder__colour">
@@ -183,7 +247,7 @@ export function AppBuilder({whatsapp}: {whatsapp?: string | null}) {
               value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : '#2F6B4F'}
               onChange={(e) => set(e.target.value.toUpperCase())}
             />
-            <input ref={input} id={`q-${q.key}`} value={value} onChange={(e) => set(e.target.value)} placeholder={placeholder} />
+            <input ref={input} id={`q-${q.key}`} value={value} onChange={(e) => set(e.target.value)} placeholder={`e.g. ${q.example}`} />
           </div>
         ) : q.long ? (
           <textarea
@@ -195,7 +259,7 @@ export function AppBuilder({whatsapp}: {whatsapp?: string | null}) {
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) next(e)
             }}
-            placeholder={placeholder}
+            placeholder={`e.g. ${q.example}`}
           />
         ) : (
           <input
@@ -203,35 +267,38 @@ export function AppBuilder({whatsapp}: {whatsapp?: string | null}) {
             id={`q-${q.key}`}
             value={value}
             onChange={(e) => set(e.target.value)}
-            placeholder={placeholder}
-            autoCapitalize={['supportEmail', 'domain', 'bundleId'].includes(q.key) ? 'none' : undefined}
-            inputMode={q.key === 'supportEmail' ? 'email' : q.key === 'domain' ? 'url' : undefined}
+            placeholder={`e.g. ${q.example}`}
+            autoCapitalize={['supportEmail', 'domain', 'bundleId', 'photo'].includes(q.key) ? 'none' : undefined}
+            inputMode={q.key === 'supportEmail' ? 'email' : q.key === 'domain' || q.key === 'photo' ? 'url' : undefined}
           />
         )}
 
         <p className="builder__hint">
           {error ? (
             <span className="builder__error">{error}</span>
-          ) : q.required ? (
-            'No name yet? A working name is fine; you can change it later.'
           ) : value.trim() || q.choices ? (
-            '\u00a0'
+            ' '
           ) : fallback ? (
             `Leave it blank for: ${fallback}`
           ) : (
-            'You can leave this blank for now.'
+            'Not sure yet? Skip it: Claude will ask.'
           )}
         </p>
 
         <div className="builder__nav">
-          {step > 0 && (
-            <button type="button" className="text-btn" onClick={back}>
+          {at > 0 && (
+            <button type="button" className="text-btn" onClick={() => setStep(at - 1)}>
               Back
             </button>
           )}
           <button type="submit" className="btn btn-primary">
-            {step < QUESTIONS.length - 1 ? 'Next' : 'Build my app'} <Arrow />
+            {at < questions.length - 1 ? 'Next' : 'Build my app'} <Arrow />
           </button>
+          {!q.required && !q.choices && (
+            <button type="button" className="text-btn" onClick={skip}>
+              Skip
+            </button>
+          )}
         </div>
       </form>
     </div>
