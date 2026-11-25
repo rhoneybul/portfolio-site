@@ -59,6 +59,6 @@ npx sanity schema deploy # keeps the Sanity MCP / AI tools in sync
 
 ## The app builder (`/app-builder`)
 
-Asks everything fohm-scaffold's first phase asks, shows the app as a clickable prototype in the scaffold's house style, lists everything it comes with, and hands over a brief to paste into Claude. All of that runs in the browser and costs nothing.
+Asks what a first look at an app needs (17 questions), then walks the visitor through their app as a deck: the prototype with its logo and open-licence photos (found on Wikimedia Commons), the owner's dashboard, Slack alerts, PostHog metrics, Sentry monitoring, payments, security and the stores. It ends on Build it with me: WhatsApp, or a contact form. All of it runs in the browser.
 
-It tells the Fohm Slack channel when someone builds an app in it, takes the brief, taps WhatsApp, or leaves their details with "I'm interested": set `SLACK_WEBHOOK_URL` (an incoming webhook for the channel) on `portfolio-site-web` and redeploy. Without it, nothing is sent.
+The visitor never sees the brief. The Fohm Slack channel gets the whole submission, every answer and the brief to give Claude with fohm-scaffold, when someone finishes, and again with their details when they get in touch (`web/src/app/api/builder-event`). Set `SLACK_WEBHOOK_URL` on `portfolio-site-web` (synced from Doppler's `portfolio-site-web` project) and redeploy. Without it, nothing is sent.

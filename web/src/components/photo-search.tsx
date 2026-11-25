@@ -19,7 +19,7 @@ const ALLOWED = /^(cc0|public domain|pd|cc by(-sa)?( \d\.\d)?)/i
 
 const plain = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
 
-async function search(q: string): Promise<Found[]> {
+export async function search(q: string): Promise<Found[]> {
   const params = new URLSearchParams({
     action: 'query',
     format: 'json',
