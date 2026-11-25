@@ -16,7 +16,25 @@ export interface Choice {
   value: string
   label: string
   hint?: string
+  /** A live app to see it in, opened from the choice. */
+  url?: string
 }
+
+/**
+ * The apps already built on fohm-scaffold, as starting points: a visitor picks the one closest to
+ * theirs, and that sets the kind of app and whether a real coach is in it. Also the builder's
+ * showcase: each links to the live app.
+ */
+export const TEMPLATES: (Choice & {kind: Kind; coach: 'yes' | 'no' | null})[] = [
+  {value: 'naz', label: 'Like Naz', hint: 'Training programs, guided sessions and breathwork for big-wave surfers', url: 'https://naz.surf', kind: 'coaching', coach: 'no'},
+  {value: 'etapa', label: 'Like Etapa', hint: 'A cycling coach that builds each rider their plan and changes it with them', url: 'https://getetapa.com', kind: 'coaching', coach: 'no'},
+  {value: 'aluzam', label: 'Like Aluzam', hint: 'Guitar practice with a real teacher: lessons, a practice plan and feedback', url: 'https://aluzam.app', kind: 'coaching', coach: 'yes'},
+  {value: 'naz-surf', label: 'Like Naz Surf', hint: 'A surf game in the browser, on real big-wave spots', url: 'https://play.naz.surf', kind: 'game', coach: null},
+  {value: 'strawberry-fields', label: 'Like Strawberry Fields', hint: 'A backcountry ski and snowboard game on real mountains', url: 'https://strawberry-fields-peach.vercel.app', kind: 'game', coach: null},
+  {value: 'other', label: 'Something else', hint: 'People sign up, write to you and get replies, and you see it all on a dashboard', kind: 'app', coach: null},
+]
+const templateOf = (a: Answers) => TEMPLATES.find((x) => x.value === a.template) ?? TEMPLATES[0]
+const kindOf = (a: Answers) => templateOf(a).kind
 
 export interface Question {
   key: string
@@ -41,8 +59,8 @@ const yesNo = (yes: string, no: string): Choice[] => [
   {value: 'yes', label: 'Yes', hint: yes},
   {value: 'no', label: 'No', hint: no},
 ]
-const coaching = (a: Answers) => (a.kind || 'coaching') === 'coaching'
-const notGame = (a: Answers) => a.kind !== 'game'
+const coaching = (a: Answers) => kindOf(a) === 'coaching'
+const notGame = (a: Answers) => kindOf(a) !== 'game'
 const hasCoach = (a: Answers) => (a.coach || 'yes') === 'yes'
 
 export const SECTIONS = ['The idea', 'The name', 'The people', 'Onboarding', 'The method', 'Look and feel', 'The business', 'Research'] as const
@@ -52,27 +70,24 @@ export const QUESTIONS: Question[] = [
   {key: 'idea', section: 'The idea', ask: 'In a sentence, what does it do, and for whom?', example: 'A pocket surf coach that tells beginners what to work on next, between lessons.', long: true, flag: 'idea'},
   {key: 'business', section: 'The idea', ask: 'What do you do today?', why: 'Your business, coaching or content, and what people already pay you for. Leave it blank if the app is a new idea.', example: 'I run a surf school in Cornwall: lessons, retreats and video analysis.', long: true, flag: 'business'},
   {
-    key: 'kind',
+    key: 'template',
     section: 'The idea',
-    ask: 'Coaching progression, a plain app, or a game?',
-    default: 'coaching',
-    flag: 'kind',
-    choices: [
-      {value: 'coaching', label: 'Coaching progression', hint: 'A level to start at, a path of skills, check-ins, clips and a library'},
-      {value: 'app', label: 'A plain app', hint: 'Members write things and get replies; the dashboard sees it all'},
-      {value: 'game', label: 'A game', hint: 'A quick game to play anywhere, with scores on the dashboard'},
-    ],
+    ask: 'What kind of app is it?',
+    why: 'Pick the closest. Each of these was built on the same foundations, so yours starts where they did.',
+    default: 'naz',
+    choices: TEMPLATES.map(({value, label, hint, url}) => ({value, label, hint, url})),
   },
   {
     key: 'coach',
     section: 'The idea',
-    ask: 'Is there a real coach in the app, or is it programs?',
-    default: 'yes',
+    ask: 'Is there a real person in the app, or does it run on its own?',
+    default: 'no',
     flag: 'coach',
-    when: notGame,
+    // The apps above say it themselves; only something else is asked.
+    when: (a) => templateOf(a).value === 'other',
     choices: [
-      {value: 'yes', label: 'A real coach', hint: 'A person answers members and notes their progress'},
-      {value: 'no', label: 'Programs', hint: 'Nobody behind them: the app speaks as itself, and no coach is ever shown'},
+      {value: 'yes', label: 'A real person', hint: 'You or your team answer people and follow their progress'},
+      {value: 'no', label: 'It runs on its own', hint: 'Nobody behind it: the app speaks as itself'},
     ],
   },
   {
@@ -135,17 +150,6 @@ export const QUESTIONS: Question[] = [
   // Look and feel
   {key: 'inspiration', section: 'Look and feel', ask: 'Apps you like the look and feel of (comma-separated)', why: 'Their screens are pulled from Mobbin and adopted within the house style.', example: 'Speak, Ahead, Strava', flag: 'inspiration'},
   {key: 'notInspiration', section: 'Look and feel', ask: 'And any you don’t', example: 'Anything that feels like a spreadsheet'},
-  {
-    key: 'appType',
-    section: 'Look and feel',
-    ask: 'What kind of app is it to you?',
-    choices: [
-      {value: 'a coach', label: 'A coach'},
-      {value: 'a program to follow', label: 'A program to follow'},
-      {value: 'a catalogue to browse', label: 'A catalogue to browse'},
-      {value: 'a game', label: 'A game'},
-    ],
-  },
   {key: 'navigation', section: 'Look and feel', ask: 'A tab bar, and which three to five tabs? Or one hub screen with everything off it?', example: 'Tabs: Home, Train, Spots, You', default: ''},
   {key: 'accent', section: 'Look and feel', ask: 'The one accent colour, from your brand', why: 'It marks what to press and what’s live now. Everything else is black, white and grey.', example: '#2F6B4F', default: '#2F6B4F', flag: 'accent'},
   {
@@ -228,8 +232,9 @@ export interface Options extends Answers {
 export function resolveOptions(input: Answers): {options: Options; errors: Record<string, string>} {
   const t = (k: string) => (input[k] ?? '').trim()
   const name = t('name')
-  const kind = (t('kind') || 'coaching').toLowerCase() as Kind
-  const coach = kind !== 'game' && t('coach') !== 'no'
+  const template = templateOf(input)
+  const kind = template.kind
+  const coach = kind !== 'game' && (template.coach ? template.coach === 'yes' : t('coach') === 'yes')
   const domain = cleanDomain(t('domain'))
   const slug = slugify(name)
   const address = NOT_YET.has(t('address').toLowerCase()) ? '' : t('address').replace(/^at\s+/i, '')

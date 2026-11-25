@@ -269,7 +269,7 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
           <div className="builder__kinds" role={q.multi ? 'group' : 'radiogroup'} aria-label={q.ask}>
             {q.choices.map((c) => {
               const on = q.multi ? chosen.includes(c.value) : value === c.value
-              return (
+              const choice = (
                 <button
                   key={c.value}
                   type="button"
@@ -281,6 +281,17 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
                   <strong>{c.label}</strong>
                   {c.hint && <span>{c.hint}</span>}
                 </button>
+              )
+              // A live app to look at sits beside its choice, never inside it: a link in a button is neither.
+              return c.url ? (
+                <div key={c.value} className="builder__template">
+                  {choice}
+                  <a className="builder__see" href={c.url} target="_blank" rel="noreferrer">
+                    See {c.label.replace(/^Like /, '')} <Arrow />
+                  </a>
+                </div>
+              ) : (
+                choice
               )
             })}
           </div>
