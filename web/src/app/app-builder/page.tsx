@@ -8,7 +8,7 @@ import {AppBuilder} from '@/components/app-builder'
 
 export const metadata: Metadata = {
   title: 'App builder',
-  description: 'Describe your business and see the app Fohm would build for it: web, iPhone and Android.',
+  description: 'Answer a few questions about your business and tap through a prototype of your app.',
 }
 
 export default async function AppBuilderPage() {
@@ -24,8 +24,8 @@ export default async function AppBuilderPage() {
           <div className="blog__soon">
             <span className="label">● Early access</span>
             <p>
-              Tell me about your business in four answers and see the app it could have: a web app, iPhone and Android
-              apps and a dashboard, built on the same foundations as Etapa and Naz.
+              Answer the questions the Fohm app builder asks, and see your app: its landing page, the screens your
+              customers use and your dashboard, in your name and colour. The same foundations as Etapa and Naz.
             </p>
           </div>
           <AppBuilder whatsapp={settings?.whatsapp} />
