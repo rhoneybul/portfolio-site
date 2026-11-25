@@ -10,7 +10,7 @@ import {interestsOf, liftedAccent, needsYou, onAccent, soften, type Options} fro
  * bar), with the visitor's name, words, colour, photo, onboarding and method. Nothing is stored.
  */
 
-type ScreenId = 'landing' | 'onboarding' | 'home' | 'path' | 'game' | 'dashboard' | 'live'
+type ScreenId = 'landing' | 'onboarding' | 'home' | 'path' | 'game' | 'dashboard'
 
 const screensFor = (o: Options): {id: ScreenId; name: string}[] => [
   {id: 'landing', name: 'Landing page'},
@@ -58,14 +58,14 @@ const firstPlacing = (o: Options) => {
 
 const SAMPLE_PEOPLE = ['Sam Okafor', 'Priya Shah', 'Tom Reilly', 'Ana Costa']
 
-export function AppPrototype({o, live}: {o: Options; live?: string}) {
-  const screens = [...(live ? [{id: 'live' as const, name: 'Your real app'}] : []), ...screensFor(o)]
+export function AppPrototype({o}: {o: Options}) {
+  const screens = screensFor(o)
   const [screen, setScreen] = useState<ScreenId>('landing')
   const [done, setDone] = useState<Set<string>>(new Set())
   const scroller = useRef<HTMLDivElement>(null)
 
-  // A different kind of app starts again from its landing page; a real app, once it's live, opens on itself.
-  useEffect(() => setScreen(live ? 'live' : 'landing'), [o.kind, live])
+  // A different kind of app starts again from its landing page.
+  useEffect(() => setScreen('landing'), [o.kind])
 
   const go = (s: ScreenId) => {
     setScreen(s)
@@ -94,9 +94,6 @@ export function AppPrototype({o, live}: {o: Options; live?: string}) {
         ))}
       </nav>
       <div className={`proto__phone${screen === 'dashboard' ? ' proto__phone--dark' : ''}`}>
-        {screen === 'live' && live ? (
-          <iframe className="proto__live" src={live} title={`${o.name}, live`} />
-        ) : (
         <div className="proto__screen x" ref={scroller}>
           {screen === 'landing' && <Landing {...props} />}
           {screen === 'onboarding' && <Onboarding {...props} />}
@@ -105,7 +102,6 @@ export function AppPrototype({o, live}: {o: Options; live?: string}) {
           {screen === 'game' && <Game {...props} />}
           {screen === 'dashboard' && <Dashboard {...props} />}
         </div>
-        )}
         {tabbed && <TabBar {...props} at={screen} />}
       </div>
     </div>
