@@ -54,7 +54,22 @@ export function claudePrompt(o: Options, raw: Answers) {
       ? `The name is final: ${o.name}.`
       : `The name isn't final: run the naming round first (reference/naming.md), in the direction above, and put **Name not final** on the checklist until I pick one.`,
     o.logo === 'yes' ? 'I have a logo: ask me for the artwork and trace it into assets/brand/.' : 'I have no logo: run the logo round (the app-design skill’s reference/logo.md) once the name is settled.',
-    o.photo ? `Lead the landing page, onboarding’s opening and Home’s goal card with this photo, once its licence or my permission is recorded: ${o.photo}` : 'Find open-licence photos for every slot (reference/photos.md).',
+    o.photo
+      ? `Lead the landing page, onboarding’s opening and Home’s goal card with this photo${o.photoCredit ? ` (${o.photoCredit}, from Wikimedia Commons)` : ', once its licence or my permission is recorded'}: ${o.photo}`
+      : 'Find open-licence photos for every slot (reference/photos.md).',
+    `It’s ${o.kind === 'game' ? 'a game' : o.coach === 'yes' ? 'programs to follow, and a real person who answers people: both' : 'programs to follow, with nobody pretending to be a coach'}.`,
+  ]
+
+  // What the builder left to Claude, so the first phase isn't a wall of questions.
+  const stillToAsk = [
+    'what people are called in the app, and the person who runs it',
+    'the business’s details for the privacy policy and terms: who runs it, the country, its registration and registered office',
+    'the support email, the domain and the app id',
+    'the naming direction, if the name isn’t final',
+    'the design questions: the navigation, and apps I don’t like',
+    ...(o.kind === 'game' ? [] : ['how much time people can give it each week, and a first number they can measure', 'the questions that place someone at a level']),
+    'what Pro costs',
+    'my revenue, time, budget and content rights, for the research',
   ]
 
   return `I want to make a new app with fohm-scaffold (github.com/rhoneybul/fohm-scaffold), following its new-app skill end to end.
@@ -64,9 +79,13 @@ My answers to the Discover phase are below. Take them as answered, ask me only w
 
 ${sections.join('\n\n')}
 
+## Still to ask me
+
+${stillToAsk.map((l) => `- ${l}`).join('\n')}
+
 ## Create it
 
-Once the name is settled, create it with:
+Once the name is settled and you have those, create it with this, putting my answers in place of the placeholders (the operator, the support email and the app id):
 
 \`\`\`bash
 ${scaffoldCommand(o)}
@@ -76,9 +95,10 @@ ${scaffoldCommand(o)}
 
 ${next.map((l) => `- ${l}`).join('\n')}
 - Publish my checklist of what only I can do (the app-launch skill, step 1): the domain, the business and the store accounts take days, so they start today.
-- Research the market into docs/RESEARCH.md with sources, using my audience, revenue, time, ambition, budget and content rights above.
-- Write PRODUCT.md from my idea and business, and onboarding's steps (\`ONBOARDING\` in src/lib/progression.ts) from my key value, what members are here for, the first number and the week they can give, as the template's docs/ONBOARDING.md says.${o.kind === 'coaching' ? `
-- Put my method into src/lib/progression.ts: the levels, skills and placing questions above.` : ''}
+- Research the market into docs/RESEARCH.md with sources, from my audience and ambition above.
+- Write the landing page's headline and description from what people should be doing in the app, and PRODUCT.md from my idea and business.
+- Write onboarding's steps (\`ONBOARDING\` in src/lib/progression.ts) from the question my app answers and what people are here for, as the template's docs/ONBOARDING.md says.${o.kind === 'coaching' ? `
+- Put my method into src/lib/progression.ts: the levels and skills above.` : ''}
 - Research the catalogue of goals and the courses that prepare for them, with open-licence photos (reference/research.md).
 - Design with the app-design skill: my references from Mobbin within the house style (Space Grotesk and DM Sans, the grey canvas and white cards, the ink pill with the ${o.accent.toUpperCase()} disc), my answers to its three questions above, photos in every slot, and a fresh review before I see anything.
 - Then launch with the app-launch skill, each integration off until its key is set, and never ask me for a secret in the chat.
