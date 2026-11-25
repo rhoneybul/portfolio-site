@@ -61,16 +61,13 @@ npx sanity schema deploy # keeps the Sanity MCP / AI tools in sync
 
 Asks everything fohm-scaffold's first phase asks, shows the app as a clickable prototype in the scaffold's house style, lists everything it comes with, and hands over a brief to paste into Claude. All of that runs in the browser and costs nothing.
 
-**Build my real app** makes the real thing: `.github/workflows/prototype.yml` runs `fohm-scaffold new` with the visitor's answers, writes the app's content in with one small Claude call (`prototype/`), and deploys it to the Vercel project `fohm-prototypes` in demo mode (no database) at `https://fohm-<id>.vercel.app`. The site finds the run by its name and the app by that address, so nothing is stored. It's off until its keys are set:
+**Build my real app** makes the real thing, all on Vercel: the API route (`web/src/app/api/prototype`) downloads fohm-scaffold, runs its `new` with the visitor's answers (no AI), writes the app's content in with one small Claude call (or from the answers alone, without a key), and uploads the files as a deployment of the Vercel project `fohm-prototypes` (deployment protection off). Vercel builds it from the template in demo mode, with no database, in about a minute, and the page asks the deployment how it's getting on. Nothing is stored. It's off until `VERCEL_TOKEN` is set; every key is an environment variable on `portfolio-site-web` (Doppler can sync them):
 
-| Where | Name | What |
-| --- | --- | --- |
-| Vercel, `portfolio-site-web` | `GITHUB_DISPATCH_TOKEN` | A fine-grained GitHub token for this repository with Actions: read and write. Its presence turns the button on. |
-| Vercel, `portfolio-site-web` | `PROTOTYPE_HOURLY_LIMIT` (optional) | How many builds may start in an hour across everyone (default 6). |
-| GitHub secrets | `VERCEL_TOKEN` | A Vercel token for the team. |
-| GitHub secrets | `ANTHROPIC_API_KEY` (optional) | Without it, the app's content comes from the answers alone. |
-| GitHub variables | `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | The team and the `fohm-prototypes` project. |
-| GitHub variables | `SCAFFOLD_REF` (optional) | The scaffold branch to build from (the latest work until it merges to `main`). |
-| GitHub variables | `PROTOTYPE_MODEL` (optional) | The Claude model for the content (default `claude-opus-5-5` at low effort). |
-
-The workflow can only be started once it's on the repository's default branch.
+| Name | What |
+| --- | --- |
+| `VERCEL_TOKEN` | A Vercel token for the team. Setting it turns the button on. |
+| `ANTHROPIC_API_KEY` (optional) | Without it, the app's content comes from the answers alone. |
+| `PROTOTYPE_MODEL` (optional) | The Claude model for the content (default `claude-opus-5-5` at low effort; `claude-haiku-5-5` is cheaper). |
+| `PROTOTYPE_HOURLY_LIMIT` (optional) | How many builds may start in an hour across everyone (default 6). |
+| `SCAFFOLD_REF` (optional) | The scaffold branch to build from (the latest work until it merges to `main`). |
+| `PROTOTYPE_TEAM_ID`, `PROTOTYPE_PROJECT` (optional) | The Vercel team and project prototypes go to (default this team and `fohm-prototypes`). |

@@ -1,12 +1,16 @@
 import {randomBytes} from 'node:crypto'
 import {NextResponse} from 'next/server'
 import {QUESTIONS, resolveOptions, type Answers} from '@/app-builder/options'
-import {prototypeUrl, prototypesOn, startPrototype, underCap} from '@/app-builder/github'
+import {makeApp} from '@/app-builder/make'
+import {deploy, prototypesOn, underCap} from '@/app-builder/deploy'
+
+// Downloading the scaffold, one Claude call and the upload: well under a minute, with room.
+export const maxDuration = 300
 
 /**
- * Starts building a visitor's app as a working prototype (.github/workflows/prototype.yml), and
- * answers with its id and the address it will be at. Answers are checked as the builder checks
- * them; only the builder's own questions are passed on, each to a sensible length.
+ * Makes a visitor's app with fohm-scaffold and starts Vercel building it as a working prototype.
+ * Answers are checked as the builder checks them; only the builder's own questions are used, each
+ * to a sensible length. Answers with the deployment's id, which the page then asks about.
  */
 export async function POST(request: Request) {
   if (!prototypesOn()) return NextResponse.json({error: 'Building prototypes is off.'}, {status: 503})
@@ -15,15 +19,15 @@ export async function POST(request: Request) {
   const answers = Object.fromEntries(
     QUESTIONS.map((q) => [q.key, String(body?.answers?.[q.key] ?? '').slice(0, 600)]).filter(([, v]) => v),
   ) as Answers
-  const {errors} = resolveOptions(answers)
+  const {options, errors} = resolveOptions(answers)
   if (!answers.name || Object.keys(errors).length)
     return NextResponse.json({error: 'Some answers need another look.', fields: Object.keys(errors)}, {status: 400})
 
   try {
     if (!(await underCap())) return NextResponse.json({error: 'Lots of apps are being built right now. Try again in an hour.'}, {status: 429})
-    const id = randomBytes(6).toString('hex')
-    await startPrototype(id, answers)
-    return NextResponse.json({id, url: prototypeUrl(id)})
+    const files = await makeApp(options, randomBytes(6).toString('hex'))
+    const {id, url} = await deploy(files, {prototype: options.slug, kind: options.kind})
+    return NextResponse.json({id, url})
   } catch (error) {
     console.error('[prototype] start', error)
     return NextResponse.json({error: 'The build couldn’t start. Try again in a minute.'}, {status: 502})

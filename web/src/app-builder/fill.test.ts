@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import {test} from 'node:test'
-import {resolveOptions, emptyAnswers} from './options.ts'
-import {contentFromAnswers, levelsFromAnswer, replaceConst, writeBrand, writeProgression} from './fill.ts'
+import {resolveOptions, emptyAnswers} from './options'
+import {contentFromAnswers, levelsFromAnswer, replaceConst, writeBrand, writeProgression} from './fill'
 
 const SOURCE = `export const LEVELS: Level[] = [
   { id: 'start', title: 'Getting started', skills: [{ id: 'a', why: 'It’s [the] basics.' }] },

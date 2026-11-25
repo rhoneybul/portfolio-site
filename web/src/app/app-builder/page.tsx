@@ -6,7 +6,7 @@ import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {Marquee} from '@/components/marquee'
 import {AppBuilder} from '@/components/app-builder'
-import {prototypesOn} from '@/app-builder/github'
+import {prototypesOn} from '@/app-builder/deploy'
 
 export const metadata: Metadata = {
   title: 'App builder',

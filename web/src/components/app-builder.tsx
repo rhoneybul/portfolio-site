@@ -27,8 +27,8 @@ const KEPT_REAL = 'fohm-app-builder-real'
 
 const REAL_LINE: Record<Real['state'], string> = {
   idle: '',
-  starting: 'Starting the build…',
-  waiting: 'In the queue. It usually starts within a minute.',
+  starting: 'Making your app from the template and writing its content. This takes about a minute.',
+  waiting: 'Made. Vercel is about to build it.',
   building: 'Building your app from the template. This takes three or four minutes.',
   ready: 'Your app is live, in demo mode: everything works, and nothing is saved beyond your browser.',
   failed: 'The build didn’t finish. Try again, or send me your answers.',
