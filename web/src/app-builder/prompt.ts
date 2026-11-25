@@ -33,7 +33,7 @@ export function scaffoldCommand(o: Options) {
   return `npx github:rhoneybul/fohm-scaffold new ${o.slug} \\\n${parts.join(' \\\n')} \\\n  --json`
 }
 
-export function claudePrompt(o: Options, raw: Answers) {
+export function claudePrompt(o: Options, raw: Answers, live?: string) {
   const shown = asked(raw)
   const answered = (key: string) => {
     const q = QUESTIONS.find((x) => x.key === key)!
@@ -65,7 +65,7 @@ My answers to the Discover phase are below. Take them as answered, ask me only w
 ${sections.join('\n\n')}
 
 ## Create it
-
+${live ? `\nA prototype made from these answers is live in demo mode at ${live}: the template with my name, words, colour, onboarding and method. Build the real one from the same answers.\n` : ''}
 Once the name is settled, create it with:
 
 \`\`\`bash

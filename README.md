@@ -56,3 +56,21 @@ npx sanity schema deploy # keeps the Sanity MCP / AI tools in sync
 4. Deploy. Then add your production domain to Sanity CORS origins:
    `cd studio && npx sanity cors add https://your-domain.com`
    (`https://*.vercel.app` and `http://localhost:3000` are already allowed.)
+
+## The app builder (`/app-builder`)
+
+Asks everything fohm-scaffold's first phase asks, shows the app as a clickable prototype in the scaffold's house style, lists everything it comes with, and hands over a brief to paste into Claude. All of that runs in the browser and costs nothing.
+
+**Build my real app** makes the real thing: `.github/workflows/prototype.yml` runs `fohm-scaffold new` with the visitor's answers, writes the app's content in with one small Claude call (`prototype/`), and deploys it to the Vercel project `fohm-prototypes` in demo mode (no database) at `https://fohm-<id>.vercel.app`. The site finds the run by its name and the app by that address, so nothing is stored. It's off until its keys are set:
+
+| Where | Name | What |
+| --- | --- | --- |
+| Vercel, `portfolio-site-web` | `GITHUB_DISPATCH_TOKEN` | A fine-grained GitHub token for this repository with Actions: read and write. Its presence turns the button on. |
+| Vercel, `portfolio-site-web` | `PROTOTYPE_HOURLY_LIMIT` (optional) | How many builds may start in an hour across everyone (default 6). |
+| GitHub secrets | `VERCEL_TOKEN` | A Vercel token for the team. |
+| GitHub secrets | `ANTHROPIC_API_KEY` (optional) | Without it, the app's content comes from the answers alone. |
+| GitHub variables | `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | The team and the `fohm-prototypes` project. |
+| GitHub variables | `SCAFFOLD_REF` (optional) | The scaffold branch to build from (the latest work until it merges to `main`). |
+| GitHub variables | `PROTOTYPE_MODEL` (optional) | The Claude model for the content (default `claude-opus-5-5` at low effort). |
+
+The workflow can only be started once it's on the repository's default branch.
