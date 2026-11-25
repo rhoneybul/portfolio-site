@@ -1553,6 +1553,108 @@ a.proof:hover .proof__arrow {
 }
 
 
+/* ---------- A submission (Fohm only) ---------- */
+
+.submission {
+  display: grid;
+  gap: 0;
+}
+
+.submission > .label,
+.submission__who,
+.submission__block {
+  margin-left: calc(var(--gutter) + var(--indent));
+  margin-right: var(--gutter);
+}
+
+.submission > .label {
+  margin-bottom: 16px;
+}
+
+.submission__who {
+  display: grid;
+  gap: 6px;
+  margin-top: 24px;
+  font-size: clamp(17px, 1.4vw, 20px);
+}
+
+.submission__note {
+  display: block;
+  color: var(--muted);
+}
+
+.submission__block {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+  margin-top: clamp(40px, 5vw, 72px);
+  padding-top: clamp(24px, 3vw, 40px);
+  border-top: 1px solid var(--line);
+}
+
+.submission__block > * {
+  max-width: 100%;
+}
+
+.submission__block .deck,
+.submission__block .brief__text {
+  width: 100%;
+}
+
+.submission__steps {
+  display: grid;
+  gap: 18px;
+  padding-left: 22px;
+  list-style: decimal;
+  font-size: 17px;
+}
+
+.submission__steps li {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.submission__steps code {
+  display: block;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font: 400 13px / 1.5 ui-monospace, 'SF Mono', Menlo, monospace;
+  overflow-wrap: anywhere;
+}
+
+.submission__answers {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+}
+
+.submission__answers > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.submission__answers dt:not(.label) {
+  color: var(--muted);
+}
+
+.submission__answers dd {
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .submission__answers > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+
 /* ---------- The ready header and the walkthrough deck ---------- */
 
 .ready {

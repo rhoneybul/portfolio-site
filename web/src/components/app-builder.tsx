@@ -266,8 +266,10 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
             value={value}
             onChange={(e) => set(e.target.value)}
             placeholder={`e.g. ${q.example}`}
-            autoCapitalize={['supportEmail', 'domain', 'bundleId', 'photo'].includes(q.key) ? 'none' : undefined}
-            inputMode={q.key === 'supportEmail' ? 'email' : q.key === 'domain' || q.key === 'photo' ? 'url' : undefined}
+            type={q.key === 'email' ? 'email' : undefined}
+            autoComplete={q.key === 'email' ? 'email' : undefined}
+            autoCapitalize={q.key === 'email' ? 'none' : undefined}
+            inputMode={q.key === 'email' ? 'email' : undefined}
           />
         )}
 
@@ -290,7 +292,7 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
             </button>
           )}
           <button type="submit" className="btn btn-primary">
-            {at < questions.length - 1 ? 'Next' : 'Build my app'} <Arrow />
+            {at < questions.length - 1 ? 'Next' : 'See my app'} <Arrow />
           </button>
           {!q.required && !q.choices && (
             <button type="button" className="text-btn" onClick={skip}>
@@ -305,7 +307,7 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
 
 /** "Build it with me": name, email and a note, sent with their answers to the Fohm Slack channel. */
 function Interest({answers}: {answers: Answers}) {
-  const [contact, setContact] = useState({name: '', email: '', note: '', website: ''})
+  const [contact, setContact] = useState({name: '', email: answers.email ?? '', note: '', website: ''})
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
   const [error, setError] = useState<string | null>(null)
   const field = (k: keyof typeof contact) => ({

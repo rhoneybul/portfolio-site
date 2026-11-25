@@ -119,6 +119,7 @@ export const QUESTIONS: Question[] = [
   // About you: what the research needs first
   {key: 'audience', section: 'About you', ask: 'How big is your audience today?', why: 'Followers, a mailing list, clients: the app sells to them first.', example: '12k on Instagram, 2,000 on the mailing list'},
   {key: 'ambition', section: 'About you', ask: 'What would success look like in a year?', example: '500 paying members, and the coaching waitlist gone', long: true},
+  {key: 'email', section: 'About you', ask: 'Your email, to see your app', why: 'So I can get in touch about it. Never shared, and nothing else is sent.', example: 'you@example.com', required: true},
 ]
 
 /** Colours that keep white text at 4.5:1 on them, for "Pick one for me". */
@@ -230,6 +231,7 @@ export function resolveOptions(input: Answers): {options: Options; errors: Recor
 
   const errors: Record<string, string> = {}
   if (!o.name) errors.name = 'The app needs a name. A working name is fine.'
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t('email'))) errors.email = 'An email address, so I can get in touch about your app.'
   if (!/^#[0-9a-fA-F]{6}$/.test(o.accent)) errors.accent = 'A 6-digit hex colour, like #2F6B4F.'
   if (!/^[a-zA-Z][a-zA-Z0-9]*(\.[a-zA-Z][a-zA-Z0-9]*)+$/.test(o.bundleId))
     errors.bundleId = 'Like com.company.app: letters and digits, dot-separated.'
