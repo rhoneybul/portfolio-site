@@ -25,7 +25,7 @@ export function whatYouGet(o: Options): Part[] {
       items: [
         `A landing page at ${site}, led by a real photo, with ${o.name}’s headline, how it works in three steps and screens from inside the app`,
         'The web app, on phones and laptops, at the same address',
-        `An iPhone app and an Android app from the same code (${o.bundleId}), with the launch screen and its mark`,
+        'An iPhone app and an Android app from the same code, with the launch screen and its mark',
         'Home as a board: the greeting with their photo, first steps, the goal they train for as a photo card, the week, what’s next and a few numbers',
         'A floating tab bar on the main tabs, and Back on every other screen',
         ...(coaching
@@ -49,7 +49,7 @@ export function whatYouGet(o: Options): Part[] {
           {
             title: 'Onboarding',
             items: [
-              `Naz’s: the opening over a photo, its first line ${o.keyValue ? `“${o.keyValue}”` : 'the app’s key value as a question'}`,
+              `An opening over a photo that asks ${o.keyValue ? `“${o.keyValue}”` : 'the question your app answers'}`,
               'Straight questions one to a screen, with progress dots and Skip on every screen',
               `What they’re here for as tiles: ${interestsOf(o).join(', ')}`,
               'Why it works, from the research, never invented numbers',
@@ -138,7 +138,7 @@ export function whatYouGet(o: Options): Part[] {
     {
       title: 'Email, notifications and sharing',
       items: [
-        `Email in the app’s look from ${o.supportEmail}, with a plain-text twin: the ${owner} hears when someone writes, ${members} hear when they get a reply`,
+        `Email in the app’s look, with a plain-text twin: the ${owner} hears when someone writes, ${members} hear when they get a reply`,
         'Sign-up and password emails in the same look',
         'Push notifications on iPhone and Android',
         'Invite links and share links that open the app on a phone (Tapp), with the channel each came from',
@@ -151,7 +151,7 @@ export function whatYouGet(o: Options): Part[] {
     {
       title: 'Legal',
       items: [
-        `A privacy policy and terms for ${o.operator}${o.registration ? `, ${o.registration}` : ''}, with ${o.supportEmail} for questions`,
+        `A privacy policy and terms in ${o.name}’s name, with an address for questions`,
         'Credits for every photo shown',
         'Kept up to date whenever what’s stored, or who it’s shared with, changes',
       ],

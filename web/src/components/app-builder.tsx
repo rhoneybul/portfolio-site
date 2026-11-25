@@ -1,21 +1,21 @@
 'use client'
 
-import {useEffect, useMemo, useRef, useState, type FormEvent} from 'react'
+import {useEffect, useRef, useState, type CSSProperties, type FormEvent} from 'react'
 import {Arrow} from '@/components/arrow'
-import {AppPrototype} from '@/components/app-prototype'
-import {PhotoSearch} from '@/components/photo-search'
-import {OFF_UNTIL_SET, whatYouGet} from '@/app-builder/manifest'
-import {ACCENTS, SECTIONS, asked, buildSteps, emptyAnswers, photoSearchFor, resolveOptions, type Answers} from '@/app-builder/options'
-import {claudePrompt} from '@/app-builder/prompt'
+import {Mark, goalsOf, type Pic} from '@/components/app-prototype'
+import {PhotoSearch, search} from '@/components/photo-search'
+import {Showcase} from '@/components/showcase'
+import {ACCENTS, SECTIONS, asked, emptyAnswers, photoSearchFor, resolveOptions, type Answers} from '@/app-builder/options'
 
 /**
- * The app builder: asks everything fohm-scaffold's first phase asks, one question to a screen in
- * sections, with the scaffolder's own defaults; plays the build; shows the app as a clickable
- * prototype in the house style; lists everything the app comes with; and hands over a brief for
- * Claude with every answer filled in. Nothing is generated or stored; answers stay in this tab.
+ * The app builder: asks what a first look at the visitor's app needs, one question to a screen in
+ * sections, with the scaffolder's own defaults; then walks them through their app as a deck (the
+ * prototype with its logo and photos, the dashboard, alerts, metrics, monitoring, payments,
+ * security, the stores), and ends on Build it with me. The full submission, with the brief for
+ * Claude, goes to the Fohm Slack channel only (/api/builder-event): the visitor never sees it.
  */
 
-type Phase = 'asking' | 'building' | 'built'
+type Phase = 'asking' | 'built'
 
 const KEPT = 'fohm-app-builder'
 
@@ -24,8 +24,7 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
   const [step, setStep] = useState(0)
   const [phase, setPhase] = useState<Phase>('asking')
   const [error, setError] = useState<string | null>(null)
-  const [built, setBuilt] = useState(0)
-  const [copied, setCopied] = useState(false)
+  const [gallery, setGallery] = useState<Pic[]>([])
   const input = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
   const top = useRef<HTMLDivElement>(null)
 
@@ -50,19 +49,30 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
   const at = Math.min(step, questions.length - 1)
   const q = questions[at]
   const {options, errors} = resolveOptions(answers)
-  const steps = buildSteps(options)
-  const brief = useMemo(() => claudePrompt(options, answers), [options, answers])
 
   useEffect(() => {
     if (phase === 'asking') input.current?.focus({preventScroll: true})
   }, [at, phase])
 
+  // Photos for every slot, found from what they told us: the first goal (or the app they picked), then each goal.
   useEffect(() => {
-    if (phase !== 'building') return
-    const finished = built >= steps.length
-    const t = setTimeout(() => (finished ? setPhase('built') : setBuilt(built + 1)), finished ? 400 : 320)
-    return () => clearTimeout(t)
-  }, [phase, built, steps.length])
+    if (phase !== 'built') return
+    let live = true
+    const terms = [photoSearchFor(answers), ...goalsOf(options)].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 4)
+    Promise.all(terms.map((t) => search(t).catch(() => [])))
+      .then((lists) => {
+        if (!live) return
+        // The first of each search, then the rest of the first, so slots vary.
+        const ordered = [...lists.map((l) => l[0]), ...lists.flatMap((l) => l.slice(1, 4))].filter(Boolean)
+        const seen = new Set<string>()
+        setGallery(ordered.filter((f) => !seen.has(f.url) && seen.add(f.url)).map((f) => ({url: f.url, credit: f.credit})))
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
 
   // Once their app is drawn, the channel hears about it.
   useEffect(() => {
@@ -71,7 +81,7 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
   }, [phase])
 
   /** Tells the Fohm Slack channel what happened (/api/builder-event). Never waits, never fails the page. */
-  const tell = (event: 'used' | 'brief' | 'whatsapp') => {
+  const tell = (event: 'used' | 'whatsapp') => {
     try {
       const body = JSON.stringify({event, answers})
       if (!navigator.sendBeacon?.('/api/builder-event', new Blob([body], {type: 'application/json'})))
@@ -88,8 +98,7 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
 
   const forward = () => {
     if (at < questions.length - 1) return setStep(at + 1)
-    setBuilt(0)
-    setPhase('building')
+    setPhase('built')
     top.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
   }
 
@@ -105,131 +114,47 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
     forward()
   }
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(brief)
-      tell('brief')
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2400)
-    } catch {
-      setCopied(false)
-    }
-  }
-
-  const download = () => {
-    tell('brief')
-    const url = URL.createObjectURL(new Blob([brief], {type: 'text/markdown'}))
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${options.slug}-app-brief.md`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  if (phase !== 'asking') {
+  if (phase === 'built') {
     const message = `Hi Rob, I used the app builder on your website for ${options.name}. I’d like to build it with you.`
     return (
       <div className={`builder builder--built ${className ?? ''}`} ref={top}>
-        <div className="builder__log" aria-live="polite">
-          <span className="label">{phase === 'built' ? `${options.name} is ready to try` : `Building ${options.name}`}</span>
-          <ol>
-            {steps.slice(0, built).map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ol>
-          {phase === 'built' && (
-            <div className="builder__next">
-              <p>
-                This is the app fohm-scaffold makes from your answers, as a prototype: tap through it. Below it, everything it
-                comes with, and a brief with every answer filled in to paste into Claude.
-              </p>
-              <a className="btn btn-primary" href="#brief">
-                Get the brief for Claude <Arrow />
-              </a>
-              <a className="text-btn" href="#interest">
-                Build it with me
-              </a>
-              <button
-                type="button"
-                className="text-btn"
-                onClick={() => setPhase('asking')}
-              >
-                Change my answers
-              </button>
-            </div>
+        <header className="ready" style={{'--x-accent': options.accent} as CSSProperties}>
+          <span className="ready__mark">
+            <Mark size={56} />
+          </span>
+          <div>
+            <span className="label">Your app, as a prototype</span>
+            <h2 className="ready__name">{options.name}</h2>
+            <p className="ready__line">{options.tagline}</p>
+          </div>
+          <button type="button" className="text-btn ready__change" onClick={() => setPhase('asking')}>
+            Change my answers
+          </button>
+        </header>
+
+        <Showcase o={options} gallery={gallery} />
+
+        <section id="interest" className="manifest interest" aria-labelledby="interest-title">
+          <h2 id="interest-title" className="manifest__title">
+            Build {options.name} with me
+          </h2>
+          <p className="manifest__lead">
+            I’ll take {options.name} from this prototype to the web, the App Store and Google Play. Message me on WhatsApp, or
+            leave your details and I’ll be in touch. Your answers come with it.
+          </p>
+          {whatsapp && (
+            <a
+              className="btn btn-primary"
+              href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => tell('whatsapp')}
+            >
+              Message me on WhatsApp <Arrow />
+            </a>
           )}
-        </div>
-        {phase === 'built' && <AppPrototype o={options} />}
-
-        {phase === 'built' && (
-          <section className="manifest" aria-labelledby="manifest-title">
-            <h2 id="manifest-title" className="manifest__title">
-              Everything in {options.name}
-            </h2>
-            <p className="manifest__lead">{OFF_UNTIL_SET}</p>
-            <div className="manifest__grid">
-              {whatYouGet(options).map((part, i) => (
-                <div key={part.title} className="manifest__part">
-                  <span className="label">
-                    {String(i + 1).padStart(2, '0')} · {part.title}
-                  </span>
-                  <ul className="highlights">
-                    {part.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {phase === 'built' && (
-          <section id="brief" className="manifest brief" aria-labelledby="brief-title">
-            <h2 id="brief-title" className="manifest__title">
-              Your brief for Claude
-            </h2>
-            <p className="manifest__lead">
-              Every answer, the command that creates the app, and what to do next. Paste it into Claude with fohm-scaffold’s
-              new-app skill and it starts where these questions end.
-            </p>
-            <div className="brief__actions">
-              <button type="button" className="btn btn-primary" onClick={copy}>
-                {copied ? 'Copied' : 'Copy the brief'} <Arrow />
-              </button>
-              <button type="button" className="btn btn-outline" onClick={download}>
-                Download it <Arrow />
-              </button>
-              {whatsapp && (
-                <a
-                  className="text-btn"
-                  href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => tell('whatsapp')}
-                >
-                  Or message me on WhatsApp
-                </a>
-              )}
-            </div>
-            <pre className="brief__text" tabIndex={0}>
-              {brief}
-            </pre>
-          </section>
-        )}
-
-        {phase === 'built' && (
-          <section id="interest" className="manifest interest" aria-labelledby="interest-title">
-            <h2 id="interest-title" className="manifest__title">
-              Build {options.name} with me
-            </h2>
-            <p className="manifest__lead">
-              Leave your details and I’ll be in touch about taking {options.name} from this prototype to the App Store,
-              Google Play and the web. Your answers come with it.
-            </p>
-            <Interest answers={answers} />
-          </section>
-        )}
+          <Interest answers={answers} />
+        </section>
       </div>
     )
   }

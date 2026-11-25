@@ -51,6 +51,16 @@ function firstGoal(o: Options) {
   return list.split(/,|\n| and /)[0]?.trim() || 'Your goal'
 }
 
+/** The goals they named, a few: "Big-wave spots: Nazaré, Mavericks, Jaws" is those three. */
+export function goalsOf(o: Options) {
+  const g = o.goals || ''
+  return (g.includes(':') ? g.split(':')[1] : g)
+    .split(/,|\n| and /)
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+}
+
 const firstPlacing = (o: Options) => {
   const q = (o.placing || '').split('?')[0]?.trim()
   return q ? `${q}?` : 'How much have you done before?'
@@ -58,7 +68,13 @@ const firstPlacing = (o: Options) => {
 
 const SAMPLE_PEOPLE = ['Sam Okafor', 'Priya Shah', 'Tom Reilly', 'Ana Costa']
 
-export function AppPrototype({o}: {o: Options}) {
+/** A photo for a slot: where it comes from, and its credit, shown inside its card. */
+export interface Pic {
+  url: string
+  credit?: string
+}
+
+export function AppPrototype({o, gallery = []}: {o: Options; gallery?: Pic[]}) {
   const screens = screensFor(o)
   const [screen, setScreen] = useState<ScreenId>('landing')
   const [done, setDone] = useState<Set<string>>(new Set())
@@ -81,7 +97,10 @@ export function AppPrototype({o}: {o: Options}) {
     '--x-needs-you': needsYou(o.accent),
   } as CSSProperties
 
-  const props: Props = {o, go, done, setDone}
+  // Slot 0 leads (the landing page, onboarding, the goal): their own photo if they gave one. The rest go round the gallery.
+  const photos: Pic[] = [...(o.photo ? [{url: o.photo, credit: o.photoCredit}] : []), ...gallery.filter((g) => g.url !== o.photo)]
+  const pic = (slot: number): Pic | undefined => (photos.length ? photos[slot % photos.length] : undefined)
+  const props: Props = {o, go, done, setDone, pic}
   const tabbed = screen === 'home' || screen === 'path' || screen === 'game'
 
   return (
@@ -108,7 +127,7 @@ export function AppPrototype({o}: {o: Options}) {
   )
 }
 
-type Props = {o: Options; go: (s: ScreenId) => void; done: Set<string>; setDone: (s: Set<string>) => void}
+type Props = {o: Options; go: (s: ScreenId) => void; done: Set<string>; setDone: (s: Set<string>) => void; pic: (slot: number) => Pic | undefined}
 
 // ---------- The kit ----------
 
@@ -139,20 +158,47 @@ function Primary({children, onClick, disabled}: {children: ReactNode; onClick?: 
   )
 }
 
-/** A photo slot: the visitor's photo, or the template's clean stand-in on the track grey. */
-function Photo({o, className, children}: {o: Options; className?: string; children?: ReactNode}) {
+/** A photo slot, its credit inside it: a found or given photo, or the template's clean stand-in on the track grey. */
+function Photo({p, className, children}: {p?: Pic; className?: string; children?: ReactNode}) {
   return (
     <div className={`x-photo ${className ?? ''}`}>
-      {o.photo ? (
+      {p ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={o.photo} alt="" referrerPolicy="no-referrer" />
+        <img src={p.url} alt="" referrerPolicy="no-referrer" />
       ) : (
         <span className="x-photo__stand-in">
           <Icon d={IMAGE} size={26} />
         </span>
       )}
       {children}
+      {p?.credit && <span className="x-photo__credit">{p.credit}</span>}
     </div>
+  )
+}
+
+/** A row's photo: the 56pt square thumbnail every list row carries. */
+function Thumb({p}: {p?: Pic}) {
+  return (
+    <span className="x-thumb">
+      {p ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={p.url} alt="" referrerPolicy="no-referrer" />
+      ) : (
+        <Icon d={IMAGE} size={18} />
+      )}
+    </span>
+  )
+}
+
+/** The template's mark until the logo round draws the app's own: a ring and a dot, in the app's colour. */
+export function Mark({size = 28, tone = 'accent'}: {size?: number; tone?: 'accent' | 'white'}) {
+  return (
+    <svg className={`x-mark x-mark--${tone}`} width={size} height={size} viewBox="192 192 640 640" aria-hidden>
+      <path
+        d="M 192 512 A 320 320 0 1 0 832 512 A 320 320 0 1 0 192 512 Z M 262 512 A 250 250 0 1 0 762 512 A 250 250 0 1 0 262 512 Z M 402 512 A 110 110 0 1 0 622 512 A 110 110 0 1 0 402 512 Z"
+        fillRule="evenodd"
+      />
+    </svg>
   )
 }
 
@@ -213,12 +259,15 @@ function TabBar({o, go, at}: Props & {at: ScreenId}) {
 
 // ---------- The screens ----------
 
-function Landing({o, go}: Props) {
+function Landing({o, go, pic}: Props) {
   return (
     <div className="x-landing">
-      <Photo o={o} className="x-landing__photo">
+      <Photo p={pic(0)} className="x-landing__photo">
         <div className="x-landing__bar">
-          <span className="x-landing__name">{o.name}</span>
+          <span className="x-landing__name">
+            <Mark size={26} tone="white" />
+            {o.name}
+          </span>
           <button type="button" className="x-landing__signin" onClick={() => go('home')}>
             Sign in
           </button>
@@ -238,7 +287,7 @@ function Landing({o, go}: Props) {
   )
 }
 
-function Onboarding({o, go}: Props) {
+function Onboarding({o, go, pic}: Props) {
   const interests = interestsOf(o)
   const steps = ['hello', 'placing', 'interests', 'week', 'ready'] as const
   const [at, setAt] = useState(0)
@@ -261,7 +310,7 @@ function Onboarding({o, go}: Props) {
   if (step === 'hello')
     return (
       <div className="x-onb x-onb--hello">
-        <Photo o={o} className="x-onb__photo" />
+        <Photo p={pic(1)} className="x-onb__photo" />
         <button type="button" className="x-skip" onClick={() => go('home')}>
           Skip
         </button>
@@ -356,7 +405,7 @@ function Onboarding({o, go}: Props) {
       {step === 'ready' && (
         <>
           <h3 className="x-display">Where you start</h3>
-          <Photo o={o} className="x-photocard">
+          <Photo p={pic(0)} className="x-photocard">
             <span className="x-photocard__shade" />
             <span className="x-photocard__text">
               <span className="x-photocard__title">
@@ -379,7 +428,7 @@ function Onboarding({o, go}: Props) {
   )
 }
 
-function Home({o, go}: Props) {
+function Home({o, go, pic}: Props) {
   const levels = levelsOf(o)
   const today = (new Date().getDay() + 6) % 7
   const hour = new Date().getHours()
@@ -405,7 +454,7 @@ function Home({o, go}: Props) {
       </div>
 
       {o.kind !== 'game' && (
-        <Photo o={o} className="x-photocard x-photocard--tall">
+        <Photo p={pic(0)} className="x-photocard x-photocard--tall">
           <span className="x-badge">
             <span className="x-badge__dot" />
             Your goal
@@ -419,13 +468,24 @@ function Home({o, go}: Props) {
       )}
 
       {o.kind === 'game' && (
-        <Photo o={o} className="x-photocard x-photocard--tall">
+        <Photo p={pic(0)} className="x-photocard x-photocard--tall">
           <span className="x-photocard__shade" />
           <span className="x-photocard__text">
             <span className="x-photocard__title">Catch the dot</span>
             <span className="x-photocard__line">Your best: 0 points</span>
           </span>
         </Photo>
+      )}
+
+      {o.kind !== 'game' && (
+        <div className="x-section">
+          <p className="x-heading">{goalsOf(o).length > 1 ? 'Places to work towards' : 'Saved'}</p>
+          <div className="x-card x-card--rows">
+            {(goalsOf(o).length ? goalsOf(o) : ['Your first goal', 'A course to get there']).map((g, i) => (
+              <Row key={g} title={g} line={i === 0 ? 'Your goal' : 'Saved'} lead={<Thumb p={pic(i + 2)} />} />
+            ))}
+          </div>
+        </div>
       )}
 
       <div className="x-card">
