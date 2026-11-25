@@ -1,4 +1,5 @@
 import type {Metadata} from 'next'
+import {DM_Sans, Space_Grotesk} from 'next/font/google'
 import {getSettings} from '@/sanity/settings'
 import {TopBar} from '@/components/top-bar'
 import {SiteFooter} from '@/components/site-footer'
@@ -10,6 +11,10 @@ export const metadata: Metadata = {
   title: 'App builder',
   description: 'Answer a few questions about your business and tap through a prototype of your app.',
 }
+
+// The house style's two faces (fohm-scaffold's template: src/lib/fonts.ts), for the prototype.
+const display = Space_Grotesk({subsets: ['latin'], weight: ['500', '600'], variable: '--x-display'})
+const text = DM_Sans({subsets: ['latin'], weight: ['400', '500', '600'], variable: '--x-text'})
 
 export default async function AppBuilderPage() {
   const settings = await getSettings()
@@ -24,11 +29,12 @@ export default async function AppBuilderPage() {
           <div className="blog__soon">
             <span className="label">● Early access</span>
             <p>
-              Answer the questions the Fohm app builder asks, and see your app: its landing page, the screens your
-              customers use and your dashboard, in your name and colour. The same foundations as Etapa and Naz.
+              Answer what we ask before building any app, and see yours: its landing page, onboarding, the screens your
+              customers use and your dashboard, in your name, words and colour. Then take a brief with every answer in it
+              straight into Claude. The same foundations as Etapa and Naz.
             </p>
           </div>
-          <AppBuilder whatsapp={settings?.whatsapp} />
+          <AppBuilder whatsapp={settings?.whatsapp} className={`${display.variable} ${text.variable}`} />
         </section>
         <ContactSection settings={settings} />
       </main>
