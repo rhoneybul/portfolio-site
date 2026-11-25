@@ -1553,6 +1553,71 @@ a.proof:hover .proof__arrow {
 }
 
 
+/* ---------- The app builder on a phone ---------- */
+
+/* Every control in the builder is a 44pt target, however small it looks: the tap area grows, not the look. */
+.builder .btn,
+.builder .text-btn {
+  position: relative;
+}
+
+.builder .btn::after,
+.builder .text-btn::after,
+.builder__see::after {
+  content: '';
+  position: absolute;
+  inset: -12px -8px;
+}
+
+/* A See link sits close to the next choice: its area grows only as far as 44pt, so it never takes that choice's taps. */
+.builder__see::after {
+  inset: -6px -8px;
+}
+
+/* Build it with me fits the phone: its text wraps, its fields take the width. */
+.interest {
+  justify-items: stretch;
+}
+
+.interest > .btn {
+  justify-self: start;
+}
+
+.interest__form {
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  /* The deck's tabs are one row to swipe, not three rows to scroll past. */
+  .builder .deck__dots {
+    flex-wrap: nowrap;
+    margin: 0 -16px;
+    padding: 0 16px 4px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .builder .deck__dots::-webkit-scrollbar {
+    display: none;
+  }
+
+  .builder .deck__dots button {
+    flex: none;
+    scroll-snap-align: start;
+  }
+
+  .builder .deck {
+    padding: 16px;
+    gap: 18px;
+  }
+
+  .interest__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- A submission (Fohm only) ---------- */
 
 .submission {
@@ -1779,7 +1844,7 @@ a.proof:hover .proof__arrow {
 }
 
 .deck__dots button {
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -2487,7 +2552,7 @@ a.proof:hover .proof__arrow {
 }
 
 .proto__tabs button {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -3004,7 +3069,7 @@ a.proof:hover .proof__arrow {
   top: 28px;
   right: 16px;
   z-index: 1;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 16px;
   border: 0;
   border-radius: 999px;

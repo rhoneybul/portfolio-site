@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, type CSSProperties, type ReactNode} from 'react'
+import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppPrototype, Mark, goalsOf, type Pic} from '@/components/app-prototype'
 import {whatYouGet} from '@/app-builder/manifest'
@@ -342,7 +342,19 @@ export function Showcase({o, gallery}: {o: Options; gallery: Pic[]}) {
   ]
 
   const [at, setAt] = useState(0)
-  const go = (n: number) => setAt((n + slides.length) % slides.length)
+  const deck = useRef<HTMLElement>(null)
+  const moved = useRef(false)
+  const go = (n: number) => {
+    moved.current = true
+    setAt((n + slides.length) % slides.length)
+  }
+
+  // On a phone, a new slide starts in view: its tab scrolled into the row, and the deck's top on screen if it had scrolled away.
+  useEffect(() => {
+    if (!moved.current) return
+    deck.current?.querySelector('.deck__dots .is-on')?.scrollIntoView({block: 'nearest', inline: 'center', behavior: 'smooth'})
+    if ((deck.current?.getBoundingClientRect().top ?? 0) < 0) deck.current?.scrollIntoView({block: 'start', behavior: 'smooth'})
+  }, [at])
 
   const vars = {
     '--x-accent': o.accent,
@@ -355,6 +367,7 @@ export function Showcase({o, gallery}: {o: Options; gallery: Pic[]}) {
 
   return (
     <section
+      ref={deck}
       className="deck"
       style={vars}
       aria-roledescription="carousel"

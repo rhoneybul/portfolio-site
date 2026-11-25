@@ -51,7 +51,10 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
   const {options, errors} = resolveOptions(answers)
 
   useEffect(() => {
-    if (phase === 'asking') input.current?.focus({preventScroll: true})
+    if (phase !== 'asking') return
+    input.current?.focus({preventScroll: true})
+    // On a phone, the next question starts in view: back up to it if the page had scrolled past.
+    if ((top.current?.getBoundingClientRect().top ?? 0) < 0) top.current?.scrollIntoView({block: 'start', behavior: 'smooth'})
   }, [at, phase])
 
   // Photos for every slot, found from what they told us: the first goal (or the app they picked), then each goal.
