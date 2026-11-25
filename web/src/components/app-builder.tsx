@@ -1,148 +1,216 @@
 'use client'
 
-import {useState, type CSSProperties, type FormEvent} from 'react'
+import {useEffect, useRef, useState, type FormEvent} from 'react'
 import {Arrow} from '@/components/arrow'
+import {AppPrototype} from '@/components/app-prototype'
+import {
+  KIND_LABELS,
+  KINDS,
+  QUESTIONS,
+  buildSteps,
+  emptyAnswers,
+  resolveOptions,
+  type Answers,
+  type Kind,
+} from '@/app-builder/options'
 
-// A placeholder for the outreach app builder: the visitor describes their business and sees what
-// fohm-scaffold would make for them. Nothing is generated yet; the answers go to Rob on WhatsApp,
-// and the scaffold runs on a call. When the builder runs for real, `onSubmit` is where it starts.
+/**
+ * The outreach app builder: asks what fohm-scaffold's `new` asks, one question to a screen, fills
+ * in the same defaults, plays the build, then shows the screens the scaffold makes as a clickable
+ * prototype. Nothing is generated or stored; Build it for real sends the answers to Rob.
+ */
 
-type Kind = 'coaching' | 'app' | 'game'
-
-const KINDS: {value: Kind; label: string; hint: string}[] = [
-  {value: 'coaching', label: 'Coaching app', hint: 'Assessments, a path of skills, check-ins and video feedback'},
-  {value: 'app', label: 'Plain app', hint: 'Accounts, a dashboard and the integrations, ready to build on'},
-  {value: 'game', label: 'Game', hint: 'A browser game with scores saved and a leaderboard'},
-]
-
-const INCLUDED: Record<Kind, string[]> = {
-  coaching: [
-    'A level assessment and a path of skills for each member',
-    'Check-ins, questions and video uploads for the coach',
-    'Several coaches, each seeing only their own members',
-  ],
-  app: ['Sign-in and accounts, with demo mode before any setup', 'A library and the screens your business needs'],
-  game: ['A game in the browser, on phones first', 'Scores saved and shown on your dashboard'],
-}
-
-const ALWAYS = [
-  'A landing page, a web app, and iPhone and Android apps from one codebase',
-  'An owner’s dashboard that sees everything people do',
-  'Payments, analytics, error reports, email and an AI assistant, each off until you switch it on',
-  'Privacy policy, terms, tests and deploys',
-]
+type Phase = 'asking' | 'building' | 'built'
 
 export function AppBuilder({whatsapp}: {whatsapp?: string | null}) {
-  const [idea, setIdea] = useState('')
-  const [name, setName] = useState('')
-  const [kind, setKind] = useState<Kind>('coaching')
-  const [accent, setAccent] = useState('#f4401b')
-  const [built, setBuilt] = useState(false)
+  const [answers, setAnswers] = useState<Answers>(emptyAnswers)
+  const [step, setStep] = useState(0)
+  const [phase, setPhase] = useState<Phase>('asking')
+  const [error, setError] = useState<string | null>(null)
+  const [built, setBuilt] = useState(0)
+  const input = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
+  const top = useRef<HTMLDivElement>(null)
 
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    setBuilt(true)
+  const q = QUESTIONS[step]
+  const {options, errors} = resolveOptions(answers)
+  const steps = buildSteps(options)
+
+  useEffect(() => {
+    if (phase === 'asking') input.current?.focus({preventScroll: true})
+  }, [step, phase])
+
+  // The build, a line at a time.
+  useEffect(() => {
+    if (phase !== 'building') return
+    if (built >= steps.length) {
+      const t = setTimeout(() => setPhase('built'), 400)
+      return () => clearTimeout(t)
+    }
+    const t = setTimeout(() => setBuilt(built + 1), 380)
+    return () => clearTimeout(t)
+  }, [phase, built, steps.length])
+
+  const set = (v: string) => {
+    setAnswers({...answers, [q.key]: v})
+    setError(null)
   }
 
-  const appName = name.trim() || 'Your app'
-  const kindLabel = KINDS.find((k) => k.value === kind)?.label ?? ''
-  const message = [
-    'Hi Rob, I tried the app builder on your website.',
-    `Name: ${appName}`,
-    `Kind: ${kindLabel}`,
-    `What it’s for: ${idea.trim()}`,
-    `Colour: ${accent}`,
-  ].join('\n')
+  const next = (e?: FormEvent) => {
+    e?.preventDefault()
+    const problem = errors[q.key]
+    if (problem) return setError(problem)
+    if (step < QUESTIONS.length - 1) return setStep(step + 1)
+    setBuilt(0)
+    setPhase('building')
+    top.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
+  }
+
+  const back = () => {
+    setError(null)
+    setStep(Math.max(0, step - 1))
+  }
+
+  const editAnswers = () => {
+    setPhase('asking')
+    setStep(0)
+  }
+
+  if (phase !== 'asking') {
+    const summary = QUESTIONS.map((x) => `${x.ask}\n${options[x.key] || '(blank)'}`).join('\n\n')
+    const message = `Hi Rob, I tried the app builder on your website. Here are my answers.\n\n${summary}`
+    return (
+      <div className="builder builder--built" ref={top}>
+        <div className="builder__log" aria-live="polite">
+          <span className="label">{phase === 'built' ? `${options.name} is ready to try` : `Building ${options.name}`}</span>
+          <ol>
+            {steps.slice(0, built).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ol>
+          {phase === 'built' && (
+            <div className="builder__next">
+              <p>
+                This is the app fohm-scaffold makes from your answers, as a prototype: tap through it. The real one is a
+                web app, iPhone and Android apps, and a dashboard, with sign-in, payments, analytics and email ready to
+                switch on.
+              </p>
+              {whatsapp && (
+                <a
+                  className="btn btn-primary"
+                  href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Build it for real <Arrow />
+                </a>
+              )}
+              <button type="button" className="text-btn" onClick={editAnswers}>
+                Change my answers
+              </button>
+            </div>
+          )}
+        </div>
+        {phase === 'built' && <AppPrototype o={options} />}
+      </div>
+    )
+  }
+
+  const value = answers[q.key]
+  const placeholder = `e.g. ${q.example}`
+  // What a blank answer becomes, by the scaffolder's own defaults.
+  const fallback = value.trim() ? '' : `${options[q.key] ?? ''}`
 
   return (
-    <div className="builder" style={{'--app-accent': accent} as CSSProperties}>
-      <form className="builder__form" onSubmit={onSubmit}>
-        <label className="builder__field">
-          <span className="label">01 · What does your business do?</span>
-          <textarea
-            required
-            rows={3}
-            maxLength={400}
-            value={idea}
-            onChange={(e) => setIdea(e.target.value)}
-            placeholder="I coach adult beginners through their first triathlon."
-          />
+    <div className="builder" ref={top}>
+      <form className="builder__ask" onSubmit={next}>
+        <div className="builder__count">
+          <span className="label">
+            {String(step + 1).padStart(2, '0')} / {QUESTIONS.length}
+          </span>
+          <span className="builder__bar" aria-hidden>
+            <span style={{width: `${((step + 1) / QUESTIONS.length) * 100}%`}} />
+          </span>
+        </div>
+
+        <label className="builder__question" htmlFor={`q-${q.key}`}>
+          {q.ask}
         </label>
 
-        <label className="builder__field">
-          <span className="label">02 · What’s the app called?</span>
-          <input
-            required
-            maxLength={40}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Tide Pool"
-          />
-        </label>
-
-        <fieldset className="builder__field">
-          <legend className="label">03 · What kind of app?</legend>
-          <div className="builder__kinds">
-            {KINDS.map((k) => (
-              <label key={k.value} className={`builder__kind${kind === k.value ? ' is-active' : ''}`}>
-                <input
-                  type="radio"
-                  name="kind"
-                  value={k.value}
-                  checked={kind === k.value}
-                  onChange={() => setKind(k.value)}
-                />
-                <strong>{k.label}</strong>
-                <span>{k.hint}</span>
-              </label>
+        {q.choices ? (
+          <div className="builder__kinds" role="radiogroup" aria-label={q.ask}>
+            {KINDS.map((k: Kind) => (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={value === k}
+                className={`builder__kind${value === k ? ' is-active' : ''}`}
+                onClick={() => set(k)}
+              >
+                <strong>{KIND_LABELS[k].label}</strong>
+                <span>{KIND_LABELS[k].hint}</span>
+              </button>
             ))}
           </div>
-        </fieldset>
+        ) : q.key === 'accent' ? (
+          <div className="builder__colour">
+            <input
+              type="color"
+              aria-label="Pick a colour"
+              value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : '#2F6B4F'}
+              onChange={(e) => set(e.target.value.toUpperCase())}
+            />
+            <input ref={input} id={`q-${q.key}`} value={value} onChange={(e) => set(e.target.value)} placeholder={placeholder} />
+          </div>
+        ) : q.long ? (
+          <textarea
+            ref={input}
+            id={`q-${q.key}`}
+            rows={3}
+            value={value}
+            onChange={(e) => set(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) next(e)
+            }}
+            placeholder={placeholder}
+          />
+        ) : (
+          <input
+            ref={input}
+            id={`q-${q.key}`}
+            value={value}
+            onChange={(e) => set(e.target.value)}
+            placeholder={placeholder}
+            autoCapitalize={['supportEmail', 'domain', 'bundleId'].includes(q.key) ? 'none' : undefined}
+            inputMode={q.key === 'supportEmail' ? 'email' : q.key === 'domain' ? 'url' : undefined}
+          />
+        )}
 
-        <label className="builder__field builder__field--row">
-          <span className="label">04 · Your colour</span>
-          <input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} />
-        </label>
+        <p className="builder__hint">
+          {error ? (
+            <span className="builder__error">{error}</span>
+          ) : q.required ? (
+            'No name yet? A working name is fine; you can change it later.'
+          ) : value.trim() || q.choices ? (
+            '\u00a0'
+          ) : fallback ? (
+            `Leave it blank for: ${fallback}`
+          ) : (
+            'You can leave this blank for now.'
+          )}
+        </p>
 
-        <button type="submit" className="btn btn-primary">
-          {built ? 'Update my app' : 'Show me my app'} <Arrow />
-        </button>
+        <div className="builder__nav">
+          {step > 0 && (
+            <button type="button" className="text-btn" onClick={back}>
+              Back
+            </button>
+          )}
+          <button type="submit" className="btn btn-primary">
+            {step < QUESTIONS.length - 1 ? 'Next' : 'Build my app'} <Arrow />
+          </button>
+        </div>
       </form>
-
-      {built && (
-        <section className="builder__result" aria-live="polite">
-          <div className="builder__preview">
-            <span className="builder__preview-mark" aria-hidden />
-            <p className="builder__preview-name">{appName}</p>
-            <p className="builder__preview-idea">{idea}</p>
-          </div>
-
-          <div className="builder__plan">
-            <span className="label">What you’d get</span>
-            <ul className="highlights">
-              {[...INCLUDED[kind], ...ALWAYS].map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-
-            <p className="builder__note">
-              The builder is in early access: I run it with you on a call, then walk you through every step to the
-              web and the app stores.
-            </p>
-
-            {whatsapp && (
-              <a
-                className="btn btn-primary"
-                href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Build it with me <Arrow />
-              </a>
-            )}
-          </div>
-        </section>
-      )}
     </div>
   )
 }
