@@ -113,6 +113,23 @@ export function AppBuilder({whatsapp, className, prototypes = false}: {whatsapp?
     return () => clearTimeout(t)
   }, [phase, built, steps.length])
 
+  // Once their app is drawn, the channel hears about it.
+  useEffect(() => {
+    if (phase === 'built') tell('used')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
+
+  /** Tells the Fohm Slack channel what happened (/api/builder-event). Never waits, never fails the page. */
+  const tell = (event: 'used' | 'brief' | 'whatsapp') => {
+    try {
+      const body = JSON.stringify({event, answers})
+      if (!navigator.sendBeacon?.('/api/builder-event', new Blob([body], {type: 'application/json'})))
+        void fetch('/api/builder-event', {method: 'POST', headers: {'Content-Type': 'application/json'}, body, keepalive: true}).catch(() => {})
+    } catch {
+      // Slack hears nothing: the builder carries on.
+    }
+  }
+
   const set = (v: string) => {
     setAnswers({...answers, [q.key]: v})
     setError(null)
@@ -140,6 +157,7 @@ export function AppBuilder({whatsapp, className, prototypes = false}: {whatsapp?
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(brief)
+      tell('brief')
       setCopied(true)
       setTimeout(() => setCopied(false), 2400)
     } catch {
@@ -159,6 +177,7 @@ export function AppBuilder({whatsapp, className, prototypes = false}: {whatsapp?
   }
 
   const download = () => {
+    tell('brief')
     const url = URL.createObjectURL(new Blob([brief], {type: 'text/markdown'}))
     const a = document.createElement('a')
     a.href = url
@@ -201,6 +220,9 @@ export function AppBuilder({whatsapp, className, prototypes = false}: {whatsapp?
               )}
               <a className={prototypes ? 'text-btn' : 'btn btn-primary'} href="#brief">
                 Get the brief for Claude {prototypes ? null : <Arrow />}
+              </a>
+              <a className="text-btn" href="#interest">
+                Build it with me
               </a>
               <button
                 type="button"
@@ -262,14 +284,33 @@ export function AppBuilder({whatsapp, className, prototypes = false}: {whatsapp?
                 Download it <Arrow />
               </button>
               {whatsapp && (
-                <a className="text-btn" href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">
-                  Or build it with me
+                <a
+                  className="text-btn"
+                  href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => tell('whatsapp')}
+                >
+                  Or message me on WhatsApp
                 </a>
               )}
             </div>
             <pre className="brief__text" tabIndex={0}>
               {brief}
             </pre>
+          </section>
+        )}
+
+        {phase === 'built' && (
+          <section id="interest" className="manifest interest" aria-labelledby="interest-title">
+            <h2 id="interest-title" className="manifest__title">
+              Build {options.name} with me
+            </h2>
+            <p className="manifest__lead">
+              Leave your details and I’ll be in touch about taking {options.name} from this prototype to the App Store,
+              Google Play and the web. Your answers come with it.
+            </p>
+            <Interest answers={answers} />
           </section>
         )}
       </div>
@@ -390,5 +431,65 @@ export function AppBuilder({whatsapp, className, prototypes = false}: {whatsapp?
         </div>
       </form>
     </div>
+  )
+}
+
+/** "Build it with me": name, email and a note, sent with their answers to the Fohm Slack channel. */
+function Interest({answers}: {answers: Answers}) {
+  const [contact, setContact] = useState({name: '', email: '', note: '', website: ''})
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
+  const [error, setError] = useState<string | null>(null)
+  const field = (k: keyof typeof contact) => ({
+    value: contact[k],
+    onChange: (e: {target: {value: string}}) => setContact({...contact, [k]: e.target.value}),
+  })
+
+  const send = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact.email.trim())) return setError('An email address, so I can get back to you.')
+    setError(null)
+    setState('sending')
+    try {
+      const res = await fetch('/api/builder-event', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({event: 'interest', answers, contact}),
+      })
+      setState(res.ok ? 'sent' : 'failed')
+    } catch {
+      setState('failed')
+    }
+  }
+
+  if (state === 'sent')
+    return (
+      <p className="builder__real builder__real--ready" role="status">
+        Thanks{contact.name.trim() ? `, ${contact.name.trim().split(' ')[0]}` : ''}. I’ve got your answers and I’ll be in touch.
+      </p>
+    )
+
+  return (
+    <form className="interest__form" onSubmit={send} noValidate>
+      <label>
+        <span>Your name</span>
+        <input autoComplete="name" maxLength={100} {...field('name')} />
+      </label>
+      <label>
+        <span>Your email</span>
+        <input type="email" autoComplete="email" inputMode="email" required maxLength={200} {...field('email')} />
+      </label>
+      <label className="interest__wide">
+        <span>Anything else I should know? (optional)</span>
+        <textarea rows={3} maxLength={1000} {...field('note')} />
+      </label>
+      {/* Left empty by people; filled in by bots. */}
+      <input className="interest__trap" tabIndex={-1} autoComplete="off" aria-hidden {...field('website')} />
+      {(error || state === 'failed') && <p className="builder__error interest__wide">{error ?? 'That didn’t send. Try again, or use WhatsApp.'}</p>}
+      <div className="interest__wide">
+        <button type="submit" className="btn btn-primary" disabled={state === 'sending'}>
+          {state === 'sending' ? 'Sending…' : 'I’m interested'} <Arrow />
+        </button>
+      </div>
+    </form>
   )
 }
