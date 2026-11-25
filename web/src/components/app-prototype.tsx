@@ -300,9 +300,10 @@ function Onboarding({o, go, pic}: Props) {
   const next = () => (at < steps.length - 1 ? setAt(at + 1) : go('home'))
   const dotted = steps.length - 2
 
+  // The opening, a line to a screen: what the app is for, what people do in it, and where it starts them.
   const helloLines = [
-    o.keyValue || 'Want to get better at it, week by week?',
-    o.idea || 'It’s built a little at a time, at your level.',
+    o.idea || 'Want to get better at it, week by week?',
+    o.tagline,
     `${o.name} starts you where you are and shows you what to do next.`,
   ]
   const [line, setLine] = useState(0)

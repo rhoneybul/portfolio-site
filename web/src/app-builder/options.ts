@@ -55,7 +55,6 @@ export interface Question {
   when?: (a: Answers) => boolean
 }
 
-const coaching = (a: Answers) => kindOf(a) === 'coaching'
 const notGame = (a: Answers) => kindOf(a) !== 'game'
 
 export const SECTIONS = ['The idea', 'The name', 'Onboarding', 'The method', 'Look and feel', 'About you'] as const
@@ -93,12 +92,10 @@ export const QUESTIONS: Question[] = [
   },
 
   // Onboarding (Naz's)
-  {key: 'keyValue', section: 'Onboarding', ask: 'The question your app answers', why: 'The first thing a new member reads, over a photo.', example: 'Want to feel more comfortable in bigger waves?', when: notGame},
   {key: 'interests', section: 'Onboarding', ask: 'What are people here for? A few words, comma-separated', why: 'Tiles in onboarding: what they pick comes first in the app.', example: 'Strength, Breath-holds, Mobility, Spots', when: notGame},
   {key: 'goals', section: 'Onboarding', ask: 'What do people work towards: places, events or trips?', example: 'Big-wave spots: Nazaré, Mavericks, Jaws', when: notGame},
 
   // The method
-  {key: 'levels', section: 'The method', ask: 'The levels people move through, and a skill or two at each', why: 'The path, in your own words.', example: 'Foam board: paddling, pop-ups. Green waves: angling, trimming. Reef: duck-dives, reading sets.', long: true, when: coaching},
   {key: 'content', section: 'The method', ask: 'Links to the videos, posts and courses you already publish', why: 'The library points at them.', example: 'youtube.com/@yourschool, instagram.com/yourschool', when: notGame},
 
   // Look and feel
