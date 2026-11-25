@@ -49,7 +49,7 @@ export function whatYouGet(o: Options): Part[] {
           {
             title: 'Onboarding',
             items: [
-              `An opening over a photo that asks ${o.keyValue ? `“${o.keyValue}”` : 'the question your app answers'}`,
+              'An opening over a photo that says what the app is for, a line to a screen',
               'Straight questions one to a screen, with progress dots and Skip on every screen',
               `What they’re here for as tiles: ${interestsOf(o).join(', ')}`,
               'Why it works, from the research, never invented numbers',

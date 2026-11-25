@@ -66,6 +66,8 @@ export function claudePrompt(o: Options, raw: Answers) {
     'the business’s details for the privacy policy and terms: who runs it, the country, its registration and registered office',
     'the support email, the domain and the app id',
     'the naming direction, if the name isn’t final',
+    ...(o.kind === 'game' ? [] : ['the one question the app answers for people, which opens onboarding over a photo']),
+    ...(o.kind === 'coaching' ? ['the levels people move through, and the skills and drills at each: my method, for the path'] : []),
     'the design questions: the navigation, and apps I don’t like',
     ...(o.kind === 'game' ? [] : ['how much time people can give it each week, and a first number they can measure', 'the questions that place someone at a level']),
     'what Pro costs',
@@ -97,8 +99,8 @@ ${next.map((l) => `- ${l}`).join('\n')}
 - Publish my checklist of what only I can do (the app-launch skill, step 1): the domain, the business and the store accounts take days, so they start today.
 - Research the market into docs/RESEARCH.md with sources, from my audience and ambition above.
 - Write the landing page's headline and description from what people should be doing in the app, and PRODUCT.md from my idea and business.
-- Write onboarding's steps (\`ONBOARDING\` in src/lib/progression.ts) from the question my app answers and what people are here for, as the template's docs/ONBOARDING.md says.${o.kind === 'coaching' ? `
-- Put my method into src/lib/progression.ts: the levels and skills above.` : ''}
+- Write onboarding's steps (\`ONBOARDING\` in src/lib/progression.ts) from my idea, what people are here for and what they work towards, as the template's docs/ONBOARDING.md says.${o.kind === 'coaching' ? `
+- Put my method into src/lib/progression.ts once you have the levels and skills from me.` : ''}
 - Research the catalogue of goals and the courses that prepare for them, with open-licence photos (reference/research.md).
 - Design with the app-design skill: my references from Mobbin within the house style (Space Grotesk and DM Sans, the grey canvas and white cards, the ink pill with the ${o.accent.toUpperCase()} disc), my answers to its three questions above, photos in every slot, and a fresh review before I see anything.
 - Then launch with the app-launch skill, each integration off until its key is set, and never ask me for a secret in the chat.
