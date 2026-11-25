@@ -3,6 +3,7 @@
 import {useEffect, useRef, useState, type FormEvent} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppPrototype} from '@/components/app-prototype'
+import {OFF_UNTIL_SET, whatYouGet} from '@/app-builder/manifest'
 import {
   KIND_LABELS,
   KINDS,
@@ -111,6 +112,28 @@ export function AppBuilder({whatsapp}: {whatsapp?: string | null}) {
           )}
         </div>
         {phase === 'built' && <AppPrototype o={options} />}
+        {phase === 'built' && (
+          <section className="manifest" aria-labelledby="manifest-title">
+            <h2 id="manifest-title" className="manifest__title">
+              Everything in {options.name}
+            </h2>
+            <p className="manifest__lead">{OFF_UNTIL_SET}</p>
+            <div className="manifest__grid">
+              {whatYouGet(options).map((part, i) => (
+                <div key={part.title} className="manifest__part">
+                  <span className="label">
+                    {String(i + 1).padStart(2, '0')} · {part.title}
+                  </span>
+                  <ul className="highlights">
+                    {part.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     )
   }

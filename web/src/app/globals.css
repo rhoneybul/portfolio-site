@@ -1331,6 +1331,44 @@ a.proof:hover .proof__arrow {
   }
 }
 
+/* Everything the scaffold builds, under the prototype */
+.manifest {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 20px;
+  margin-top: clamp(24px, 4vw, 56px);
+  padding-top: clamp(32px, 4vw, 56px);
+  border-top: 1px solid var(--line);
+}
+
+.manifest__title {
+  font-size: clamp(32px, 4.4vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+  color: var(--accent);
+}
+
+.manifest__lead {
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: clamp(17px, 1.4vw, 19px);
+}
+
+.manifest__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: clamp(28px, 3vw, 48px) clamp(24px, 4vw, 64px);
+  margin-top: 12px;
+}
+
+.manifest__part {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  font-size: 16px;
+}
+
 /* The prototype: the scaffold template's own tokens (template/src/lib/theme.ts), not the site's */
 
 .proto {
