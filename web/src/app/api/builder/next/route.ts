@@ -5,7 +5,7 @@ import {cleanRequest, cleanTurn, fallbackNext, needsClaude, rowsFor, saidSoFar, 
 
 /**
  * The app builder's next question, chosen by Claude from what the visitor has said so far
- * (claude-haiku-5-5 through Anthropic's API), like fohm-scaffold's discovery chat: the most
+ * (claude-opus-5-5 through Anthropic's API: the questions and their picks are the first thing a visitor judges), like fohm-scaffold's discovery chat: the most
  * important row still to ask, in their words, with picks for their app. Its answer is checked
  * (cleanTurn), and on anything wrong, or without Claude, the next row comes from the fixed order.
  * Each address asks Claude at most PER_ADDRESS times an hour (a whole run is about 15); past that,
@@ -15,7 +15,11 @@ import {cleanRequest, cleanTurn, fallbackNext, needsClaude, rowsFor, saidSoFar, 
 const PER_ADDRESS = {most: 60, window: 60 * 60_000}
 const allowed = limiter()
 
-const MODEL = 'claude-haiku-5-5'
+const MODEL = process.env.BUILDER_QUESTIONS_MODEL || 'claude-opus-5-5'
+
+// Opus takes longer than Haiku did; the browser waits a little longer than this (CHOOSING in app-builder.tsx).
+const THINKING_MS = 22_000
+export const maxDuration = 30
 
 const SYSTEM = `You run a short, friendly interview that gathers what's needed to design a first prototype of someone's app.
 They answer one question to a screen. You choose the next question from the rows still to ask, given what they've said so far.
@@ -30,11 +34,14 @@ Choose:
 Word it:
 - "ask": the row's question reworded in their world, using their words (their sport, their members, their business). One short question, plain English, no emoji, under 120 characters.
 - "why": one short line on why it's asked or what it becomes, under 160 characters.
-- "suggestions": three or four short example answers tailored to their app (a few words each), only for rows answered by typing that don't have their own suggestions. For a row answered as a comma-separated list, give four to six, each a single item with no comma (they can pick several).
+- "suggestions": short example answers tailored to their app (a few words each), only for rows answered by typing that don't have their own suggestions. Make them answers this owner could really give: specific to their sport, members and business, different from one another, and never generic filler ("Track progress", "Stay motivated"). Each is one item with no comma.
+- "multi": true when people would pick several of the suggestions together (the parts of the app, goals, kinds of content, the apps they like), false when one answers it (who it's for, a price, a name). With multi give four to six suggestions, without it three or four.
+
+Be a sharp product designer, not a form: each question should show you understood what they said, and move their app forward. Ask about what's specific to their app, not about apps in general.
 
 Reply with JSON only:
-{"key": "doing", "ask": "...", "why": "...", "suggestions": ["...", "..."], "prefill": "...", "skip": ["content"]}
-Leave out "prefill", "suggestions" or "skip" when they don't apply.`
+{"key": "doing", "ask": "...", "why": "...", "suggestions": ["...", "..."], "multi": false, "prefill": "...", "skip": ["content"]}
+Leave out "prefill", "suggestions", "multi" or "skip" when they don't apply.`
 
 // One instance's memory: the same answers never ask twice.
 const known = new Map<string, Next>()
@@ -54,8 +61,8 @@ export async function POST(request: Request) {
       model: MODEL,
       system: [SYSTEM],
       user: `What they've said so far:\n${saidSoFar(answers, done) || '- Nothing yet'}\n\nThe rows still to ask:\n${rowsFor(answers, done)}`,
-      maxTokens: 1_500,
-      deadline: Date.now() + 12_000,
+      maxTokens: 1_200,
+      deadline: Date.now() + THINKING_MS,
     })
     const turn = cleanTurn(JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}'), answers, done)
     if (known.size > 500) known.clear()

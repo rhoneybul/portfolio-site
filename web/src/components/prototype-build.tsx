@@ -7,7 +7,8 @@ import {HeardAsk} from '@/components/heard-ask'
 import {ideasFor, search} from '@/components/photo-search'
 import {PrototypeThumb} from '@/components/prototype-frame'
 import type {Answers, Options} from '@/app-builder/options'
-import type {Drawn, Job, Look, Photo, Plan} from '@/app-builder/prototype-doc'
+import {HOUSE, type Drawn, type Job, type Look, type Photo, type Plan, type Style} from '@/app-builder/prototype-doc'
+import type {Mark} from '@/app-builder/logos'
 
 /**
  * Claude designing the visitor's app, live: photos found from their answers, then Claude plans the
@@ -27,6 +28,14 @@ export interface Built {
 type State = 'waiting' | 'drawing' | 'done' | 'failed'
 
 const AT_ONCE = 5
+
+/** How long planning waits for the logo round before going on with the icon its plan chooses. */
+const LOGOS_WAIT = 75_000
+
+const iconOf = (d: string): Style['icon'] => ({shape: 'svg', letters: '', d})
+
+/** The plan with the logo picked as its icon, as the server sets it (prototype.ts, withMark). */
+const withLogo = (job: Job, d: string): Job => ({...job, look: {...job.look, style: {...(job.look.style ?? HOUSE), icon: iconOf(d)}}})
 
 /** Open-licence photos for the app: their own first, then a few from each search, taking turns. */
 async function findPhotos(answers: Answers, o: Options): Promise<Photo[]> {
@@ -110,6 +119,15 @@ export function PrototypeBuild({
   const [states, setStates] = useState<Record<string, State>>({})
   const [drawn, setDrawn] = useState<Record<string, Drawn>>({})
   const [elapsed, setElapsed] = useState(0)
+  // The logo round, for an owner without a logo: the marks Claude drew, and the one picked (the first until they tap).
+  const wantsLogo = answers.logo !== 'yes'
+  const [marks, setMarks] = useState<Mark[] | 'drawing' | 'none'>(wantsLogo ? 'drawing' : 'none')
+  const [picked, setPicked] = useState(0)
+  const pickedRef = useRef(0)
+  // The plan and its signature as they are now: a new pick re-signs it, and the screens still to draw use the latest.
+  const jobRef = useRef<Job | null>(null)
+  const tokenRef = useRef('')
+  const repick = useRef<Promise<void>>(Promise.resolve())
   const started = useRef(false)
   // The props of the first render: the build runs once, from the answers it started with.
   const first = useRef({answers, options, onBuilt, onSketch, onGallery})
@@ -130,6 +148,15 @@ export function PrototypeBuild({
     const post = (path: string, body: unknown) =>
       fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
 
+    const logos: Promise<Mark[]> =
+      a.logo === 'yes'
+        ? Promise.resolve([])
+        : post('/api/prototype/logos', {answers: a})
+            .then((r) => (r.ok ? r.json() : null))
+            .then((b: {marks?: Mark[]} | null) => b?.marks ?? [])
+            .catch(() => [])
+    void logos.then((m) => setMarks(m.length ? m : 'none'))
+
     void (async () => {
       const photos = await findPhotos(a, o)
       gallery(photos.filter((p) => p.url !== o.photo).map((p) => ({url: p.url, credit: p.credit})))
@@ -137,9 +164,15 @@ export function PrototypeBuild({
       setStage('planning')
       setStageAt((at) => ({...at, planning: Date.now()}))
 
-      const planned = await post('/api/prototype/plan', {answers: a, photos}).catch(() => null)
+      // The logo comes first: the plan is drawn with the one picked, so every screen shows it.
+      const drawnMarks = await Promise.race([logos, new Promise<Mark[]>((r) => setTimeout(() => r([]), LOGOS_WAIT))])
+      const logo = drawnMarks[pickedRef.current]?.d
+
+      const planned = await post('/api/prototype/plan', {answers: a, photos, ...(logo ? {logo} : {})}).catch(() => null)
       if (!planned?.ok) return sketch((await planned?.json().catch(() => null))?.error)
       const {job: j, token} = (await planned.json()) as {job: Job; token: string}
+      jobRef.current = j
+      tokenRef.current = token
       setJob(j)
       setStates(Object.fromEntries(j.plan.units.map((u) => [u.id, 'waiting' as State])))
       setStage('drawing')
@@ -154,7 +187,7 @@ export function PrototypeBuild({
           setStates((s) => ({...s, [id]: 'drawing'}))
           setPartFrom((s) => ({...s, [id]: from}))
           for (let attempt = 0; attempt < 2 && !done[id]; attempt++) {
-            const res = await post('/api/prototype/screen', {job: j, token, unit: id}).catch(() => null)
+            const res = await post('/api/prototype/screen', {job: jobRef.current, token: tokenRef.current, unit: id}).catch(() => null)
             const unit = res?.ok ? ((await res.json().catch(() => null)) as {unit?: Drawn} | null)?.unit : undefined
             if (unit?.html) done[id] = unit
             if (res?.status === 429 || res?.status === 403) break
@@ -169,9 +202,33 @@ export function PrototypeBuild({
       const units = j.plan.units.map((u) => done[u.id]).filter((u): u is Drawn => Boolean(u))
       const phones = j.plan.units.filter((u) => u.frame === 'phone')
       if (phones.filter((u) => done[u.id]).length < Math.ceil(phones.length / 2)) return sketch('Claude couldn’t finish it this time.')
-      built({id: j.id, look: j.look, plan: j.plan, units})
+      await repick.current
+      built({id: j.id, look: (jobRef.current ?? j).look, plan: j.plan, units})
     })()
   }, [])
+
+  /** Another of the logo round's marks: shown at once, then set on the plan and saved once there is one. */
+  const pick = (i: number) => {
+    if (marks === 'drawing' || marks === 'none' || !marks[i]) return
+    setPicked(i)
+    pickedRef.current = i
+    const d = marks[i].d
+    if (!jobRef.current) return
+    setJob(withLogo(jobRef.current, d))
+    repick.current = repick.current.then(async () => {
+      const res = await fetch('/api/prototype/logo', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({job: jobRef.current, token: tokenRef.current, d}),
+      }).catch(() => null)
+      const next = res?.ok ? ((await res.json().catch(() => null)) as {job: Job; token: string} | null) : null
+      if (!next) return
+      jobRef.current = next.job
+      tokenRef.current = next.token
+      if (pickedRef.current === i) setJob(next.job)
+    })
+  }
+  const pickedIcon = marks !== 'drawing' && marks !== 'none' && marks[picked] ? iconOf(marks[picked].d) : undefined
 
   const units = job?.plan.units ?? []
   const count = units.filter((u) => states[u.id] === 'done').length
@@ -190,6 +247,16 @@ export function PrototypeBuild({
   const tookFor = (from: Stage, to: Stage) => clock(stageAt[to] - stageAt[from])
 
   const steps: [string, string, boolean, boolean][] = [
+    ...(wantsLogo
+      ? [
+          [
+            'Drawing logo ideas',
+            marks === 'drawing' ? 'Claude draws four marks for your app, judged at the size of a home-screen icon' : marks === 'none' ? 'No logo ideas this time: your app keeps the icon its plan chooses' : `${marks.length} ideas: tap one to use it, on every screen`,
+            marks !== 'drawing',
+            marks === 'drawing',
+          ] as [string, string, boolean, boolean],
+        ]
+      : []),
     [
       'Finding photos',
       stage === 'photos' ? 'Searching for free-to-use photos that fit what you told us' : `${photoCount ? `${photoCount} photos found` : 'No photos found, so Claude draws without them'}, in ${tookFor('photos', 'planning')}`,
@@ -218,7 +285,7 @@ export function PrototypeBuild({
     <div className="builder building" style={{'--x-accent': options.accent} as CSSProperties}>
       <header className="ready">
         <span className="ready__mark">
-          <AppIcon name={options.name} accent={options.accent} icon={job?.look.style?.icon} />
+          <AppIcon name={options.name} accent={options.accent} icon={pickedIcon ?? job?.look.style?.icon} />
         </span>
         <div>
           <span className="label">Claude is designing your app</span>
@@ -238,6 +305,32 @@ export function PrototypeBuild({
           <span style={{width: `${percent}%`}} />
         </div>
       </div>
+
+      {wantsLogo && marks !== 'none' && (
+        <section className="building__logos" aria-labelledby="logo-ideas">
+          <div className="building__logos-head">
+            <strong id="logo-ideas">Your logo</strong>
+            <span>{marks === 'drawing' ? 'Drawing a few ideas first…' : 'Pick the one you like: it’s used on every screen. You can change it while the rest is drawn.'}</span>
+          </div>
+          <ul className={marks === 'drawing' ? 'is-pending' : undefined}>
+            {marks === 'drawing'
+              ? Array.from({length: 4}, (_, i) => (
+                  <li key={i} aria-hidden>
+                    <span className="building__logo-blank" />
+                  </li>
+                ))
+              : marks.map((m, i) => (
+                  <li key={m.d}>
+                    <button type="button" aria-pressed={i === picked} className={i === picked ? 'is-on' : undefined} onClick={() => pick(i)}>
+                      <AppIcon name={options.name} accent={options.accent} icon={iconOf(m.d)} size={64} />
+                      <strong>{m.name || `Idea ${i + 1}`}</strong>
+                      {m.idea && <span>{m.idea}</span>}
+                    </button>
+                  </li>
+                ))}
+          </ul>
+        </section>
+      )}
 
       {onHeard && <HeardAsk value={heard} onChange={onHeard} />}
 

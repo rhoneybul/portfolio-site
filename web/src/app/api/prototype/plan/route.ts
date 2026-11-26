@@ -1,7 +1,8 @@
 import {NextResponse, after} from 'next/server'
 import {QUESTIONS, resolveOptions, type Answers} from '@/app-builder/options'
 import {claudeOn} from '@/app-builder/claude'
-import {cleanPhotos, planPrototype, signJob} from '@/app-builder/prototype'
+import {cleanPhotos, planPrototype, signJob, withMark} from '@/app-builder/prototype'
+import {cleanMarkPath} from '@/app-builder/prototype-doc'
 import {saveJob} from '@/app-builder/prototypes'
 import {addressOf, limiter} from '@/app-builder/rate-limit'
 
@@ -21,7 +22,7 @@ const allowed = limiter()
 
 export async function POST(request: Request) {
   if (!claudeOn()) return NextResponse.json({off: true}, {status: 503})
-  const body = (await request.json().catch(() => null)) as {answers?: Answers; photos?: unknown} | null
+  const body = (await request.json().catch(() => null)) as {answers?: Answers; photos?: unknown; logo?: unknown} | null
   const keys = [...QUESTIONS.map((q) => q.key), 'photoCredit', 'scheme']
   const answers = Object.fromEntries(keys.map((k) => [k, String(body?.answers?.[k] ?? '').trim().slice(0, 600)])) as Answers
   const {options, errors} = resolveOptions(answers)
@@ -32,7 +33,10 @@ export async function POST(request: Request) {
     return NextResponse.json({error: 'You’ve drawn a few today. Here’s the quick sketch instead.'}, {status: 429})
 
   try {
-    const job = await planPrototype(options, answers, cleanPhotos(body?.photos), Date.now() + (maxDuration - 20) * 1000)
+    const planned = await planPrototype(options, answers, cleanPhotos(body?.photos), Date.now() + (maxDuration - 20) * 1000)
+    // The logo they picked from the logo round, when they have none of their own: their icon on every screen.
+    const logo = cleanMarkPath(body?.logo)
+    const job = logo ? withMark(planned, logo) : planned
     after(() => saveJob(job))
     return NextResponse.json({job, token: signJob(job)})
   } catch (e) {

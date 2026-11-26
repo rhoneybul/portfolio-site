@@ -45,6 +45,8 @@ export interface Turn {
   why?: string
   /** Picks tailored to their app, under a typed answer. */
   suggestions?: string[]
+  /** Whether several of the picks can be chosen (joined with commas) or one answers it: Claude's call, else a list row's. */
+  multi?: boolean
   /** An answer their earlier ones already give, shown for them to confirm. */
   prefill?: string
   /** Rows their answers make irrelevant: set to their defaults and not asked. */
@@ -122,10 +124,11 @@ export function cleanTurn(raw: unknown, answers: Answers, done: readonly string[
   const ask = notAnotherApp(plain(r.ask, 160), answers) || q.ask
   const why = notAnotherApp(plain(r.why, 220), answers) || q.why
   const typed = !q.choices && !q.suggestions && key !== 'photo' && key !== 'accent'
-  // On a comma-separated answer each pick is one item, so several can be picked: "Erg scores, 2k times" is two.
   const picks = typed && Array.isArray(r.suggestions) ? r.suggestions.map((s) => plain(s, 60)).filter(Boolean) : []
-  const items = LISTS.has(key) ? picks.flatMap((s) => s.split(',').map((x) => x.trim()).filter(Boolean)) : picks
-  const suggestions = items.filter((s, i) => items.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i).slice(0, LISTS.has(key) ? 6 : 4)
+  const multi = typed && typeof r.multi === 'boolean' ? r.multi : LISTS.has(key)
+  // Several picks are kept as one comma-separated answer, so each is one item: "Erg scores, 2k times" is two.
+  const items = multi ? picks.flatMap((s) => s.split(',').map((x) => x.trim()).filter(Boolean)) : picks
+  const suggestions = items.filter((s, i) => items.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i).slice(0, multi ? 6 : 4)
   const prefill = cleanPrefill(q, r.prefill)
   const skip = Array.isArray(r.skip)
     ? r.skip.filter((k): k is string => typeof k === 'string' && k !== key && rows.includes(k) && !UNSKIPPABLE.has(k) && !questionOf(k).required)
@@ -135,7 +138,7 @@ export function cleanTurn(raw: unknown, answers: Answers, done: readonly string[
   return turnFor(key, left, {
     ask,
     ...(why ? {why} : {}),
-    ...(suggestions.length ? {suggestions} : {}),
+    ...(suggestions.length ? {suggestions, multi} : {}),
     ...(prefill ? {prefill} : {}),
     ...(skip.length ? {skip} : {}),
   })

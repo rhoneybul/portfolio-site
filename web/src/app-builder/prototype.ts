@@ -354,6 +354,12 @@ export function cleanUnit(answer: string, unit: Unit, plan: Plan) {
   return h
 }
 
+/** The plan with the logo the owner picked as its icon (logos.ts). */
+export function withMark(job: Job, d: string): Job {
+  const style = job.look.style ?? HOUSE
+  return {...job, look: {...job.look, style: {...style, icon: {shape: 'svg', letters: '', d}}}}
+}
+
 // ---------- Signing ----------
 
 const secret = () => process.env.PROTOTYPE_SECRET || process.env.ANTHROPIC_API_KEY || ''

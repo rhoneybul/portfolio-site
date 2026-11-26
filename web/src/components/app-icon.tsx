@@ -8,11 +8,18 @@ import {iconMarkCss, type Style} from '@/app-builder/prototype-doc'
  */
 export function AppIcon({name, accent, icon, size = 56}: {name: string; accent: string; icon?: Style['icon']; size?: number}) {
   const mark = icon ?? {shape: 'monogram' as const, letters: name.replace(/[^A-Za-z0-9]/g, '').charAt(0).toUpperCase() || 'A'}
-  const key = `app-icon--${mark.shape}-${mark.letters.replace(/[^A-Za-z0-9]/g, '')}`
+  const key = `app-icon--${mark.shape}-${mark.shape === 'svg' ? hashOf(mark.d ?? '') : mark.letters.replace(/[^A-Za-z0-9]/g, '')}`
   const box = {width: size, height: size, fontSize: size, borderRadius: Math.round(size * 0.24), background: accent, color: onAccent(accent)} as CSSProperties
   return (
     <span className={`app-icon ${key}`} style={box} aria-hidden>
       <style>{iconMarkCss(`.${key}::after`, mark)}</style>
     </span>
   )
+}
+
+/** A short, stable name for a logo's path, so each drawn mark has its own class. */
+function hashOf(text: string) {
+  let h = 5381
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0
+  return (h >>> 0).toString(36)
 }

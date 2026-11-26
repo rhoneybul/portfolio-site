@@ -65,7 +65,8 @@ export interface Style {
   type: (typeof TYPES)[number]
   /** Whether Home leads with a photo or with the list of what's next. */
   home: (typeof HOMES)[number]
-  icon: {shape: (typeof SHAPES)[number]; letters: string}
+  /** A shape drawn in CSS, or (shape 'svg') the logo Claude drew for it: one path, `d`, on a 100 square (logos.ts). */
+  icon: {shape: (typeof SHAPES)[number] | 'svg'; letters: string; d?: string}
   /** What it took from the apps the owner likes, one line each, for the owner and the screens' designers. */
   from: string[]
   /** The shades of the colour scheme they picked (schemes.ts): its canvas, cards, deep shade and tint. */
@@ -124,8 +125,26 @@ export const RING_PATH =
  * colour: no image, so no host's content policy can block it. The monogram is its letters, the
  * others a shape. Used by the prototype's kit and the chat's view (mcp-view.ts).
  */
+/**
+ * A logo's path as Claude drew it, kept only if it is path data and nothing else (commands,
+ * numbers, spaces and commas), so it can go into a stylesheet and a page safely. Else ''.
+ */
+export function cleanMarkPath(v: unknown) {
+  const d = typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : ''
+  return /^[Mm][MmLlHhVvCcSsQqTtAaZz0-9 .,eE-]{3,5999}$/.test(d) ? d : ''
+}
+
+/** The logo's path as an SVG in a data URL, for a CSS mask: filled in the current colour where it's drawn. */
+export const markUrl = (d: string) =>
+  `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill-rule='evenodd' d='${d}'/></svg>`).replace(/'/g, '%27')}`
+
 export function iconMarkCss(sel: string, icon: Style['icon']) {
   const base = `${sel}{content:'';display:block;background:currentColor}`
+  const d = icon.shape === 'svg' ? cleanMarkPath(icon.d) : ''
+  if (d) {
+    const mask = `url("${markUrl(d)}") center/contain no-repeat`
+    return `${base}${sel}{width:70%;height:70%;-webkit-mask:${mask};mask:${mask}}`
+  }
   switch (icon.shape) {
     case 'monogram':
       return `${sel}{content:'${icon.letters.replace(/[^A-Za-z0-9&]/g, '').slice(0, 2) || '?'}';display:block;font:600 .5em/1 var(--d,system-ui);letter-spacing:-.02em;background:none}`
