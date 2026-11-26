@@ -64,6 +64,14 @@ export const SIZE: Record<Frame, {w: number; h: number}> = {phone: {w: 390, h: 8
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Space+Grotesk:wght@500;600&display=swap'
 
+/** The app's mark, a ring (the one the website's deck shows as every app's icon: components/app-prototype.tsx's Mark), on a 640 square from 192. */
+export const RING_PATH =
+  'M 192 512 A 320 320 0 1 0 832 512 A 320 320 0 1 0 192 512 Z M 262 512 A 250 250 0 1 0 762 512 A 250 250 0 1 0 262 512 Z M 402 512 A 110 110 0 1 0 622 512 A 110 110 0 1 0 402 512 Z'
+
+
+/** The ring drawn in CSS alone, in the current colour (no image, so no host's content policy can block it): the dot, a gap, the ring. */
+const RING_CSS = 'radial-gradient(circle closest-side,currentColor 0 34%,transparent 35% 77.5%,currentColor 78.5% 99%,transparent 100%)'
+
 const escAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
 /** The kit: every class a screen may use. Claude is told these and only these (prototype.ts, KIT). */
@@ -125,6 +133,26 @@ li{list-style:none}
 .photo-card img{width:100%;height:180px;object-fit:cover;background:var(--track)}
 .photo-card .in{padding:14px 16px;display:grid;gap:4px}
 .credit{font-size:11px;line-height:1.3;color:var(--faint)}
+.app-icon{display:inline-grid;place-items:center;flex:none;width:44px;height:44px;border-radius:12px;background:var(--accent)}
+.app-icon{color:var(--on-accent)}
+.app-icon::after{content:'';width:64%;height:64%;background:${RING_CSS}}
+.app-icon.sm{width:32px;height:32px;border-radius:9px}
+.app-icon.lg{width:76px;height:76px;border-radius:18px}
+.hero-top{position:relative}
+.hero-top>.over{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:52px 20px 32px;color:#fff;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0))}
+.hero-top>.over .link{color:#fff}
+.screen.cover{padding:0;background:var(--ink);color:#fff;overflow:hidden}
+.screen.cover.is-on{display:flex;flex-direction:column;justify-content:flex-end;gap:16px;min-height:844px;padding:0 0 36px}
+.cover>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.screen.cover::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 42%,rgba(0,0,0,.82) 78%)}
+.cover>:not(img){position:relative;z-index:2}
+.cover>.over{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:52px 20px 0}
+.cover .lead,.cover .mid,.cover .small,.cover .s,.cover .credit{color:rgba(255,255,255,.8)}
+.cover .link{color:#fff}
+.cover .pill{background:#fff;color:var(--ink)}
+.cover .dots i{background:rgba(255,255,255,.35)}
+.cover .dots i.on{background:#fff}
+.cover .foot{position:static;padding:0 20px;background:none}
 .avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--track);flex:none}
 .avatar.lg{width:88px;height:88px}
 .initials{display:inline-grid;place-items:center;font:600 15px var(--d);color:var(--mid);background:var(--track)}
@@ -178,7 +206,7 @@ li{list-style:none}
 .dash{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
 .side{display:grid;align-content:start;gap:4px;padding:24px 14px;background:var(--g-side)}
 .brand{display:flex;align-items:center;gap:10px;padding:4px 10px 20px;font:600 17px var(--d);color:#fff}
-.brand i{width:22px;height:22px;border-radius:7px;background:var(--dash-accent)}
+.brand i{width:24px;height:24px;color:#fff;background:${RING_CSS}}
 .side a{display:flex;align-items:center;gap:10px;height:40px;padding:0 12px;border-radius:10px;font:500 14px var(--t);color:#C9CCD1}
 .side a.on{background:var(--g-card);color:#fff}
 .main{display:grid;align-content:start;gap:24px;padding:32px 40px}

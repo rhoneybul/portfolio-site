@@ -8,6 +8,7 @@ import {readPrototype} from '@/app-builder/prototypes'
 import {prototypeDocument} from '@/app-builder/prototype-doc'
 import {viewDomains, viewHtml} from '@/app-builder/mcp-view'
 import {limiter} from '@/app-builder/rate-limit'
+import {onAccent} from '@/app-builder/options'
 import {siteUrl} from '@/site-url'
 
 /**
@@ -106,6 +107,7 @@ const handler = createMcpHandler(
           status,
           name: options.name,
           accent: options.accent,
+          onAccent: onAccent(options.accent),
           url: shareUrl(share.id),
           parts: share.parts ?? 0,
           drawn: share.drawn?.length ?? 0,
