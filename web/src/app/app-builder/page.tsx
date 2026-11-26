@@ -34,7 +34,11 @@ export default async function AppBuilderPage() {
               tap through it. The same foundations as Etapa and Naz.
             </p>
           </div>
-          <AppBuilder whatsapp={settings?.whatsapp} className={`${display.variable} ${text.variable}`} />
+          <AppBuilder
+            whatsapp={settings?.whatsapp}
+            bookingUrl={settings?.bookingUrl}
+            className={`${display.variable} ${text.variable}`}
+          />
         </section>
         <ContactSection settings={settings} />
       </main>

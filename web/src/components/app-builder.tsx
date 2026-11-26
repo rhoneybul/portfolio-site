@@ -5,6 +5,7 @@ import {Arrow} from '@/components/arrow'
 import {Mark, goalsOf, type Pic} from '@/components/app-prototype'
 import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
+import {BookCall} from '@/components/book-call'
 import {PrototypeBuild, type Built} from '@/components/prototype-build'
 import {ACCENTS, SECTIONS, asked, emptyAnswers, resolveOptions, type Answers, type Shots} from '@/app-builder/options'
 
@@ -22,7 +23,11 @@ type Phase = 'asking' | 'building' | 'built'
 
 const KEPT = 'fohm-app-builder'
 
-export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; className?: string}) {
+export function AppBuilder({whatsapp, bookingUrl, className}: {
+  whatsapp?: string | null
+  bookingUrl?: string | null
+  className?: string
+}) {
   const [answers, setAnswers] = useState<Answers>(emptyAnswers)
   const [step, setStep] = useState(0)
   const [phase, setPhase] = useState<Phase>('asking')
@@ -188,21 +193,27 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
             Build {options.name} with me
           </h2>
           <p className="manifest__lead">
-            I’ll take {options.name} from this prototype to the web, the App Store and Google Play. Message me on WhatsApp, or
-            leave your details and I’ll be in touch. Your answers come with it.
+            Thanks for your interest in building {options.name}. I’ll take it from this prototype to the web, the App Store and
+            Google Play. Book a free call, message me on WhatsApp, or leave your details and I’ll be in touch. Your answers
+            come with it.
           </p>
-          {whatsapp && (
-            <a
-              className="btn btn-primary"
-              href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => tell('whatsapp')}
-            >
-              Message me on WhatsApp <Arrow />
-            </a>
+          {(bookingUrl || whatsapp) && (
+            <div className="interest__actions">
+              {bookingUrl && <BookCall url={bookingUrl} label="Book a free call" />}
+              {whatsapp && (
+                <a
+                  className={`btn ${bookingUrl ? 'btn-outline' : 'btn-primary'}`}
+                  href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => tell('whatsapp')}
+                >
+                  Message me on WhatsApp <Arrow />
+                </a>
+              )}
+            </div>
           )}
-          <Interest answers={answers} prototype={app?.id} />
+          <Interest answers={answers} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} />
         </section>
       </div>
     )
@@ -389,8 +400,16 @@ function Screenshots({shots}: {shots: Shots}) {
   )
 }
 
-/** "Build it with me": name, email and a note, sent with their answers to the Fohm Slack channel. */
-function Interest({answers, prototype}: {answers: Answers; prototype?: string}) {
+/**
+ * "Build it with me": name, email and a note, sent with their answers to the Fohm Slack channel; then a thank-you,
+ * with a call to book.
+ */
+function Interest({answers, prototype, name, bookingUrl}: {
+  answers: Answers
+  prototype?: string
+  name: string
+  bookingUrl?: string | null
+}) {
   const [contact, setContact] = useState({name: '', email: answers.email ?? '', note: '', website: ''})
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -418,9 +437,18 @@ function Interest({answers, prototype}: {answers: Answers; prototype?: string}) 
 
   if (state === 'sent')
     return (
-      <p className="builder__real builder__real--ready" role="status">
-        Thanks{contact.name.trim() ? `, ${contact.name.trim().split(' ')[0]}` : ''}. I’ve got your answers and I’ll be in touch.
-      </p>
+      <div className="builder__real builder__real--ready interest__thanks" role="status">
+        <p>
+          Thank you for your interest in {name}{contact.name.trim() ? `, ${contact.name.trim().split(' ')[0]}` : ''}. I’ve got
+          your answers and I’ll be in touch at {contact.email.trim()}.
+        </p>
+        {bookingUrl && (
+          <>
+            <p>Want to talk sooner? Pick a time that suits you.</p>
+            <BookCall url={bookingUrl} label="Book a free call" />
+          </>
+        )}
+      </div>
     )
 
   return (

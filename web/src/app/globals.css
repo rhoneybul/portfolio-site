@@ -1760,6 +1760,22 @@ a.proof:hover .proof__arrow {
   border-color: #b42318;
 }
 
+.interest__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 36px;
+}
+
+.interest__thanks {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.interest__thanks p {
+  margin: 0;
+}
+
 .interest__form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
