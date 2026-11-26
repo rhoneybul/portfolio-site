@@ -45,6 +45,8 @@ export interface Question {
   example?: string
   default?: string
   choices?: Choice[]
+  /** Picks under a typed answer: each adds or removes its label in the comma-separated answer. */
+  suggestions?: string[]
   /** Several choices at once, kept comma-separated. */
   multi?: boolean
   required?: boolean
@@ -99,7 +101,16 @@ export const QUESTIONS: Question[] = [
   {key: 'content', section: 'The method', ask: 'Links to the videos, posts and courses you already publish', why: 'The library points at them.', example: 'youtube.com/@yourschool, instagram.com/yourschool', when: notGame},
 
   // Look and feel
-  {key: 'inspiration', section: 'Look and feel', ask: 'Apps you like the look and feel of', why: 'Their screens are pulled from Mobbin and adopted within the house style.', example: 'Speak, Ahead, Strava', flag: 'inspiration'},
+  {
+    key: 'inspiration',
+    section: 'Look and feel',
+    ask: 'Apps you like the look and feel of',
+    why: 'Pick a few or type your own. Their screens are pulled from Mobbin and adopted within the house style.',
+    example: 'Runna, Strava, Headspace',
+    // Each is on Mobbin, and each looks different: dark and data-led, soft and rounded, playful, minimal.
+    suggestions: ['Runna', 'Strava', 'Gentler Streak', 'Headspace', 'Duolingo', 'Brainly', 'Headway'],
+    flag: 'inspiration',
+  },
   {key: 'accent', section: 'Look and feel', ask: 'Your colour', why: 'It marks what to press and what’s live now. Everything else is black, white and grey.', example: '#2F6B4F', default: '#2F6B4F', flag: 'accent'},
   {
     key: 'logo',
