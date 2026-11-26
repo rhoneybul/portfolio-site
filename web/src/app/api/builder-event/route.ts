@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   if (body?.contact?.website) return NextResponse.json({ok: true})
 
   // Beside the questions: the photo's credit, and how they heard about Fohm (asked while it builds).
-  const keys = [...QUESTIONS.map((q) => q.key), 'photoCredit', 'heard']
+  const keys = [...QUESTIONS.map((q) => q.key), 'photoCredit', 'heard', 'scheme']
   const answers = Object.fromEntries(keys.map((k) => [k, String(body?.answers?.[k] ?? '').trim().slice(0, 600)])) as Answers
   const contact = {
     name: String(body?.contact?.name ?? '').trim().slice(0, 100),

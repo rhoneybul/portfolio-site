@@ -175,7 +175,7 @@ export const QUESTIONS: Question[] = [
     suggestions: REFERENCES.map((r) => r.name),
     flag: 'inspiration',
   },
-  {key: 'accent', section: 'Look and feel', ask: 'Your colour', why: 'It marks what to press and what’s live now. The rest of the look (light or dark, the corners, the type, the icon) is designed from the apps you like.', example: '#2F6B4F', default: '#2F6B4F', flag: 'accent'},
+  {key: 'accent', section: 'Look and feel', ask: 'Your colours', why: 'Pick a scheme: a light or dark canvas and the colour that marks what to press. Or choose your own colour, and the canvas is designed from the apps you like.', example: '#2F6B4F', default: '#2F6B4F', flag: 'accent'},
   {
     key: 'logo',
     section: 'Look and feel',

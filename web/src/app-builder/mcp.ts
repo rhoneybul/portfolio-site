@@ -1,6 +1,7 @@
 import {z} from 'zod'
 import {QUESTIONS, TEMPLATES, asked, resolveOptions, type Answers, type Options} from './options'
 import {REFERENCES} from './references'
+import {SCHEMES} from './schemes'
 
 /**
  * The app builder as an MCP server (app/mcp/route.ts): the same questions, the same prototype and
@@ -21,7 +22,7 @@ export const INSTRUCTIONS = `Fohm App Builder designs a first look at a health, 
 Fohm is Rob Honeybul's app studio in London. Its apps include Etapa (an AI cycling coach in the App Store and Google Play) and Naz (training and breathwork for big-wave surfers). The prototype is built on the same foundations.
 
 How to use it:
-1. Call app_builder_questions, then ask the person its questions in your own words, one or two at a time. Fill in what they have already told you; never make up their business. When you ask which apps they like the look of, show its references: each app's name as a link to its Mobbin screen, and its look in a few words, so they can open them and pick, or name their own.
+1. Call app_builder_questions, then ask the person its questions in your own words, one or two at a time. Fill in what they have already told you; never make up their business. When you ask for their colour, offer its colour schemes by name, with how each feels, and put the one they pick in scheme and its accent in accent. When you ask which apps they like the look of, show its references: each app's name as a link to its Mobbin screen, and its look in a few words, so they can open them and pick, or name their own.
 2. Ask for their email last (they type it; never guess one), then call build_app_prototype with their answers. Claude designs every screen in about five minutes: show them the link straight away; the page fills in as it's drawn, and stays there to come back to.
 3. If they want it built, offer to pass it to Fohm with contact_fohm. Call it only once they have asked for that. Never invent or guess an email.
 
@@ -43,6 +44,7 @@ export function questionsForChat() {
         ...(q.example ? {example: q.example} : {}),
         ...(q.choices ? {choices: q.choices.map(({value, label, hint}) => ({value, label, ...(hint ? {hint} : {})}))} : {}),
         ...(q.suggestions ? {suggestions: q.suggestions} : {}),
+        ...(q.key === 'accent' ? {schemes: SCHEMES.map(({id, name, accent, canvas, feel}) => ({id, name, accent, canvas, feel}))} : {}),
         ...(q.key === 'inspiration' ? {references: REFERENCES.map(({name, look, mobbin}) => ({name, look, mobbin}))} : {}),
         ...(q.required ? {required: true} : {}),
       })),
@@ -78,6 +80,10 @@ export const buildInput = z.object({
     .regex(/^#[0-9a-fA-F]{6}$/)
     .optional()
     .describe('Their colour as a hex like #2F6B4F. Pick a calm, strong one if they have none.'),
+  scheme: z
+    .enum(SCHEMES.map((s) => s.id) as [string, ...string[]])
+    .optional()
+    .describe('The colour scheme they picked, by id (its accent goes in accent): a light or dark canvas with that accent.'),
   logo: z.enum(['yes', 'no']).optional().describe('Whether they have a logo already.'),
   audience: text(300).describe('How big their audience is today.'),
   ambition: text(600).describe('What success would look like in a year.'),
@@ -94,7 +100,7 @@ export type BuildInput = z.infer<typeof buildInput>
 
 /** The answers the builder keeps, from the chat's input: the same keys the website saves. */
 export function answersOf(input: BuildInput): Answers {
-  const keys = new Set([...QUESTIONS.map((q) => q.key), 'sector', 'location'])
+  const keys = new Set([...QUESTIONS.map((q) => q.key), 'sector', 'location', 'scheme'])
   const answers: Answers = {}
   for (const [k, v] of Object.entries(input)) if (keys.has(k) && typeof v === 'string' && v.trim()) answers[k] = v.trim()
   return answers

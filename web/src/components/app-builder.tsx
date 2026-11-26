@@ -9,8 +9,10 @@ import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
 import {PrototypeBuild, type Built} from '@/components/prototype-build'
-import {ACCENTS, QUESTIONS, emptyAnswers, resolveOptions, type Answers, type Question, type Shots} from '@/app-builder/options'
+import {QUESTIONS, emptyAnswers, resolveOptions, type Answers, type Question, type Shots} from '@/app-builder/options'
 import {REFERENCES} from '@/app-builder/references'
+import {schemeById, schemesFor} from '@/app-builder/schemes'
+import {onAccent} from '@/app-builder/options'
 import {RefSketch} from '@/components/ref-sketch'
 import {LAST, LISTS, PARTS, fallbackNext, needsClaude, totalQuestions, type Next, type Turn} from '@/app-builder/next-question'
 
@@ -319,7 +321,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
               <p>{t.ask}</p>
             </div>
             <div className="chat__msg chat__msg--you">
-              <Said q={questionOf(t.key)} value={answers[t.key] ?? ''} />
+              <Said q={questionOf(t.key)} value={answers[t.key] ?? ''} scheme={answers.scheme} />
               <button type="button" className="chat__change" onClick={() => setAt(i)} disabled={thinking} aria-label={`Change: ${t.ask}`}>
                 Change
               </button>
@@ -430,6 +432,40 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
             </div>
           )}
 
+          {q.key === 'accent' && (
+            <ul className="schemes" aria-label="Colour schemes">
+              {schemesFor(answers).map((s) => {
+                const on = answers.scheme === s.id
+                return (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      aria-pressed={on}
+                      className={`scheme${on ? ' is-on' : ''}`}
+                      onClick={() => {
+                        setAnswers({...answers, accent: s.accent, scheme: s.id})
+                        setError(null)
+                      }}
+                    >
+                      <span className={`scheme__phone scheme__phone--${s.canvas}`} aria-hidden>
+                        <i className="scheme__card" />
+                        <i className="scheme__bar" style={{background: `linear-gradient(90deg, ${s.accent} 62%, transparent 62%)`}} />
+                        <i className="scheme__line" />
+                        <i className="scheme__line scheme__line--short" />
+                        <i className="scheme__pill" style={{background: s.accent, color: onAccent(s.accent)}} />
+                      </span>
+                      <strong>{s.name}</strong>
+                      <span>
+                        {s.feel} · {s.canvas}
+                      </span>
+                      {s.fits && <em>Suits yours</em>}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+
           {typed && (
             <div className={`chat__composer${q.key === 'accent' ? ' chat__composer--colour' : ''}`}>
               {q.key === 'accent' && (
@@ -437,7 +473,11 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
                   type="color"
                   aria-label="Pick a colour"
                   value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : '#2F6B4F'}
-                  onChange={(e) => set(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    // Their own colour: Claude chooses the canvas again.
+                    setAnswers({...answers, accent: e.target.value.toUpperCase(), scheme: ''})
+                    setError(null)
+                  }}
                 />
               )}
               {q.long ? (
@@ -497,7 +537,13 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
               <button
                 type="button"
                 className="text-btn builder__shuffle"
-                onClick={() => set(ACCENTS.filter((c) => c !== value.toUpperCase())[Math.floor(Math.random() * (ACCENTS.length - 1))])}
+                onClick={() => {
+                  // One of the schemes that suit them (or any, if none does), never the one they're on.
+                  const all = schemesFor(answers)
+                  const pool = (all.some((s) => s.fits) ? all.filter((s) => s.fits) : all).filter((s) => s.id !== answers.scheme)
+                  const s = (pool.length ? pool : all)[Math.floor(Math.random() * (pool.length || all.length))]
+                  setAnswers({...answers, accent: s.accent, scheme: s.id})
+                }}
               >
                 Pick one for me
               </button>
@@ -521,13 +567,13 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
 }
 
 /** An answer as it reads in the conversation: a choice by its label, the photo as itself, the colour as a swatch. */
-function Said({q, value}: {q: Question; value: string}) {
+function Said({q, value, scheme}: {q: Question; value: string; scheme?: string}) {
   if (!value.trim()) return <p className="chat__skipped">Skipped</p>
   if (q.key === 'photo') return <img className="chat__photo" src={value} alt="The photo picked for the app" width={160} height={100} loading="lazy" />
   if (q.key === 'accent')
     return (
       <p className="chat__swatch">
-        <span style={{background: value}} aria-hidden /> {value.toUpperCase()}
+        <span style={{background: value}} aria-hidden /> {schemeById(scheme)?.name ?? value.toUpperCase()}
       </p>
     )
   const picked = q.choices?.filter((c) => value.split(',').map((x) => x.trim()).includes(c.value)).map((c) => c.label)

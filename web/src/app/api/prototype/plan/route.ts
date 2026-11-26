@@ -22,7 +22,7 @@ const allowed = limiter()
 export async function POST(request: Request) {
   if (!claudeOn()) return NextResponse.json({off: true}, {status: 503})
   const body = (await request.json().catch(() => null)) as {answers?: Answers; photos?: unknown} | null
-  const keys = [...QUESTIONS.map((q) => q.key), 'photoCredit']
+  const keys = [...QUESTIONS.map((q) => q.key), 'photoCredit', 'scheme']
   const answers = Object.fromEntries(keys.map((k) => [k, String(body?.answers?.[k] ?? '').trim().slice(0, 600)])) as Answers
   const {options, errors} = resolveOptions(answers)
   if (errors.name || errors.email) return NextResponse.json({error: errors.name || errors.email}, {status: 400})

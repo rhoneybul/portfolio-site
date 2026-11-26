@@ -9,6 +9,7 @@ import {TEMPLATES, type Answers, type Options} from './options'
 import {CANVASES, CORNERS, HOMES, HOUSE, SHAPES, TYPES, TYPE_FACES, type Drawn, type Job, type Photo, type Plan, type Style, type Unit} from './prototype-doc'
 import {DRAW_MODEL, PLAN_MODEL, askClaude} from './claude'
 import {referencesIn} from './references'
+import {schemeById} from './schemes'
 
 export type {Job}
 
@@ -42,6 +43,7 @@ export function factsOf(o: Options, raw: Answers) {
     ...referencesIn(o.inspiration).map((r) => line(`What ${r.name} looks like, from its screens on Mobbin`, r.takes)),
     line('The people who use it are called', `${o.memberWord}s; the person who runs it is the ${o.ownerWord}`),
     line('The accent colour', o.accent.toUpperCase()),
+    line('The colour scheme they chose', ((s) => s && `${s.name}: a ${s.canvas} canvas with the accent, ${s.feel.toLowerCase()} (the canvas is decided)`)(schemeById(raw.scheme))),
     line('The audience today', raw.audience),
     line('Success in a year', raw.ambition),
   ]
@@ -211,6 +213,9 @@ export async function planPrototype(o: Options, raw: Answers, photos: Photo[], d
     console.warn('[prototype] plan again:', e instanceof Error ? e.message : e)
     plan = parsePlan(await ask())
   }
+  // A scheme they picked decides the canvas, whatever the plan chose.
+  const scheme = schemeById(raw.scheme)
+  if (scheme && plan.style) plan.style = {...plan.style, canvas: scheme.canvas}
   return {id: randomBytes(16).toString('hex'), look: {name: o.name, accent: o.accent.toUpperCase(), style: plan.style}, facts, plan, photos}
 }
 
