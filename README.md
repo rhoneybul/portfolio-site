@@ -83,6 +83,8 @@ Visitors give their email before they see their app, and never see the brief. Ea
 
 **`new --from` reads the brief.** Each submission has its brief as JSON too (`.../brief.json`, fohm-scaffold's `lib/brief.mjs`, version 1: the answers as `new`'s options, the rest of the answers, the prototype's link and the markdown brief, never the visitor's email). Its link opens with a key like the brief's, so the brief's create step is one command: `npx github:rhoneybul/fohm-scaffold new --from "<that link>" --json`.
 
+**Notes and calls by email too.** A note left from Build it with me and a call booked go to Slack first, and are emailed through Resend where it's set up (`src/app-builder/email.ts`): `RESEND_API_KEY` (Doppler's shared key), `BUILDER_EMAIL_TO` and `BUILDER_EMAIL_FROM` (an address on a domain verified in Resend), in Doppler's `portfolio-site-web` project. A note's email replies straight to the visitor. Until all three are set, Slack alone hears.
+
 **Handing it to Claude.** The submission's page gives one prompt to paste into a Claude Code session opened in fohm-scaffold: it links the brief (keyed), which carries every answer, the prototype's link, what's still to ask the owner and the `new --from` command.
 
 A call booked from Build it with me opens Cal.com with their email and a note about their app filled in, and carries the builder session's random reference (`metadata[ref]`, made in the browser). The Slack message for the booking (from Cal.com's webhook, `/api/cal-webhook`, or the embed, `/api/booking`) follows it to their latest submission (`refs/<ref>.json` in the same Blob store) and links it, so the visitor never holds the submission's id.

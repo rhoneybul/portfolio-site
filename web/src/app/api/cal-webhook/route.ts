@@ -1,5 +1,6 @@
 import {NextResponse} from 'next/server'
 import {toSlack} from '@/app-builder/slack'
+import {toEmail} from '@/app-builder/email'
 import {builderLines, signedByCal, webhookLines, type CalWebhook} from '@/booking/booking'
 
 /**
@@ -23,6 +24,9 @@ export async function POST(request: Request) {
   }
   // Cal.com's "Ping test" and events Slack needn't hear about: acknowledged, nothing sent.
   const lines = webhookLines(body)
-  if (lines) await toSlack([...lines, ...(await builderLines(body.payload?.metadata?.ref))])
+  if (lines) {
+    const all = [...lines, ...(await builderLines(body.payload?.metadata?.ref))]
+    await Promise.all([toSlack(all), toEmail('App builder: a call booked', all)])
+  }
   return NextResponse.json({ok: true})
 }
