@@ -2,6 +2,7 @@
 
 import {useEffect, useMemo, useRef, useState} from 'react'
 import {SIZE, prototypeDocument, type Drawn, type Frame, type Look} from '@/app-builder/prototype-doc'
+import {setNote, useNotes} from '@/components/prototype-notes'
 
 /**
  * Claude's prototype of the visitor's app, in a sandboxed frame (scripts only, no same origin:
@@ -23,7 +24,8 @@ function useWidth() {
   return [ref, width] as const
 }
 
-export function PrototypeFrame({look, units, view, title}: {look: Look; units: Drawn[]; view: Frame; title: string}) {
+/** With `notes`, a box beside the screens takes the visitor's note on the screen showing (prototype-notes.ts). */
+export function PrototypeFrame({look, units, view, title, notes = false}: {look: Look; units: Drawn[]; view: Frame; title: string; notes?: boolean}) {
   const doc = useMemo(() => prototypeDocument({look, units, view}), [look, units, view])
   const frame = useRef<HTMLIFrameElement>(null)
   const [box, width] = useWidth()
@@ -45,6 +47,8 @@ export function PrototypeFrame({look, units, view, title}: {look: Look; units: D
   }, [])
 
   const go = (id: string) => frame.current?.contentWindow?.postMessage({fohm: 'go', id}, '*')
+  const noted = useNotes()
+  const here = screens.find((s) => s.id === at)
 
   return (
     <div className={`gen gen--${view}`}>
@@ -64,16 +68,41 @@ export function PrototypeFrame({look, units, view, title}: {look: Look; units: D
         </div>
       </div>
       {screens.length > 1 && (
-        <nav className="gen__screens" aria-label={`${title}: screens`}>
-          {screens.map((s) => (
-            <button key={s.id} type="button" className={s.id === at ? 'is-active' : undefined} aria-current={s.id === at ? 'true' : undefined} onClick={() => go(s.id)}>
-              {s.title}
+        <div className="gen__side">
+          <nav className="gen__screens" aria-label={`${title}: screens`}>
+            {screens.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className={[s.id === at && 'is-active', notes && noted[s.id] && 'has-note'].filter(Boolean).join(' ') || undefined}
+                aria-current={s.id === at ? 'true' : undefined}
+                onClick={() => go(s.id)}
+              >
+                {s.title}
+              </button>
+            ))}
+            <button type="button" className="gen__again" onClick={() => setRound(round + 1)}>
+              Start again
             </button>
-          ))}
-          <button type="button" className="gen__again" onClick={() => setRound(round + 1)}>
-            Start again
-          </button>
-        </nav>
+          </nav>
+          {notes && here && (
+            <label className="gen__note">
+              <span>Your note on “{here.title}”</span>
+              <textarea
+                rows={3}
+                maxLength={600}
+                placeholder="What you like, what you’d change: it goes to Rob with your app."
+                value={noted[here.id]?.text ?? ''}
+                onChange={(e) => setNote(here.id, here.title, e.target.value)}
+              />
+              {Object.keys(noted).length > 0 && (
+                <em>
+                  {Object.keys(noted).length} {Object.keys(noted).length === 1 ? 'note' : 'notes'} so far, sent with your app
+                </em>
+              )}
+            </label>
+          )}
+        </div>
       )}
     </div>
   )

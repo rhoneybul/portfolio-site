@@ -47,6 +47,7 @@ export default async function SubmissionPage({params}: {params: Promise<{id: str
               <p>
                 <strong>{s.contact.name || 'No name given'}</strong> · <a href={`mailto:${s.contact.email}`}>{s.contact.email}</a>
                 {s.contact.note && <span className="submission__note">“{s.contact.note}”</span>}
+                {s.contact.notes && <span className="submission__note submission__notes">{s.contact.notes}</span>}
               </p>
             ) : null}
             {s.answers.email && (

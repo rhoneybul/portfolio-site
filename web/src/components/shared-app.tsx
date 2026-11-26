@@ -5,6 +5,7 @@ import {useRouter} from 'next/navigation'
 import {Arrow} from '@/components/arrow'
 import {AppIcon} from '@/components/app-icon'
 import {AppReveal, BuildBar} from '@/components/app-reveal'
+import {BuildDialog} from '@/components/build-dialog'
 import {AppPrototype} from '@/components/app-prototype'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
@@ -122,6 +123,7 @@ export function SharedApp({
       <AppReveal options={options} app={built} sketch={<AppPrototype o={options} gallery={photos} />} />
       <Showcase o={options} gallery={photos} built={built} />
       {interest}
+      <BuildDialog answers={answers} prototype={built?.id} name={options.name} bookingUrl={bookingUrl} builderRef={id} from="app-builder-mcp" />
       <BuildBar name={options.name}>{bookingUrl && <BookCall url={bookingUrl} label="Book a free call" from="app-builder-mcp" builderRef={id} prefill={{notes: callNote(options.name)}} variant="outline" />}</BuildBar>
     </div>
   )

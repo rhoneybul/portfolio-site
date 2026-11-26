@@ -4217,19 +4217,76 @@ a.proof:hover .proof__arrow {
 
 /* With room beside it, the screens to go to sit next to the phone, not under it, so both are on screen at once. */
 @media (min-width: 1000px) {
-  .gen--phone:has(.gen__screens) {
-    grid-template-columns: var(--phone-w) minmax(0, 240px);
+  .gen--phone:has(.gen__side) {
+    grid-template-columns: var(--phone-w) minmax(0, 260px);
     align-items: start;
     width: auto;
     max-width: 100%;
   }
 
-  .gen--phone:has(.gen__screens) .gen__screens {
-    justify-content: flex-start;
-    align-content: start;
+  .gen--phone:has(.gen__side) .gen__side {
     max-height: calc(var(--phone-w) * 844 / 390);
     overflow-y: auto;
+    overscroll-behavior: contain;
   }
+
+  .gen--phone:has(.gen__side) .gen__screens {
+    justify-content: flex-start;
+    align-content: start;
+  }
+}
+
+.gen__side {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  width: 100%;
+}
+
+/* A screen with a note on it carries a dot of the app's colour. */
+.gen__screens button.has-note::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--x-accent, var(--accent));
+  vertical-align: middle;
+}
+
+.gen__note {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.gen__note textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  resize: vertical;
+}
+
+.gen__note em {
+  font-style: normal;
+  font-size: 12px;
+}
+
+.reveal .gen__note {
+  color: #c9c9d1;
+}
+
+.reveal .gen__note textarea {
+  border-color: #34343b;
+  background: #17171a;
+  color: #f4f4f6;
 }
 
 .gen__screens .gen__again {
@@ -4424,7 +4481,7 @@ details.calls[open] > summary::after {
 
 /* Inside the stage, the phone fits the stage's height: the window's, less its padding. */
 .reveal .gen--phone {
-  --phone-w: min(375px, calc((100svh - 150px) * 390 / 844 + 20px));
+  --phone-w: min(375px, calc((100svh - 210px) * 390 / 844 + 20px));
 }
 
 .reveal .gen--phone .gen__device {
@@ -4519,10 +4576,113 @@ details.calls[open] > summary::after {
   transition: opacity 0.2s, transform 0.2s;
 }
 
-.build-bar.is-away {
-  opacity: 0;
-  transform: translateY(12px);
-  pointer-events: none;
+/* Room at the foot of the finished page, so the bar never covers its last lines. */
+.builder--built {
+  padding-bottom: 96px;
+}
+
+/* "Build it with me" (components/build-dialog.tsx). */
+.build-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100svh - 32px);
+  padding: 0;
+  border: 1px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 6px 6px 0 var(--accent);
+}
+
+.build-dialog::backdrop {
+  background: rgba(13, 13, 15, 0.55);
+}
+
+.build-dialog[open] {
+  animation: reveal-up 0.35s var(--ease) both;
+}
+
+.build-dialog__body {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  padding: clamp(22px, 4vw, 36px);
+}
+
+.build-dialog h2 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.build-dialog__lead {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.build-dialog__tick {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 26px;
+  animation: reveal-icon 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.build-dialog__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.build-dialog__call {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 16px;
+  background: var(--bg);
+}
+
+.build-dialog__call p,
+.build-dialog__more {
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.build-dialog__form {
+  display: grid;
+  gap: 12px;
+}
+
+.build-dialog__form label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.build-dialog__form input,
+.build-dialog__form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
 }
 
 .build-bar p {
@@ -4916,4 +5076,140 @@ details.calls[open] > summary::after {
   height: 14px;
   margin-top: 6px;
   background: var(--line);
+}
+
+/* The deck's service panels: the service's logo, and that it's running (components/showcase.tsx, brand-logos.tsx). */
+.panel__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.brand-logo {
+  display: block;
+  flex: none;
+}
+
+.live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 12px;
+  color: #15803d;
+}
+
+.live-dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  animation: live-pulse 1.8s infinite;
+}
+
+@keyframes live-pulse {
+  70% {
+    box-shadow: 0 0 0 7px rgba(34, 197, 94, 0);
+  }
+}
+
+.events {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.events li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--x-surface, #fff);
+  font-size: 13px;
+}
+
+.events li span {
+  color: var(--x-faint, #5f6672);
+}
+
+.events li.is-new {
+  animation: reveal-up 0.5s var(--ease) both;
+}
+
+.pay-way {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+}
+
+.pay-way__logos {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+
+.slack__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot::before,
+  .events li.is-new {
+    animation: none;
+  }
+}
+
+/* Where they heard about Fohm, while Claude works (components/heard-ask.tsx). */
+.heard {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.heard p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.heard--done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.heard__change {
+  min-height: 44px;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.heard__other {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.heard__other input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  font: inherit;
 }

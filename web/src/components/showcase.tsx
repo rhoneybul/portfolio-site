@@ -4,6 +4,8 @@ import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'r
 import {Arrow} from '@/components/arrow'
 import {AppPrototype, Mark, goalsOf, type Pic} from '@/components/app-prototype'
 import {AppIcon} from '@/components/app-icon'
+import {BrandLogo, type Brand} from '@/components/brand-logos'
+import {openBuild} from '@/components/build-dialog'
 import type {Style} from '@/app-builder/prototype-doc'
 import {PrototypeFrame} from '@/components/prototype-frame'
 import type {Built} from '@/components/prototype-build'
@@ -105,7 +107,7 @@ function Dashboard({o, pic}: {o: Options; pic: (n: number) => Pic | undefined}) 
   )
 }
 
-function Slack({o}: {o: Options}) {
+function Slack({o, icon}: {o: Options; icon?: Style['icon']}) {
   const msgs: [string, string, string][] = [
     ['New sign-up', `Priya Shah joined ${o.name} on iPhone`, 'just now'],
     ['Pro started', 'Tom Reilly started Pro, yearly', '4 min'],
@@ -114,12 +116,12 @@ function Slack({o}: {o: Options}) {
   ]
   return (
     <div className="slack">
-      <div className="slack__head"># {o.slug}-alerts</div>
+      <div className="slack__head">
+        <BrandLogo brand="slack" size={18} /> # {o.slug}-alerts
+      </div>
       {msgs.map(([t, b, w]) => (
         <div key={t} className="slack__msg">
-          <span className="slack__icon">
-            <Mark size={22} tone="white" />
-          </span>
+          <AppIcon name={o.name} accent={o.accent} icon={icon} size={36} />
           <div>
             <p>
               <strong>{o.name}</strong> <em>{w}</em>
@@ -134,10 +136,33 @@ function Slack({o}: {o: Options}) {
   )
 }
 
+/** The events PostHog takes in, as they would arrive: the names, never made-up counts. */
+const LIVE_EVENTS = ['landing_viewed', 'signup_completed', 'onboarding_step_answered', 'onboarding_finished', 'session_started', 'session_finished', 'pro_viewed', 'pro_started']
+
 function Funnel({o}: {o: Options}) {
   const steps = ['Saw the landing page', 'Signed up', 'Finished onboarding', o.kind === 'game' ? 'Played a round' : 'Did a first session', 'Started Pro']
+  const [tick, setTick] = useState(0)
+  useEffect(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const t = setInterval(() => setTick((n) => n + 1), 2200)
+    return () => clearInterval(t)
+  }, [])
+  const feed = [0, 1, 2].map((i) => LIVE_EVENTS[(tick + LIVE_EVENTS.length - i) % LIVE_EVENTS.length])
   return (
     <div className="panel">
+      <div className="panel__brand">
+        <BrandLogo brand="posthog" size={22} />
+        <strong>PostHog</strong>
+        <span className="live-dot">Live</span>
+      </div>
+      <ul className="events" aria-label="Events as they arrive">
+        {feed.map((e, i) => (
+          <li key={`${tick}-${i}`} className={i === 0 ? 'is-new' : undefined}>
+            <code>{e}</code>
+            <span>{['just now', 'a moment ago', 'a minute ago'][i]}</span>
+          </li>
+        ))}
+      </ul>
       <p className="panel__title">The funnel it tracks, from the first screen to Pro</p>
       <ol className="steps">
         {steps.map((l) => (
@@ -166,7 +191,12 @@ function Monitoring({o}: {o: Options}) {
   ]
   return (
     <div className="panel">
-      <p className="panel__title">Errors reported to Sentry</p>
+      <div className="panel__brand">
+        <BrandLogo brand="sentry" size={22} />
+        <strong>Sentry</strong>
+        <span className="live-dot">Watching</span>
+      </div>
+      <p className="panel__title">Every error someone hits, with what they were doing</p>
       <div className="issues">
         {['The web app', 'The iPhone and Android apps', 'The server'].map((w) => (
           <div key={w} className="issues__row">
@@ -193,18 +223,33 @@ function Monitoring({o}: {o: Options}) {
   )
 }
 
-function Payments({o}: {o: Options}) {
+function Payments({o, icon}: {o: Options; icon?: Style['icon']}) {
+  const ways: [Brand[], string][] = [
+    [['appstore', 'googleplay', 'revenuecat'], 'In the apps: the App Store and Google Play, kept in step by RevenueCat, as in Naz and Etapa'],
+    [['stripe'], 'On the web: Stripe, if you sell there too'],
+  ]
   return (
     <div className="panel">
       <div className="plan-card">
         <span className="plan-card__name">
-          <Mark size={22} /> {o.name} Pro
+          <AppIcon name={o.name} accent={o.accent} icon={icon} size={28} /> {o.name} Pro
         </span>
         <span>Your price, monthly or yearly, with a free trial if you want one</span>
         <span className="plan-card__pill">Start Pro</span>
       </div>
+      <p className="panel__title">However your members pay</p>
       <div className="issues">
-        {['Bought on the web, through Stripe', 'Opens in the iPhone and Android apps', 'Given or taken away from your dashboard'].map((w) => (
+        {ways.map(([brands, w]) => (
+          <div key={w} className="issues__row pay-way">
+            <span className="pay-way__logos">
+              {brands.map((b) => (
+                <BrandLogo key={b} brand={b} size={20} />
+              ))}
+            </span>
+            <span>{w}</span>
+          </div>
+        ))}
+        {['Pro opens wherever they sign in', 'Given or taken away from your dashboard'].map((w) => (
           <div key={w} className="issues__row">
             <span>{w}</span>
           </div>
@@ -407,7 +452,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
           }
           items={[...pick('The app', 3), ...pick('Onboarding', 2)]}
         >
-          {built ? <PrototypeFrame look={built.look} units={built.units} view="phone" title={`${o.name} on a phone`} /> : <AppPrototype o={o} gallery={gallery} />}
+          {built ? <PrototypeFrame look={built.look} units={built.units} view="phone" title={`${o.name} on a phone`} notes /> : <AppPrototype o={o} gallery={gallery} />}
         </Slide>
       ),
     },
@@ -429,14 +474,19 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
       name: 'Alerts',
       node: (
         <Slide kicker="04 · Alerts" title="Know the moment it happens" line="Sign-ups, payments and anything that needs you, straight into Slack, email and push." items={pick('Email, notifications and sharing')}>
-          <Slack o={o} />
+          <Slack o={o} icon={built?.look.style?.icon} />
         </Slide>
       ),
     },
     {
       name: 'Metrics',
       node: (
-        <Slide kicker="05 · Metrics" title="See what works" line="PostHog from the web and the apps, with the funnels and dashboards made for you." items={pick('Analytics and consent')}>
+        <Slide
+          kicker="05 · Metrics"
+          title="See what helps people succeed"
+          line="PostHog shows the journey people really take: where they get stuck, what they skip and what brings them back, so every change makes the app easier to use."
+          items={pick('Analytics and consent')}
+        >
           <Funnel o={o} />
         </Slide>
       ),
@@ -444,7 +494,12 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
     {
       name: 'Monitoring',
       node: (
-        <Slide kicker="06 · Monitoring" title="Know when something breaks, first" line="Sentry on the web, the apps and the server, a health check, and tests on every deploy." items={pick('Monitoring and errors')}>
+        <Slide
+          kicker="06 · Monitoring"
+          title="Find what gets in people’s way, and fix it first"
+          line="Monitoring is how you know people are succeeding: every error someone hits, on the web, the apps or the server, reaches Sentry with what they were doing, so it’s fixed before most people notice."
+          items={pick('Monitoring and errors')}
+        >
           <Monitoring o={o} />
         </Slide>
       ),
@@ -452,8 +507,8 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
     {
       name: 'Payments',
       node: (
-        <Slide kicker="07 · Payments" title="Paid for from day one" line="A Pro plan through Stripe on the web, opening in the apps too." items={pick('Payments')}>
-          <Payments o={o} />
+        <Slide kicker="07 · Payments" title="Paid for from day one" line="Pro the way your members pay: in the apps through the App Store and Google Play, or on the web through Stripe." items={pick('Payments')}>
+          <Payments o={o} icon={built?.look.style?.icon} />
         </Slide>
       ),
     },
@@ -547,7 +602,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
         <span className="deck__count">
           {String(at + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
         </span>
-        <button type="button" className="btn btn-primary" onClick={() => (at === slides.length - 1 ? document.getElementById('interest')?.scrollIntoView({behavior: 'smooth'}) : go(at + 1))}>
+        <button type="button" className="btn btn-primary" onClick={() => (at === slides.length - 1 ? openBuild() : go(at + 1))}>
           {at === slides.length - 1 ? 'Build it with me' : 'Next'} <Arrow />
         </button>
       </div>
