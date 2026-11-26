@@ -431,7 +431,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
         <Slide
           kicker="01 · Your landing page"
           title={`Where people first meet ${o.name}`}
-          line="The page that sells the app, at your own domain: your photo, your headline, how it works, and Get started."
+          line="The first thing people see decides whether they try it: your photo, your promise and how it works, so the right people start, at your own domain."
           items={pick('The app', 2)}
         >
           {landing.length && built!.plan.units[0]?.frame === 'web' ? (
@@ -454,7 +454,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
           title={`${o.name}, on every phone`}
           line={
             built
-              ? 'Claude designed every screen from your answers, in the house style Etapa and Naz share. Tap through it, from the landing page on.'
+              ? 'Every screen built around what your members came for, from signing up to reaching their goal. Tap through it as they would, and leave a note on anything you’d change.'
               : 'The landing page, onboarding and the screens people use, in your name and colour. Tap through it.'
           }
           items={[...pick('The app', 3), ...pick('Onboarding', 2)]}
@@ -466,7 +466,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
     {
       name: 'Dashboard',
       node: (
-        <Slide kicker="03 · Your dashboard" title="Everything people do, in one place" line="Who joined, who’s stuck, who needs a reply, and what they’re working on." items={pick('The dashboard')}>
+        <Slide kicker="03 · Your dashboard" title="See who needs you, before they drift away" line="Everything people do, in one place: who joined, who’s stuck and who’s waiting on a reply, so nobody falls through the cracks." items={pick('The dashboard')}>
           {built?.plan.units.some((u) => u.frame === 'laptop') ? (
             <Laptop o={o}>
               <PrototypeFrame look={built.look} units={built.units} view="laptop" title={`${o.name}: your dashboard`} />
@@ -480,7 +480,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
     {
       name: 'Alerts',
       node: (
-        <Slide kicker="04 · Alerts" title="Know the moment it happens" line="Sign-ups, payments and anything that needs you, straight into Slack, email and push." items={pick('Email, notifications and sharing')}>
+        <Slide kicker="04 · Alerts" title="Reply while it still matters" line="Sign-ups, payments and anything that needs you reach Slack, email and push the moment they happen, so people hear back while they’re still keen." items={pick('Email, notifications and sharing')}>
           <Slack o={o} icon={built?.look.style?.icon} />
         </Slide>
       ),
@@ -514,7 +514,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
     {
       name: 'Payments',
       node: (
-        <Slide kicker="07 · Payments" title="Paid for from day one" line="Pro the way your members pay: in the apps through the App Store and Google Play, or on the web through Stripe." items={pick('Payments')}>
+        <Slide kicker="07 · Payments" title="Paying is easy, so more people stay" line="Pro the way your members already pay: in the apps through the App Store and Google Play, or on the web through Stripe, a tap or two from deciding to start." items={pick('Payments')}>
           <Payments o={o} icon={built?.look.style?.icon} />
         </Slide>
       ),
@@ -522,7 +522,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
     {
       name: 'Security',
       node: (
-        <Slide kicker="08 · Security and privacy" title="Safe by default" line="The rules live on the server, not in the app, and the legal pages come with it." items={[...pick('Backend and data', 2), ...pick('Legal', 2)]}>
+        <Slide kicker="08 · Security and privacy" title="People trust it with what matters to them" line="Each person sees only their own, the rules live on the server, consent comes first and the legal pages come with it, so people feel safe telling it the truth." items={[...pick('Backend and data', 2), ...pick('Legal', 2)]}>
           <Security />
         </Slide>
       ),
@@ -532,8 +532,8 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
       node: (
         <Slide
           kicker="09 · How it runs"
-          title="The services behind it, each with one job"
-          line="Each is set up in your business’s name, and each stays off until its key is set."
+          title="Fast and dependable, so it never gets in the way"
+          line="Proven services behind it, each with one job and set up in your business’s name: changes go live in minutes and the app stays quick and up, so people keep coming back."
           items={[
             'Vercel puts every merged change live, on its own',
             'Supabase keeps the data, and the rules on who sees what',
@@ -548,7 +548,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
     {
       name: 'The stores',
       node: (
-        <Slide kicker="10 · Launch" title="On the web, the App Store and Google Play" line="One codebase, three places, and every step to get there." items={[...pick('Tests, deploys and the stores', 3), ...pick('Launch and handover', 2)]}>
+        <Slide kicker="10 · Launch" title="Wherever your people already are" line="On the web, the App Store and Google Play from one codebase, so everyone gets the same experience, and every step to get there is taken care of." items={[...pick('Tests, deploys and the stores', 3), ...pick('Launch and handover', 2)]}>
           <Stores o={o} pic={pic} icon={built?.look.style?.icon} />
         </Slide>
       ),
