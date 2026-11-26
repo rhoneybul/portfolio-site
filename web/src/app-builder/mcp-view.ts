@@ -19,8 +19,8 @@ export function viewHtml(site: string) {
 @media (prefers-color-scheme:dark){:root{--ink:#f2f2f4;--muted:#a6a6b0;--line:#33333a;--card:#1c1c20;--canvas:#141417}}
 *{box-sizing:border-box}html,body{margin:0;background:transparent;color:var(--ink);font-size:14px;line-height:1.45}
 .wrap{max-width:720px;margin:0 auto;padding:16px;display:grid;gap:16px}
-.head{display:flex;align-items:center;gap:12px}.dot{width:14px;height:14px;border-radius:50%;background:var(--accent);flex:none}
-.head h1{font-size:18px;margin:0}.head p{margin:2px 0 0;color:var(--muted)}
+.head{display:flex;align-items:flex-start;gap:12px}.dot{width:14px;height:14px;border-radius:50%;background:var(--accent);flex:none;margin-top:5px}
+.head h1{font-size:18px;margin:0}.head p{margin:2px 0 0;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
 .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:10px 0 4px}.bar span{display:block;height:100%;background:var(--accent);transition:width .6s}
 .steps{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px;color:var(--muted)}.steps .on{color:var(--ink);font-weight:600}.steps .done::before{content:"\\2713  "}
