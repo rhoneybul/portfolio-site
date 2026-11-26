@@ -25,7 +25,8 @@ const NAMELESS = /^(unknown|anonymous|unknown author)?$/i
 
 const plain = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
 
-const COMMONS = /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/(?:thumb\/)?([0-9a-f]\/[0-9a-f]{2}\/[^/]+)/
+// The file's path, without the ?utm_source=… Commons now adds to every imageinfo url.
+const COMMONS = /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/(?:thumb\/)?([0-9a-f]\/[0-9a-f]{2}\/[^/?#]+)/
 
 /**
  * A Commons file at a standard width. Commons refuses hotlinks at any other width (a 429 or a 400:
@@ -33,7 +34,8 @@ const COMMONS = /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/(?:thumb
  */
 export function atWidth(url: string, width: 330 | 500 | 960 | 1280, original: number) {
   const m = url.match(COMMONS)
-  if (!m || original <= width) return url
+  if (!m) return url
+  if (original <= width) return `https://upload.wikimedia.org/wikipedia/commons/${m[1]}`
   return `https://upload.wikimedia.org/wikipedia/commons/thumb/${m[1]}/${width}px-${m[1].split('/').pop()}`
 }
 
