@@ -10,7 +10,6 @@ import {QUESTIONS, SECTIONS, asked, resolveOptions} from '@/app-builder/options'
 import {briefOf, prototypeUrlOf, readSubmission} from '@/app-builder/submissions'
 import {siteUrl} from '@/site-url'
 import {keyedUrl} from '@/app-builder/owner'
-import {startOn, startedFor} from '@/app-builder/claude-session'
 import {fromCommand} from '@/app-builder/prompt'
 
 // A submission is the owner's: behind their password (src/proxy.ts), never indexed, never cached.
@@ -21,14 +20,10 @@ const display = Space_Grotesk({subsets: ['latin'], weight: ['500', '600'], varia
 const text = DM_Sans({subsets: ['latin'], weight: ['400', '500', '600'], variable: '--x-text'})
 const when = new Intl.DateTimeFormat('en-GB', {dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/London'})
 
-export default async function SubmissionPage({params, searchParams}: {
-  params: Promise<{id: string}>
-  searchParams: Promise<{start?: string}>
-}) {
-  const [{id}, {start}] = await Promise.all([params, searchParams])
+export default async function SubmissionPage({params}: {params: Promise<{id: string}>}) {
+  const {id} = await params
   const [s, settings] = await Promise.all([readSubmission(id), getSettings()])
   if (!s) notFound()
-  const started = await startedFor(s)
   const {options} = resolveOptions(s.answers)
   const brief = await briefOf(s)
   const prototype = prototypeUrlOf(s)
@@ -63,37 +58,15 @@ export default async function SubmissionPage({params, searchParams}: {
 
           <div className="submission__block">
             <h2 className="manifest__title">Build it with Claude</h2>
-            {startOn() ? (
-              <form className="submission__start" method="post" action={`/app-builder/submissions/${id}/start`}>
-                <p>
-                  Starts a Claude Code session on fohm-scaffold with this brief, their answers and the prototype. It asks the owner only what the
-                  builder left open, then researches, prototypes in Claude Design and, once the owner approves, makes the app with{' '}
-                  <code>new --from</code>.
-                </p>
-                {started && (
-                  <p>
-                    Started {when.format(new Date(started.at))}: <a href={started.url}>open the session</a>.
-                  </p>
-                )}
-                {start === 'failed' && <p className="submission__error">It didn&apos;t start. Slack has the reason.</p>}
-                <button type="submit" className="btn btn-primary">
-                  {started ? 'Start another session' : 'Start in Claude'}
-                </button>
-              </form>
-            ) : (
-              <p className="submission__note">
-                Start in Claude is off: set <code>CLAUDE_BUILD_FIRE_URL</code> and <code>CLAUDE_BUILD_TOKEN</code> (README, Start in Claude). Until then, by hand:
-              </p>
-            )}
             <ol className="submission__steps">
               <li>
                 Clone the scaffold and open Claude Code in it, so its skills load:
                 <code>git clone https://github.com/rhoneybul/fohm-scaffold && cd fohm-scaffold && claude</code>
               </li>
               <li>
-                Give it this:
+                Give it this. The brief it links has every answer, the prototype and what&apos;s left to ask the owner:
                 <code>{ask}</code>
-                <CopyButton text={ask} label="Copy the instruction" />
+                <CopyButton text={ask} label="Copy the prompt" />
               </li>
               <li>
                 Once the owner approves the prototype, this makes the app with every answer, and keeps the brief as <code>docs/BRIEF.md</code>:
