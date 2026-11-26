@@ -22,12 +22,15 @@ export function AppReveal({
   sketch,
   note,
   onChange,
+  onNew,
 }: {
   options: Options
   app: Built | null
   sketch?: ReactNode
   note?: string | null
   onChange?: () => void
+  /** Forgets this app and starts another from the first question. */
+  onNew?: () => void
 }) {
   const stage = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -69,11 +72,16 @@ export function AppReveal({
           {note && <p className="reveal__note reveal__in" style={{'--i': 3} as CSSProperties}>{note}</p>}
           <div className="reveal__actions reveal__in" style={{'--i': 4} as CSSProperties}>
             <button type="button" className="btn btn-primary reveal__cta" onClick={openBuild}>
-              Build {options.name} with Fohm <Arrow />
+              Build {options.name} with Rob <Arrow />
             </button>
             {onChange && (
               <button type="button" className="text-btn reveal__change" onClick={onChange}>
                 Change my answers
+              </button>
+            )}
+            {onNew && (
+              <button type="button" className="text-btn reveal__change" onClick={onNew}>
+                Start a new app
               </button>
             )}
           </div>
@@ -97,17 +105,22 @@ export function AppReveal({
   )
 }
 
-/** A bar always at the foot of the screen once the app is shown: the one thing to do next. */
-export function BuildBar({name, children}: {name: string; children?: ReactNode}) {
+/**
+ * A bar always at the foot of the screen once the app is shown: the one thing to do next, in the
+ * app's own colour, with Rob's free call as the big button.
+ */
+export function BuildBar({name, accent, children}: {name: string; accent?: string; children?: ReactNode}) {
+  const vars = accent ? ({'--x-accent': accent, '--x-on-accent': onAccent(accent)} as CSSProperties) : undefined
   return (
-    <div className="build-bar" role="complementary" aria-label={`Build ${name}`}>
+    <div className="build-bar" role="complementary" aria-label={`Build ${name}`} style={vars}>
       <p>
-        Like <strong>{name}</strong>? Rob builds it for real: web, App Store and Google Play.
+        <strong>Want {name} for real?</strong>
+        <span>Rob builds it with you: web, App Store and Google Play. Book a free 15-minute call.</span>
       </p>
       <div className="build-bar__actions">
         {children}
-        <button type="button" className="btn btn-primary" onClick={openBuild}>
-          Build it with me <Arrow />
+        <button type="button" className="btn build-bar__go" onClick={openBuild}>
+          Build {name} with Rob <Arrow />
         </button>
       </div>
     </div>

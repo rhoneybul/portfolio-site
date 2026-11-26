@@ -58,7 +58,12 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   // The conversation's own scroll: it moves, the page doesn't.
   const log = useRef<HTMLDivElement>(null)
 
-  // Answers survive a refresh in this tab only.
+  // A conversation kept from earlier in this tab: offered back on the intro, never reopened unasked.
+  const [resumable, setResumable] = useState(false)
+  // Nothing is written to the tab's storage until what it held has been read back, so a first empty render never overwrites it.
+  const [loaded, setLoaded] = useState(false)
+
+  // Answers survive a refresh in this tab only (sessionStorage): closing the tab forgets them.
   useEffect(() => {
     try {
       const kept = sessionStorage.getItem(KEPT)
@@ -66,23 +71,25 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
       const keptTurns = JSON.parse(sessionStorage.getItem(KEPT_TURNS) ?? 'null') as {turns?: Turn[]; at?: number} | null
       const restored = keptTurns?.turns?.filter((t) => t && typeof t.ask === 'string' && QUESTIONS.some((q) => q.key === t.key))
       if (restored?.length) {
-        // Someone coming back mid-conversation carries on where they were, past the explainer.
-        if (restored.length > 1) setPhase('asking')
+        // Someone coming back chooses: carry on where they were, or start a new app.
+        if (restored.length > 1) setResumable(true)
         setTurns(restored)
         setAt(Math.min(Math.max(0, Number(keptTurns?.at) || 0), restored.length - 1))
       }
     } catch {
       // No storage: start empty.
     }
+    setLoaded(true)
   }, [])
   useEffect(() => {
+    if (!loaded) return
     try {
       sessionStorage.setItem(KEPT, JSON.stringify(answers))
       sessionStorage.setItem(KEPT_TURNS, JSON.stringify({turns, at}))
     } catch {
       // No storage: nothing kept.
     }
-  }, [answers, turns, at])
+  }, [answers, turns, at, loaded])
 
   const turn = turns[at]
   const q = questionOf(turn.key)
@@ -105,7 +112,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     let live = true
     ideasFor(answers)
       .then((ideas) => {
-        const terms = [...ideas, ...goalsOf(options)].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
+        const terms = [...ideas, ...(ideas.length < 3 ? goalsOf(options) : [])].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
         return Promise.all(terms.map((t) => search(t).catch(() => [])))
       })
       .then((lists) => {
@@ -134,6 +141,26 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     } catch {
       // Slack hears nothing: the builder carries on.
     }
+  }
+
+  /** Everything forgotten, here and in the tab's storage: a new app from the first question. */
+  const startNew = () => {
+    try {
+      sessionStorage.removeItem(KEPT)
+      sessionStorage.removeItem(KEPT_TURNS)
+    } catch {
+      // No storage: nothing to forget.
+    }
+    setAnswers(emptyAnswers())
+    setTurns(firstTurns())
+    setAt(0)
+    setBuilt(null)
+    setNote(null)
+    setGallery([])
+    setError(null)
+    setResumable(false)
+    setPhase('asking')
+    top.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
   }
 
   const set = (v: string) => {
@@ -206,9 +233,25 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
             <strong>A way to build it for real.</strong> Book a free call and I’ll take it from the prototype to the stores.
           </li>
         </ul>
-        <button type="button" className="btn btn-primary intro__start" onClick={() => setPhase('asking')}>
-          Start <Arrow />
-        </button>
+        {resumable ? (
+          <div className="intro__resume">
+            <p>
+              You started designing <strong>{answers.name?.trim() || 'an app'}</strong> earlier. Carry on where you left off, or start a new one.
+            </p>
+            <div className="intro__resume-actions">
+              <button type="button" className="btn btn-primary" onClick={() => setPhase('asking')}>
+                Carry on <Arrow />
+              </button>
+              <button type="button" className="btn btn-outline" onClick={startNew}>
+                Start a new app
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button type="button" className="btn btn-primary intro__start" onClick={() => setPhase('asking')}>
+            Start <Arrow />
+          </button>
+        )}
       </div>
     )
 
@@ -239,9 +282,15 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     const message = `Hi Rob, I used the app builder on your website for ${options.name}. I’d like to build it with you.`
     return (
       <div className={`builder builder--built ${className ?? ''}`} ref={top}>
-        <AppReveal options={options} app={app} note={note} onChange={() => setPhase('asking')} sketch={<AppPrototype o={options} gallery={gallery} />} />
-
-        <Showcase o={options} gallery={gallery} built={app} />
+        <Showcase
+          o={options}
+          gallery={gallery}
+          built={app}
+          intro={{
+            name: 'Your app',
+            node: <AppReveal options={options} app={app} note={note} onChange={() => setPhase('asking')} onNew={startNew} sketch={<AppPrototype o={options} gallery={gallery} />} />,
+          }}
+        />
 
         <section id="interest" className="manifest interest" aria-labelledby="interest-title">
           <h2 id="interest-title" className="manifest__title">
@@ -273,9 +322,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           <Interest answers={{...answers, heard}} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} builderRef={ref} />
         </section>
         <BuildDialog answers={{...answers, heard}} prototype={app?.id} name={options.name} accent={options.accent} icon={app?.look.style?.icon} tagline={options.tagline} bookingUrl={bookingUrl} builderRef={ref} from="app-builder" />
-        <BuildBar name={options.name}>
-          {bookingUrl && <BookCall url={bookingUrl} label="Book a free call" from="app-builder" builderRef={ref} prefill={{email: answers.email, notes: callNote(options.name)}} variant="outline" />}
-        </BuildBar>
+        <BuildBar name={options.name} accent={options.accent} />
       </div>
     )
   }

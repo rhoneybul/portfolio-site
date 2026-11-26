@@ -3,7 +3,7 @@
 import {useEffect, useRef, useState, type FormEvent} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppIcon} from '@/components/app-icon'
-import {CalInline} from '@/components/book-call'
+import {Booked, CalInline} from '@/components/book-call'
 import {notesText, useNotes} from '@/components/prototype-notes'
 import type {Answers} from '@/app-builder/options'
 import type {Style} from '@/app-builder/prototype-doc'
@@ -39,7 +39,7 @@ export function BuildDialog({answers, prototype, name, accent, icon, tagline, bo
   const [contact, setContact] = useState({name: '', email: answers.email ?? '', note: ''})
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
   const [updated, setUpdated] = useState(false)
-  const [booked, setBooked] = useState(false)
+  const [booked, setBooked] = useState<{at?: string} | null>(null)
   const [error, setError] = useState<string | null>(null)
   const count = Object.keys(notes).length
 
@@ -178,13 +178,14 @@ export function BuildDialog({answers, prototype, name, accent, icon, tagline, bo
               from={from}
               builderRef={builderRef}
               prefill={{name: contact.name.trim(), email: contact.email.trim(), notes: [`About ${name}, from the app builder.`, contact.note.trim()].filter(Boolean).join('\n\n')}}
-              onBooked={() => setBooked(true)}
+              onBooked={(at) => setBooked({at})}
             />
           ) : (
             !bookingUrl && <p className="build-dialog__status">Rob will write to you to find a time.</p>
           )}
         </section>
       </div>
+      {booked && <Booked at={booked.at} name={name} onDone={close} />}
     </dialog>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
+import {cloneElement, isValidElement, useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppPrototype, Mark, goalsOf, type Pic} from '@/components/app-prototype'
 import {AppIcon} from '@/components/app-icon'
@@ -417,14 +417,19 @@ function Stores({o, pic, icon}: {o: Options; pic: (n: number) => Pic | undefined
 }
 
 /** With `built`, the app and the dashboard are the prototype Claude drew; without it, the quick sketch. */
-export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built?: Built | null}) {
+/**
+ * The deck, with `intro` (the app's reveal: its icon, name, look and the phone to tap through) as
+ * its first slide when given, so the finished app is one deck, not a stage and a deck under it.
+ * The reveal's phone is the app, so the deck's own "The app" slide steps aside for it.
+ */
+export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]; built?: Built | null; intro?: {name: string; node: ReactNode}}) {
   const parts = Object.fromEntries(whatYouGet(o).map((p) => [p.title, p.items]))
   const photos: Pic[] = [...(o.photo ? [{url: o.photo, credit: o.photoCredit}] : []), ...gallery]
   const pic = (n: number) => (photos.length ? photos[n % photos.length] : undefined)
   const pick = (title: string, n = 4) => (parts[title] ?? []).slice(0, n)
 
   const landing = built?.units.filter((u) => u.id === 'landing') ?? []
-  const slides = [
+  const all = [
     {
       name: 'Landing page',
       node: (
@@ -554,6 +559,14 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
       ),
     },
   ]
+
+  // Numbered as they stand, so the numbers follow whichever slides there are.
+  const shown = [...(intro ? [intro] : []), ...all.filter((s) => !(intro && s.name === 'The app'))]
+  const slides = shown.map((s, i) =>
+    isValidElement<{kicker?: string}>(s.node) && s.node.type === Slide
+      ? {...s, node: cloneElement(s.node, {kicker: `${String(i + 1).padStart(2, '0')} · ${(s.node.props.kicker ?? '').replace(/^\d+ · /, '')}`})}
+      : s,
+  )
 
   const [at, setAt] = useState(0)
   const deck = useRef<HTMLElement>(null)

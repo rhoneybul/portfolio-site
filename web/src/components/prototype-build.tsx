@@ -40,7 +40,7 @@ const withLogo = (job: Job, d: string): Job => ({...job, look: {...job.look, sty
 /** Open-licence photos for the app: their own first, then a few from each search, taking turns. */
 async function findPhotos(answers: Answers, o: Options): Promise<Photo[]> {
   const ideas = await ideasFor(answers).catch(() => [] as string[])
-  const terms = [...ideas, ...goalsOf(o)].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
+  const terms = [...ideas, ...(ideas.length < 3 ? goalsOf(o) : [])].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
   const lists = await Promise.all(terms.map((t) => search(t).catch(() => [])))
   const found: Photo[] = []
   for (let r = 0; found.length < 11 && lists.some((l) => l[r]); r++)
@@ -123,6 +123,7 @@ export function PrototypeBuild({
   const wantsLogo = answers.logo !== 'yes'
   const [marks, setMarks] = useState<Mark[] | 'drawing' | 'none'>(wantsLogo ? 'drawing' : 'none')
   const [picked, setPicked] = useState(0)
+  const [drawingMore, setDrawingMore] = useState(false)
   const pickedRef = useRef(0)
   // The plan and its signature as they are now: a new pick re-signs it, and the screens still to draw use the latest.
   const jobRef = useRef<Job | null>(null)
@@ -228,6 +229,15 @@ export function PrototypeBuild({
       if (pickedRef.current === i) setJob(next.job)
     })
   }
+  /** Another round of logo ideas, added after the ones there are: the pick stays where it is. */
+  const moreMarks = async () => {
+    if (drawingMore || marks === 'drawing' || marks === 'none') return
+    setDrawingMore(true)
+    const res = await fetch('/api/prototype/logos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({answers})}).catch(() => null)
+    const more = res?.ok ? (((await res.json().catch(() => null)) as {marks?: Mark[]} | null)?.marks ?? []) : []
+    setMarks((had) => (had === 'drawing' || had === 'none' ? had : [...had, ...more.filter((m) => !had.some((h) => h.d === m.d))]))
+    setDrawingMore(false)
+  }
   const pickedIcon = marks !== 'drawing' && marks !== 'none' && marks[picked] ? iconOf(marks[picked].d) : undefined
 
   const units = job?.plan.units ?? []
@@ -328,7 +338,18 @@ export function PrototypeBuild({
                     </button>
                   </li>
                 ))}
+            {drawingMore &&
+              Array.from({length: 4}, (_, i) => (
+                <li key={`more-${i}`} aria-hidden>
+                  <span className="building__logo-blank" />
+                </li>
+              ))}
           </ul>
+          {marks !== 'drawing' && (
+            <button type="button" className="text-btn building__more" onClick={moreMarks} disabled={drawingMore}>
+              {drawingMore ? 'Drawing more ideas…' : 'Draw more ideas'}
+            </button>
+          )}
         </section>
       )}
 

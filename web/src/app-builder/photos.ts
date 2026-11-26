@@ -17,5 +17,8 @@ export async function searchPhotos(q: string): Promise<Found[]> {
     searchCommons(q).catch((e) => (console.warn('[photos] Commons', e instanceof Error ? e.message : e), [] as Found[])),
   ])
   if (!stock.length && !open.length) throw new Error('No photo search answered')
-  return [...stock.slice(0, 8), ...open].slice(0, 12)
+  // Pexels' professional photos alone when it found enough: Commons' are often off the subject
+  // (a search for rowing found a child's bike), so they only fill in for a thin search.
+  if (stock.length >= 4) return stock.slice(0, 12)
+  return [...stock, ...open].slice(0, 12)
 }
