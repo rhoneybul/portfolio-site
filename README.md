@@ -49,6 +49,8 @@ npx sanity schema deploy # keeps the Sanity MCP / AI tools in sync
 
 ## Deploying to Vercel
 
+The live site is the Vercel project `fohm-site` (renamed from `portfolio-site-web`, Nov 2026), deploying `main` to https://www.fohm.io. Its secrets live in Doppler's `portfolio-site-web` project, synced to it.
+
 1. Import this repo at https://vercel.com/new.
 2. Set **Root Directory** to `web` (framework is detected as Next.js).
 3. Environment variables (optional, sensible defaults are built in):
