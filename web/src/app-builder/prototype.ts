@@ -150,7 +150,8 @@ export async function planPrototype(o: Options, raw: Answers, photos: Photo[], d
       model: PLAN_MODEL(),
       system: [PLAN_SYSTEM],
       user: `${facts}\n\nThe journey, for this kind of app: ${journeyOf(o)}\n${DASHBOARD(o)}\n${COACHING(o)}\n\nThe photos, found from these answers:\n${photoList(photos, false)}`,
-      maxTokens: 6_000,
+      // Room for Claude's thinking as well as the plan: thinking counts against it, and 6,000 cut plans off mid-JSON.
+      maxTokens: 32_000,
       deadline,
     })
   // A plan that isn't JSON, or has no phone screens, gets one more try while there's time.
@@ -222,7 +223,8 @@ export async function drawUnit(job: Job, unitId: string, deadline: number): Prom
     model: DRAW_MODEL(),
     system: [KIT, context(job)],
     user: `Draw the unit "${unit.id}": ${unit.title}, on the ${unit.frame}, as ${ids.length === 1 ? `one section with the id ${ids[0]}` : `${ids.length} sections with the ids ${ids.join(', ')}`}.\nWhat it shows: ${unit.shows}\nIt leads to: ${unit.links.join(', ') || 'where the plan says'}.${unit.frame === 'phone' && job.plan.tabs.length ? '\nIf it is one of the tabs, or a screen reached from one that still shows them, end each section with the tab bar.' : ''}`,
-    maxTokens: unit.steps > 1 ? 14_000 : 8_000,
+    // Thinking counts against this too: room for it and the screens' HTML.
+    maxTokens: 32_000,
     deadline,
   })
   return {id: unit.id, html: cleanUnit(answer, unit, job.plan)}
