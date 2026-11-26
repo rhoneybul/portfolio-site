@@ -1759,6 +1759,39 @@ a.proof:hover .proof__arrow {
   display: block;
 }
 
+.photos__badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  min-width: 24px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+}
+
+.chat__photos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat__photos .chat__photo {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+}
+
+.chat__photos em {
+  font-style: normal;
+  font-size: 13px;
+}
+
 .photos__pick.is-on {
   outline: 3px solid var(--accent);
   outline-offset: 2px;

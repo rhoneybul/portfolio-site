@@ -5,7 +5,7 @@ import {Arrow} from '@/components/arrow'
 import {AppPrototype, goalsOf, type Pic} from '@/components/app-prototype'
 import {AppReveal, BuildBar} from '@/components/app-reveal'
 import {BuildDialog} from '@/components/build-dialog'
-import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
+import {PhotoSearch, ideasFor, mixed, search, type Picked} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
 import {PrototypeBuild, type Built} from '@/components/prototype-build'
@@ -46,6 +46,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   const [phase, setPhase] = useState<Phase>('intro')
   const [error, setError] = useState<string | null>(null)
   const [gallery, setGallery] = useState<Pic[]>([])
+  // The photos they picked at the photo question, their favourite first: the first is answers.photo too.
+  const [picks, setPicks] = useState<Picked[]>([])
   // Claude's prototype, and the answers it was drawn from: the same answers never draw twice.
   const [built, setBuilt] = useState<{for: string; app: Built | null} | null>(null)
   const [note, setNote] = useState<string | null>(null)
@@ -68,6 +70,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     try {
       const kept = sessionStorage.getItem(KEPT)
       if (kept) setAnswers({...emptyAnswers(), ...JSON.parse(kept)})
+      const keptPicks = JSON.parse(sessionStorage.getItem(KEPT_PICKS) ?? '[]') as Picked[]
+      if (Array.isArray(keptPicks)) setPicks(keptPicks.filter((p) => p && typeof p.url === 'string').slice(0, 12))
       const keptTurns = JSON.parse(sessionStorage.getItem(KEPT_TURNS) ?? 'null') as {turns?: Turn[]; at?: number} | null
       const restored = keptTurns?.turns?.filter((t) => t && typeof t.ask === 'string' && QUESTIONS.some((q) => q.key === t.key))
       if (restored?.length) {
@@ -86,10 +90,11 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     try {
       sessionStorage.setItem(KEPT, JSON.stringify(answers))
       sessionStorage.setItem(KEPT_TURNS, JSON.stringify({turns, at}))
+      sessionStorage.setItem(KEPT_PICKS, JSON.stringify(picks))
     } catch {
       // No storage: nothing kept.
     }
-  }, [answers, turns, at, loaded])
+  }, [answers, turns, at, picks, loaded])
 
   const turn = turns[at]
   const q = questionOf(turn.key)
@@ -116,8 +121,9 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
         return Promise.all(terms.map((t) => search(t).catch(() => [])))
       })
       .then((lists) => {
-        // The first of each search, then the second of each, so slots vary.
-        if (live) setGallery(mixed(lists, 16).map((f) => ({url: f.url, credit: f.credit})))
+        // Their favourites first, then the first of each search, then the second of each, so slots vary.
+        const found = mixed(lists, 16).map((f) => ({url: f.url, credit: f.credit}))
+        if (live) setGallery([...picks.slice(1), ...found.filter((f) => !picks.some((p) => p.url === f.url))])
       })
       .catch(() => {})
     return () => {
@@ -148,6 +154,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     try {
       sessionStorage.removeItem(KEPT)
       sessionStorage.removeItem(KEPT_TURNS)
+      sessionStorage.removeItem(KEPT_PICKS)
     } catch {
       // No storage: nothing to forget.
     }
@@ -157,6 +164,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     setBuilt(null)
     setNote(null)
     setGallery([])
+    setPicks([])
     setError(null)
     setResumable(false)
     setPhase('asking')
@@ -260,6 +268,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
       <div className={className} ref={top}>
         <PrototypeBuild
           answers={answers}
+          favourites={picks}
           options={options}
           onGallery={setGallery}
           heard={heard}
@@ -370,7 +379,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
               <p>{t.ask}</p>
             </div>
             <div className="chat__msg chat__msg--you">
-              <Said q={questionOf(t.key)} value={answers[t.key] ?? ''} scheme={answers.scheme} />
+              <Said q={questionOf(t.key)} value={answers[t.key] ?? ''} scheme={answers.scheme} picks={picks} />
               <button type="button" className="chat__change" onClick={() => setAt(i)} disabled={thinking} aria-label={`Change: ${t.ask}`}>
                 Change
               </button>
@@ -431,9 +440,10 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           ) : q.key === 'photo' ? (
             <PhotoSearch
               answers={answers}
-              value={value}
-              onChange={(url, credit) => {
-                setAnswers({...answers, photo: url, photoCredit: credit})
+              picks={picks}
+              onChange={(next) => {
+                setPicks(next)
+                setAnswers({...answers, photo: next[0]?.url ?? '', photoCredit: next[0]?.credit ?? ''})
                 setError(null)
               }}
             />
@@ -624,9 +634,17 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
 }
 
 /** An answer as it reads in the conversation: a choice by its label, the photo as itself, the colour as a swatch. */
-function Said({q, value, scheme}: {q: Question; value: string; scheme?: string}) {
+function Said({q, value, scheme, picks}: {q: Question; value: string; scheme?: string; picks?: Picked[]}) {
   if (!value.trim()) return <p className="chat__skipped">Skipped</p>
-  if (q.key === 'photo') return <img className="chat__photo" src={value} alt="The photo picked for the app" width={160} height={100} loading="lazy" />
+  if (q.key === 'photo')
+    return (
+      <span className="chat__photos">
+        {(picks?.length ? picks.map((p) => p.url) : [value]).slice(0, 4).map((url, i) => (
+          <img key={url} className="chat__photo" src={url} alt={i ? '' : 'The lead photo picked for the app'} width={160} height={100} loading="lazy" />
+        ))}
+        {(picks?.length ?? 0) > 4 && <em>+{picks!.length - 4}</em>}
+      </span>
+    )
   if (q.key === 'accent')
     return (
       <p className="chat__swatch">
@@ -652,6 +670,7 @@ function Screenshots({shots}: {shots: Shots}) {
 }
 
 const KEPT_TURNS = 'fohm-app-builder-turns'
+const KEPT_PICKS = 'fohm-app-builder-photos'
 
 const questionOf = (key: string) => QUESTIONS.find((q) => q.key === key) as Question
 
