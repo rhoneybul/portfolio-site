@@ -8,6 +8,7 @@ import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
 import {PrototypeBuild, type Built} from '@/components/prototype-build'
 import {ACCENTS, QUESTIONS, emptyAnswers, resolveOptions, type Answers, type Question, type Shots} from '@/app-builder/options'
+import {REFERENCES} from '@/app-builder/references'
 import {LAST, LISTS, PARTS, fallbackNext, needsClaude, totalQuestions, type Next, type Turn} from '@/app-builder/next-question'
 
 /**
@@ -398,7 +399,28 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
             />
           ) : null}
 
-          {suggestions && (
+          {q.key === 'inspiration' ? (
+            <ul className="builder__refs" aria-label="Apps to pick from, each with a screen on Mobbin">
+              {REFERENCES.map((r) => {
+                const on = chosen.some((x) => x.toLowerCase() === r.name.toLowerCase())
+                return (
+                  <li key={r.name} className={`builder__ref${on ? ' is-on' : ''}`}>
+                    <button
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => set((on ? chosen.filter((x) => x.toLowerCase() !== r.name.toLowerCase()) : [...chosen, r.name]).join(', '))}
+                    >
+                      <strong>{r.name}</strong>
+                      <span>{r.look}</span>
+                    </button>
+                    <a href={r.mobbin} target="_blank" rel="noopener noreferrer" aria-label={`${r.name} on Mobbin (opens in a new tab)`}>
+                      Mobbin <Arrow />
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : suggestions && (
             <div className="builder__picks" role="group" aria-label="Pick from these">
               {suggestions.map((s) => {
                 const list = LISTS.has(q.key)

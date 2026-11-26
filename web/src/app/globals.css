@@ -1515,6 +1515,67 @@ a.proof:hover .proof__arrow {
   background: var(--accent-soft);
 }
 
+/* The apps to pick on the look and feel question: each a toggle with its look, and a link to a screen of it on Mobbin. */
+.builder__refs {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.builder__ref {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.builder__ref.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.builder__ref button {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.builder__ref strong {
+  font-size: 15px;
+}
+
+.builder__ref span {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--muted, #5b5b66);
+}
+
+.builder__ref a {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-width: 44px;
+  padding: 0 14px;
+  border-left: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 .builder__shuffle {
   flex: none;
   min-height: 44px;

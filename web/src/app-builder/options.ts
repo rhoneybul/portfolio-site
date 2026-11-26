@@ -6,6 +6,7 @@
  * questions). The defaults and checks are the scaffolder's own resolveOptions, ported. Keep the
  * two in step: a change to a question there is a change here.
  */
+import {REFERENCES} from './references'
 
 export const KINDS = ['coaching', 'app', 'game'] as const
 export type Kind = (typeof KINDS)[number]
@@ -170,8 +171,8 @@ export const QUESTIONS: Question[] = [
     ask: 'Apps you like the look and feel of',
     why: 'Pick a few or type your own. Their screens are pulled from Mobbin and adopted within the house style.',
     example: 'Runna, Strava, Headspace',
-    // Each is on Mobbin, and each looks different: dark and data-led, soft and rounded, playful, minimal.
-    suggestions: ['Runna', 'Strava', 'Gentler Streak', 'Headspace', 'Duolingo', 'Brainly', 'Headway'],
+    // Each is on Mobbin, and each looks different (references.ts): the chat shows each with its look and a screen of it there.
+    suggestions: REFERENCES.map((r) => r.name),
     flag: 'inspiration',
   },
   {key: 'accent', section: 'Look and feel', ask: 'Your colour', why: 'It marks what to press and what’s live now. Everything else is black, white and grey.', example: '#2F6B4F', default: '#2F6B4F', flag: 'accent'},
