@@ -59,9 +59,10 @@ export default async function HomePage() {
               Looking to build an app?
             </Link>
           </h1>
-          <p className="hero__price">
-            A first build costs <strong>£5k to £20k</strong>, depending on what it needs. See yours before you spend a
-            penny: answer a few questions and the app builder walks you through it.
+          <p className="hero__note">
+            Fohm specialises in <strong>rapid development</strong>. We&rsquo;ve been shipping apps to millions of users
+            for nearly a decade, so we know what it takes to build, launch and measure an app, and to give the people
+            who use it a brilliant experience.
           </p>
           <div className="hero__actions">
             <Link href="/app-builder" className="btn btn-primary">
