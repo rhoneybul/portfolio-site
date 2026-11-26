@@ -3,6 +3,7 @@
 import {useEffect, useRef, useState, type CSSProperties} from 'react'
 import {goalsOf, type Pic} from '@/components/app-prototype'
 import {AppIcon} from '@/components/app-icon'
+import {HeardAsk} from '@/components/heard-ask'
 import {ideasFor, search} from '@/components/photo-search'
 import {PrototypeThumb} from '@/components/prototype-frame'
 import type {Answers, Options} from '@/app-builder/options'
@@ -87,9 +88,14 @@ export function PrototypeBuild({
   onBuilt,
   onSketch,
   onGallery,
+  heard = '',
+  onHeard,
 }: {
   answers: Answers
   options: Options
+  /** Where they heard about Fohm, asked while it builds (heard-ask.tsx). */
+  heard?: string
+  onHeard?: (v: string) => void
   onBuilt: (b: Built) => void
   onSketch: (note?: string) => void
   onGallery: (pics: Pic[]) => void
@@ -232,6 +238,8 @@ export function PrototypeBuild({
           <span style={{width: `${percent}%`}} />
         </div>
       </div>
+
+      {onHeard && <HeardAsk value={heard} onChange={onHeard} />}
 
       <ol className="building__steps" aria-live="polite">
         {steps.map(([title, line, isDone, isOn]) => (

@@ -16,6 +16,8 @@ export interface Contact {
   name: string
   email: string
   note: string
+  /** Their notes on the prototype's screens, a screen to a line (components/prototype-notes.ts). */
+  notes?: string
 }
 
 export interface Submission {

@@ -4,6 +4,7 @@ import {useEffect, useRef, useState, type CSSProperties, type FormEvent} from 'r
 import {Arrow} from '@/components/arrow'
 import {AppPrototype, goalsOf, type Pic} from '@/components/app-prototype'
 import {AppReveal, BuildBar} from '@/components/app-reveal'
+import {BuildDialog} from '@/components/build-dialog'
 import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
@@ -46,6 +47,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   // Claude's prototype, and the answers it was drawn from: the same answers never draw twice.
   const [built, setBuilt] = useState<{for: string; app: Built | null} | null>(null)
   const [note, setNote] = useState<string | null>(null)
+  // Where they heard about Fohm, asked while it builds: kept beside the answers, so the build stays theirs.
+  const [heard, setHeard] = useState('')
   const input = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
   const top = useRef<HTMLDivElement>(null)
   // The newest message in the conversation: Claude's question, or its typing while it chooses.
@@ -123,7 +126,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   /** Tells the Fohm Slack channel what happened (/api/builder-event). Never waits, never fails the page. */
   const tell = (event: 'used' | 'whatsapp') => {
     try {
-      const body = JSON.stringify({event, answers, prototype: app?.id, ref})
+      const body = JSON.stringify({event, answers: {...answers, heard}, prototype: app?.id, ref})
       if (!navigator.sendBeacon?.('/api/builder-event', new Blob([body], {type: 'application/json'})))
         void fetch('/api/builder-event', {method: 'POST', headers: {'Content-Type': 'application/json'}, body, keepalive: true}).catch(() => {})
     } catch {
@@ -214,6 +217,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           answers={answers}
           options={options}
           onGallery={setGallery}
+          heard={heard}
+          onHeard={setHeard}
           onBuilt={(b) => {
             setBuilt({for: key, app: b})
             setNote(null)
@@ -263,8 +268,9 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
               )}
             </div>
           )}
-          <Interest answers={answers} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} builderRef={ref} />
+          <Interest answers={{...answers, heard}} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} builderRef={ref} />
         </section>
+        <BuildDialog answers={{...answers, heard}} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} builderRef={ref} from="app-builder" />
         <BuildBar name={options.name}>
           {bookingUrl && <BookCall url={bookingUrl} label="Book a free call" from="app-builder" builderRef={ref} prefill={{email: answers.email, notes: callNote(options.name)}} variant="outline" />}
         </BuildBar>

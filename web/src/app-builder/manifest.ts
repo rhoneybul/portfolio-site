@@ -113,7 +113,7 @@ export function whatYouGet(o: Options): Part[] {
     {
       title: 'Monitoring and errors',
       items: [
-        'Sentry error reports from the web app, the iPhone and Android apps and the server, so you know something broke before anyone tells you',
+        'Sentry on the web app, the iPhone and Android apps and the server: every error someone hits, with what they were doing, so the thing in their way is fixed before most people notice',
         'An error screen instead of a blank page, with the error reported',
         `A health check at ${site}/api/health that says what’s connected`,
         'Smoke tests on the live site after every deploy, so a broken release is caught in minutes',
@@ -122,8 +122,9 @@ export function whatYouGet(o: Options): Part[] {
     {
       title: 'Analytics and consent',
       items: [
-        'PostHog from the web and the apps, every event catalogued with why it’s there, and a test that holds the catalogue to the code',
-        'The onboarding funnel and what new members skip and leave by',
+        'PostHog from the web and the apps: the journey people really take, so you can see who succeeds and make it easier for everyone else',
+        'The onboarding funnel and what new members skip and leave by, the first places to make better',
+        'Every event catalogued with why it’s there, and a test that holds the catalogue to the code',
         'Keyed to the account only: never names, emails, health numbers or anything people write; forgotten on sign-out and deletion',
         'A cookie banner on the landing page: counting only, or allow all',
       ],
@@ -131,8 +132,8 @@ export function whatYouGet(o: Options): Part[] {
     {
       title: 'Payments',
       items: [
-        `Stripe: ${o.name} Pro${o.price ? ` at ${o.price}` : ''}, bought on the web, with a free trial if you want one`,
-        'Pro switches on and off from Stripe’s own record, and opens in the apps too',
+        `${o.name} Pro${o.price ? ` at ${o.price}` : ''}, the way your members pay: in the apps through the App Store and Google Play (RevenueCat, as in Naz and Etapa), or on the web through Stripe, with a free trial if you want one`,
+        'Pro switches on and off from the store’s own record, and opens wherever they sign in',
       ],
     },
     {

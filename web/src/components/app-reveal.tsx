@@ -1,9 +1,10 @@
 'use client'
 
-import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
+import {useEffect, useRef, type CSSProperties, type ReactNode} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppIcon} from '@/components/app-icon'
 import {PrototypeFrame} from '@/components/prototype-frame'
+import {openBuild} from '@/components/build-dialog'
 import type {Built} from '@/components/prototype-build'
 import {onAccent, type Options} from '@/app-builder/options'
 import {TYPE_FACES} from '@/app-builder/prototype-doc'
@@ -67,9 +68,9 @@ export function AppReveal({
           )}
           {note && <p className="reveal__note reveal__in" style={{'--i': 3} as CSSProperties}>{note}</p>}
           <div className="reveal__actions reveal__in" style={{'--i': 4} as CSSProperties}>
-            <a className="btn btn-primary reveal__cta" href="#interest">
+            <button type="button" className="btn btn-primary reveal__cta" onClick={openBuild}>
               Build {options.name} with Fohm <Arrow />
-            </a>
+            </button>
             {onChange && (
               <button type="button" className="text-btn reveal__change" onClick={onChange}>
                 Change my answers
@@ -77,7 +78,7 @@ export function AppReveal({
             )}
           </div>
         </div>
-        <div className="reveal__phone">{phone.length ? <PrototypeFrame look={app!.look} units={phone} view="phone" title={`${options.name} on a phone`} /> : sketch}</div>
+        <div className="reveal__phone">{phone.length ? <PrototypeFrame look={app!.look} units={phone} view="phone" title={`${options.name} on a phone`} notes /> : sketch}</div>
       </section>
 
       {app && app.plan.decisions.length > 0 && (
@@ -96,32 +97,18 @@ export function AppReveal({
   )
 }
 
-/**
- * A bar that stays at the foot of the screen while they look around: the one thing to do next.
- * It steps aside while the reveal's own button or the form it leads to is on screen.
- */
+/** A bar always at the foot of the screen once the app is shown: the one thing to do next. */
 export function BuildBar({name, children}: {name: string; children?: ReactNode}) {
-  const [away, setAway] = useState(true)
-  useEffect(() => {
-    const watched = [document.querySelector('.reveal'), document.getElementById('interest')].filter((el): el is Element => Boolean(el))
-    const seen = new Map<Element, boolean>()
-    const watch = new IntersectionObserver((entries) => {
-      for (const e of entries) seen.set(e.target, e.isIntersecting)
-      setAway([...seen.values()].some(Boolean))
-    })
-    watched.forEach((el) => watch.observe(el))
-    return () => watch.disconnect()
-  }, [])
   return (
-    <div className={`build-bar${away ? ' is-away' : ''}`} role="complementary" aria-label={`Build ${name}`} aria-hidden={away}>
+    <div className="build-bar" role="complementary" aria-label={`Build ${name}`}>
       <p>
-        Like <strong>{name}</strong>? I’ll build it for real: web, App Store and Google Play.
+        Like <strong>{name}</strong>? Rob builds it for real: web, App Store and Google Play.
       </p>
       <div className="build-bar__actions">
         {children}
-        <a className="btn btn-primary" href="#interest">
-          I’m interested <Arrow />
-        </a>
+        <button type="button" className="btn btn-primary" onClick={openBuild}>
+          Build it with me <Arrow />
+        </button>
       </div>
     </div>
   )
