@@ -6,6 +6,7 @@ import {Mark, goalsOf, type Pic} from '@/components/app-prototype'
 import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
 import {ACCENTS, SECTIONS, asked, emptyAnswers, resolveOptions, type Answers, type Shots} from '@/app-builder/options'
+import {withWritten, type Written} from '@/app-builder/written'
 
 /**
  * The app builder: asks what a first look at the visitor's app needs, one question to a screen in
@@ -25,6 +26,8 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
   const [phase, setPhase] = useState<Phase>('asking')
   const [error, setError] = useState<string | null>(null)
   const [gallery, setGallery] = useState<Pic[]>([])
+  // Claude's words for the prototype: undefined while it writes, null if it couldn't.
+  const [written, setWritten] = useState<Written | null | undefined>(undefined)
   const input = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
   const top = useRef<HTMLDivElement>(null)
 
@@ -48,7 +51,9 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
   const questions = asked(answers)
   const at = Math.min(step, questions.length - 1)
   const q = questions[at]
-  const {options, errors} = resolveOptions(answers)
+  const resolved = resolveOptions(answers)
+  const errors = resolved.errors
+  const options = withWritten(resolved.options, written ?? null)
 
   useEffect(() => {
     if (phase !== 'asking') return
@@ -57,16 +62,24 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
     if ((top.current?.getBoundingClientRect().top ?? 0) < 0) top.current?.scrollIntoView({block: 'start', behavior: 'smooth'})
   }, [at, phase])
 
-  // Photos for every slot, found from what they told us: the photo step's searches, then each goal.
+  // Claude writes the app from their answers (/api/write-app), then its photo searches fill every slot.
   useEffect(() => {
     if (phase !== 'built') return
     let live = true
-    ideasFor(answers)
-      .then((ideas) => {
-        const terms = [...ideas, ...goalsOf(options)].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
-        return Promise.all(terms.map((t) => search(t).catch(() => [])))
-      })
-      .then((lists) => {
+    setWritten(undefined)
+    setGallery([])
+    fetch('/api/write-app', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({answers})})
+      .then((r) => r.json())
+      .then((r: {written?: Written | null}) => r.written ?? null)
+      .catch(() => null)
+      .then(async (w) => {
+        if (!live) return
+        setWritten(w)
+        const ideas = w?.photoSearches.length ? w.photoSearches : await ideasFor(answers)
+        const terms = [...ideas, ...goalsOf(withWritten(resolveOptions(answers).options, w))]
+          .filter((t, i, all) => t && all.indexOf(t) === i)
+          .slice(0, 6)
+        const lists = await Promise.all(terms.map((t) => search(t).catch(() => [])))
         // The first of each search, then the second of each, so slots vary.
         if (live) setGallery(mixed(lists, 16).map((f) => ({url: f.url, credit: f.credit})))
       })
@@ -135,7 +148,13 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
           </button>
         </header>
 
-        <Showcase o={options} gallery={gallery} />
+        {written === undefined ? (
+          <p className="builder__real builder__writing" role="status">
+            Claude is writing {options.name}: its headline, onboarding, path and photos. This takes up to half a minute.
+          </p>
+        ) : (
+          <Showcase o={options} gallery={gallery} />
+        )}
 
         <section id="interest" className="manifest interest" aria-labelledby="interest-title">
           <h2 id="interest-title" className="manifest__title">
