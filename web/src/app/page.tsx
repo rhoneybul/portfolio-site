@@ -15,6 +15,7 @@ import {Arrow} from '@/components/arrow'
 import {Testimonials} from '@/components/testimonials'
 import {WorkList} from '@/components/work-list'
 import {Logo} from '@/components/logo'
+import {AppScatter} from '@/components/app-scatter'
 
 // Rendered on every visit with fresh Sanity data, as the blog is (see blog/layout.tsx): a cached copy
 // only refreshes on a live event, which reaches the site only while someone has it open, so a project
@@ -51,6 +52,7 @@ export default async function HomePage() {
         {/* Hero: building an app leads, straight into the app builder, with what a first build costs.
             The other needs follow, each opening to a short answer. */}
         <section className="hero">
+          <AppScatter apps={work} />
           <div className="hero__text">
           <h1 className="hero__lead">
             <Link href="/app-builder" className="hero__link">
