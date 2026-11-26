@@ -64,6 +64,7 @@ Asks what a first look at an app needs, then Claude designs the visitor's app wh
 The questions are dynamic, like fohm-scaffold's new-app discovery chat.
 A heads-up before the first says about how many there are, in three parts (the idea; how it works; how it looks and the practical bits), and every question says where they are ("Part 2 of 3 · about 6 to go").
 The idea is always first and the email always last; in between, Claude (`claude-haiku-5-5`, `/api/builder/next`) picks the next row of the catalogue (`QUESTIONS` in `web/src/app-builder/options.ts`) from what they've said, rewords it in their terms with picks for their app, fills in what an earlier answer already said for them to confirm, and skips what their answers make irrelevant.
+Each address asks Claude for at most 60 questions an hour (a whole run is about 15); past that, the fixed order carries on (`web/src/app-builder/rate-limit.ts`, shared with the prototype's limits).
 Everything it sends back is checked (`web/src/app-builder/next-question.ts`), and without Claude, or when it's slow or wrong, the next question comes from the fixed order at once.
 Then:
 

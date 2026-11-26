@@ -1,5 +1,6 @@
 import {NextResponse} from 'next/server'
 import {askClaude, claudeOn} from '@/app-builder/claude'
+import {addressOf, limiter} from '@/app-builder/rate-limit'
 import {cleanRequest, cleanTurn, fallbackNext, needsClaude, rowsFor, saidSoFar, type Next} from '@/app-builder/next-question'
 
 /**
@@ -7,7 +8,12 @@ import {cleanRequest, cleanTurn, fallbackNext, needsClaude, rowsFor, saidSoFar, 
  * (claude-haiku-5-5 through Anthropic's API), like fohm-scaffold's discovery chat: the most
  * important row still to ask, in their words, with picks for their app. Its answer is checked
  * (cleanTurn), and on anything wrong, or without Claude, the next row comes from the fixed order.
+ * Each address asks Claude at most PER_ADDRESS times an hour (a whole run is about 15); past that,
+ * the fixed order carries on, so nobody is stopped mid-way and nobody can run up a bill.
  */
+
+const PER_ADDRESS = {most: 60, window: 60 * 60_000}
+const allowed = limiter()
 
 const MODEL = 'claude-haiku-5-5'
 
@@ -39,6 +45,7 @@ export async function POST(request: Request) {
   const cacheKey = JSON.stringify([answers, done])
   const cached = known.get(cacheKey)
   if (cached) return NextResponse.json({...cached, from: 'claude'})
+  if (!allowed(`address:${addressOf(request)}`, PER_ADDRESS)) return NextResponse.json({...fallback, from: 'order'})
 
   try {
     const text = await askClaude({
