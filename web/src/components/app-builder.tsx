@@ -21,7 +21,7 @@ import {LAST, LISTS, PARTS, fallbackNext, needsClaude, totalQuestions, type Next
  * Slack channel only (/api/builder-event): the visitor never sees it.
  */
 
-type Phase = 'asking' | 'building' | 'built'
+type Phase = 'intro' | 'asking' | 'building' | 'built'
 
 const KEPT = 'fohm-app-builder'
 
@@ -37,7 +37,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   const [turns, setTurns] = useState<Turn[]>(firstTurns)
   const [at, setAt] = useState(0)
   const [thinking, setThinking] = useState(false)
-  const [phase, setPhase] = useState<Phase>('asking')
+  const [phase, setPhase] = useState<Phase>('intro')
   const [error, setError] = useState<string | null>(null)
   const [gallery, setGallery] = useState<Pic[]>([])
   // Claude's prototype, and the answers it was drawn from: the same answers never draw twice.
@@ -56,6 +56,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
       const keptTurns = JSON.parse(sessionStorage.getItem(KEPT_TURNS) ?? 'null') as {turns?: Turn[]; at?: number} | null
       const restored = keptTurns?.turns?.filter((t) => t && typeof t.ask === 'string' && QUESTIONS.some((q) => q.key === t.key))
       if (restored?.length) {
+        // Someone coming back mid-conversation carries on where they were, past the explainer.
+        if (restored.length > 1) setPhase('asking')
         setTurns(restored)
         setAt(Math.min(Math.max(0, Number(keptTurns?.at) || 0), restored.length - 1))
       }
@@ -163,6 +165,39 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     setError(null)
     void forward(given)
   }
+
+  if (phase === 'intro')
+    return (
+      <div className={`builder builder--intro ${className ?? ''}`} ref={top}>
+        <span className="label">● Early access</span>
+        <h2 className="intro__title">Design your app in a conversation</h2>
+        <p className="intro__lead">
+          Tell Claude about the app you want to build. It asks about {totalQuestions(answers)} questions in three parts, the idea,
+          how it works and how it looks, choosing each from what you’ve already said. Five minutes or so, and you can skip
+          anything you’re not sure of.
+        </p>
+        <h3 className="intro__subtitle">What you get</h3>
+        <ul className="intro__list">
+          <li>
+            <strong>A prototype you can tap through.</strong> Claude designs it while you watch: the landing page, sign-up, the
+            screens your customers use and your dashboard, in your name, words and colour.
+          </li>
+          <li>
+            <strong>The calls it made for you,</strong> so you can see why it looks the way it does.
+          </li>
+          <li>
+            <strong>Everything behind it:</strong> payments, alerts, metrics, security and the App Store and Google Play, on the same
+            foundations as Etapa and Naz.
+          </li>
+          <li>
+            <strong>A way to build it for real.</strong> Book a free call and I’ll take it from the prototype to the stores.
+          </li>
+        </ul>
+        <button type="button" className="btn btn-primary intro__start" onClick={() => setPhase('asking')}>
+          Start <Arrow />
+        </button>
+      </div>
+    )
 
   if (phase === 'building')
     return (
@@ -286,11 +321,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
 
       <div className="chat" role="log" aria-live="polite" aria-label="Your app, in conversation">
         <div className="chat__msg chat__msg--claude">
-          <p>
-            About {totalQuestions(answers)} questions in three parts: the idea, how it works, and how it looks. Five minutes or so. Each one
-            comes from what you’ve already said, so anything your answers cover is skipped, and you can skip what you’re not sure of. Then I
-            design your app while you watch.
-          </p>
+          <p>Let’s start with the idea. Skip anything you’re not sure of, and I’ll ask later.</p>
         </div>
         {past.map((t, i) => (
           <div key={`${t.key}-${i}`} className="chat__pair">
@@ -430,6 +461,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
             </div>
           )}
 
+          <div className="chat__foot">
           <p className="builder__hint">
             {error ? (
               <span className="builder__error">{error}</span>
@@ -442,7 +474,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
             ) : fallback ? (
               `Leave it blank for: ${fallback}`
             ) : (
-              'Not sure yet? Skip it: I’ll ask later.'
+              ' '
             )}
           </p>
 
@@ -466,6 +498,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
                 Skip
               </button>
             )}
+          </div>
           </div>
         </form>
       )}

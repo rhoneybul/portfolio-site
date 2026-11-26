@@ -4198,6 +4198,55 @@ a.proof:hover .proof__arrow {
 .builder--chat {
   display: grid;
   gap: 18px;
+  max-width: 760px;
+}
+
+/* Before the chat: what it is, and what comes out of it. */
+.builder--intro {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+  max-width: 680px;
+}
+
+.intro__title {
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.intro__lead {
+  font-size: clamp(18px, 1.6vw, 21px);
+  line-height: 1.5;
+}
+
+.intro__subtitle {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.intro__list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.intro__list li {
+  padding-left: 18px;
+  border-left: 2px solid var(--accent);
+}
+
+.intro__start {
+  margin-top: 12px;
 }
 
 .chat {
@@ -4230,8 +4279,7 @@ a.proof:hover .proof__arrow {
 }
 
 .chat__msg--now {
-  border-color: var(--ink);
-  box-shadow: 4px 4px 0 var(--accent);
+  border-left: 3px solid var(--accent);
 }
 
 .chat__msg--you {
@@ -4332,20 +4380,57 @@ a.proof:hover .proof__arrow {
 }
 
 .chat__reply {
+  gap: 10px;
   padding-top: 6px;
 }
 
+/* The reply box, like any chat's: the field and Send in one bordered bar, kept in sight at the foot of the screen. */
 .chat__composer {
+  position: sticky;
+  bottom: 12px;
+  z-index: 2;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: flex-end;
   width: 100%;
+  padding: 6px 6px 6px 16px;
+  border: 1.5px solid var(--ink);
+  background: #fff;
+  box-shadow: 4px 4px 0 var(--accent);
 }
 
-.chat__composer textarea,
-.chat__composer input:not([type='color']) {
+.chat__composer:focus-within {
+  border-color: var(--accent);
+}
+
+.builder__ask .chat__composer textarea,
+.builder__ask .chat__composer input:not([type='color']) {
   flex: 1;
   min-width: 0;
+  padding: 10px 0;
+  border: 0;
+  font-size: 17px;
+  line-height: 1.45;
+  resize: none;
+}
+
+/* A long answer's box grows with what's typed (and its example), up to a third of the screen. */
+.builder__ask .chat__composer textarea {
+  field-sizing: content;
+  min-height: calc(2 * 1.45em + 20px);
+  max-height: 34vh;
+}
+
+.chat__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 20px;
+}
+
+.chat__foot .builder__nav {
+  margin-top: 0;
 }
 
 .chat__composer input[type='color'] {
@@ -4359,6 +4444,7 @@ a.proof:hover .proof__arrow {
 
 .chat__send {
   flex: none;
+  min-height: 44px;
 }
 
 @media (max-width: 520px) {
@@ -4367,9 +4453,8 @@ a.proof:hover .proof__arrow {
     font-size: 16px;
   }
 
-  .chat__composer:not(.chat__composer--colour) {
-    flex-direction: column;
-    align-items: stretch;
+  .chat__composer {
+    padding-left: 12px;
   }
 }
 
