@@ -1,6 +1,6 @@
 import {NextResponse} from 'next/server'
 import {QUESTIONS, resolveOptions, type Answers} from '@/app-builder/options'
-import {appLines, esc, toSlack} from '@/app-builder/slack'
+import {appRows, message, toSlack} from '@/app-builder/slack'
 import {saveSubmission, submissionsOn} from '@/app-builder/submissions'
 import {isPrototypeId} from '@/app-builder/prototypes'
 import {siteUrl} from '@/site-url'
@@ -29,6 +29,8 @@ export async function POST(request: Request) {
     contact?: {name?: string; email?: string; note?: string; notes?: string; website?: string}
     ref?: string
     prototype?: string
+    /** The build window sent again: details added or changed after the first message. */
+    again?: boolean
   } | null
   const event = body?.event as keyof typeof EVENTS
   if (!event || !(event in EVENTS)) return NextResponse.json({error: 'Unknown event.'}, {status: 400})
@@ -67,20 +69,26 @@ export async function POST(request: Request) {
   }
 
   const page = id ? `${siteUrl}/app-builder/submissions/${id}` : ''
-  await toSlack([
-    EVENTS[event],
-    ...(event === 'interest'
-      ? [
-          `*${esc(contact.name || 'No name given')}* · ${esc(contact.email)}`,
-          ...(contact.note ? [`> ${esc(contact.note)}`] : []),
-          ...(contact.notes ? [`*Their notes on the prototype:*`, ...contact.notes.split('\n').slice(0, 20).map((l) => `> ${esc(l)}`)] : []),
-        ]
-      : answers.email
-        ? [`From ${esc(answers.email)}`]
-        : []),
-    ...appLines(options, answers),
-    ...(answers.heard ? [`Heard about Fohm: ${esc(answers.heard)}`] : []),
-    ...(page ? [`<${page}|Open the submission>${prototype ? ` · <${page}/prototype|The prototype Claude drew>` : ' · _the quick sketch: Claude didn’t draw one_'} · <${page}/brief|The brief for Claude>`] : event === 'whatsapp' ? [] : [`_Not saved: ${esc(notSaved)}_`]),
-  ])
+  const who = contact.name || contact.email || answers.email || 'Someone'
+  const title = {
+    used: `:hammer_and_wrench: ${answers.email || 'Someone'} built ${options.name} in the app builder`,
+    whatsapp: `:speech_balloon: Someone tapped WhatsApp about ${options.name}`,
+    interest: body?.again ? `:pencil2: ${who} updated their details for ${options.name}` : `:raised_hand: ${who} wants to build ${options.name}`,
+  }[event]
+  const feedback = contact.notes.split('\n').filter(Boolean)
+  await toSlack(
+    message(
+      title,
+      [
+        ['Email', event === 'interest' ? contact.email : answers.email],
+        ['Their note', contact.note],
+        ['Feedback on screens', feedback.length ? `${feedback.slice(0, 3).join(' / ')}${feedback.length > 3 ? ` (+${feedback.length - 3} more in the submission)` : ''}` : ''],
+        ...appRows(options, answers),
+        ['Heard about Fohm', answers.heard],
+        ['Not saved', !page && event !== 'whatsapp' && notSaved],
+      ],
+      page ? [['Submission', page], ...(prototype ? ([['Prototype', `${page}/prototype`]] as [string, string][]) : []), ['Brief', `${page}/brief`]] : [],
+    ),
+  )
   return NextResponse.json({ok: true})
 }

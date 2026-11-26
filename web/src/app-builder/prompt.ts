@@ -74,6 +74,9 @@ export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl,
     o.nameSure === 'yes'
       ? `The name is final: ${o.name}.`
       : `The name isn't final: run the naming round first (reference/naming.md), in the direction above, and put **Name not final** on the checklist until I pick one.`,
+    ...(o.connects?.trim()
+      ? [`Connect to what my members already track with (${o.connects.trim()}): find each one's API and its terms, import what they've done with its source, and keep each off until its keys are set.`]
+      : []),
     o.logo === 'yes' ? 'I have a logo: ask me for the artwork and trace it into assets/brand/.' : 'I have no logo: run the logo round (the app-design skill’s reference/logo.md) once the name is settled.',
     o.photo
       ? `Lead the landing page, onboarding’s opening and Home’s goal card with this photo${o.photoCredit ? ` (${o.photoCredit}${/Pexels$/.test(o.photoCredit) ? ', under the Pexels licence' : ', from Wikimedia Commons'})` : ', once its licence or my permission is recorded'}: ${o.photo}`

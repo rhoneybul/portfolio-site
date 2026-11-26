@@ -11,7 +11,7 @@
 import {createHmac, timingSafeEqual} from 'node:crypto'
 import {put} from '@vercel/blob'
 import {submissionsOn} from '@/app-builder/submissions'
-import {appLines, esc} from '@/app-builder/slack'
+import {appRows, message, type Row} from '@/app-builder/slack'
 import {resolveOptions} from '@/app-builder/options'
 import {submissionOfRef} from '@/app-builder/submissions'
 import {siteUrl} from '@/site-url'
@@ -83,55 +83,57 @@ export type CalWebhook = {
 }
 
 const HEADINGS: Record<string, string> = {
-  BOOKING_CREATED: ':calendar: New call booked',
-  BOOKING_RESCHEDULED: ':arrows_counterclockwise: Call rescheduled',
+  BOOKING_CREATED: ':calendar: Call booked',
+  BOOKING_RESCHEDULED: ':arrows_counterclockwise: Call moved',
   BOOKING_CANCELLED: ':x: Call cancelled',
 }
 
-/** The Slack lines for a Cal.com webhook, or null for an event Slack needn't hear about. */
-export function webhookLines(body: CalWebhook): string[] | null {
+/** A booking in a few labelled rows, for Slack (slack.ts, message): who, when, and where it came from. */
+export interface Booking {
+  title: string
+  rows: Row[]
+}
+
+/** A Cal.com webhook as a booking, or null for an event Slack needn't hear about. */
+export function webhookBooking(body: CalWebhook): Booking | null {
   const heading = HEADINGS[body.triggerEvent ?? '']
   if (!heading) return null
   const p = body.payload ?? {}
   const who = p.attendees?.[0] ?? {}
   const note = p.additionalNotes || String(p.responses?.notes?.value ?? '')
-  return [
-    heading,
-    `*${esc(who.name || 'Someone')}*${who.email ? ` · ${esc(who.email)}` : ''}`,
-    [p.title && esc(p.title), whenOf(p.startTime)].filter(Boolean).join(' · '),
-    who.timeZone && `Their time zone: ${esc(who.timeZone)}`,
-    note && `> ${esc(note.slice(0, 600))}`,
-  ].filter(Boolean) as string[]
+  return {
+    title: `${heading}${whenOf(p.startTime) ? `: ${whenOf(p.startTime)}` : ''}`,
+    rows: [
+      ['Who', [who.name, who.email].filter(Boolean).join(' · ')],
+      ['Their time zone', who.timeZone],
+      ['Their note', note.slice(0, 600)],
+    ],
+  }
 }
 
-/** The Slack lines for a booking the embed told us of: no name or email, which only the webhook carries. */
-export function embedLines(b: {title?: unknown; startTime?: unknown; from?: unknown; page?: unknown}) {
-  const title = String(b.title ?? '').slice(0, 200)
+/** A booking the embed told us of: no name or email, which only Cal.com's webhook carries. */
+export function embedBooking(b: {startTime?: unknown; from?: unknown; page?: unknown}): Booking {
   const from = String(b.from ?? '').slice(0, 80)
   const page = String(b.page ?? '').slice(0, 120)
-  return [
-    ':calendar: New call booked through the website',
-    [title && esc(title), whenOf(b.startTime)].filter(Boolean).join(' · '),
-    (from || page) && `From ${esc(from || 'the site')}${page ? ` on ${esc(page)}` : ''}`,
-    'Who booked is in Cal.com (its webhook, when it’s sending, says who).',
-  ].filter(Boolean) as string[]
+  return {
+    title: `:calendar: Call booked${whenOf(b.startTime) ? `: ${whenOf(b.startTime)}` : ''}`,
+    rows: [['Booked from', (from || page) && `${from || 'the site'}${page ? ` on ${page}` : ''}`]],
+  }
 }
 
 /**
- * For a call booked from the app builder: the app they built and a link to their submission (its answers, the
- * prototype and the brief), found from the session's reference. Empty when it can't be found; a booking is never held
- * up by it.
+ * The Slack message for a booking, with the app they built when it came from the app builder (its
+ * answers and a link to their submission), found from the session's reference. A booking is never
+ * held up by the lookup.
  */
-export async function builderLines(ref: unknown): Promise<string[]> {
+export async function bookingMessage(booking: Booking, ref: unknown): Promise<string[]> {
   const submission = await submissionOfRef(String(ref ?? '')).catch((error) => {
     console.error('[booking] submission', error)
     return null
   })
-  if (!submission) return []
+  if (!submission) return message(booking.title, booking.rows)
   const page = `${siteUrl}/app-builder/submissions/${submission.id}`
-  return [
-    '*From the app builder*',
-    ...appLines(resolveOptions(submission.answers).options, submission.answers),
-    `<${page}|Open their submission> · <${page}/brief|The brief for Claude>`,
-  ]
+  const rows: Row[] = [...booking.rows, ...appRows(resolveOptions(submission.answers).options, submission.answers)]
+  if (!booking.rows.some(([label, v]) => label === 'Who' && v)) rows.unshift(['Who', [submission.contact?.name, submission.contact?.email ?? submission.answers.email].filter(Boolean).join(' · ')])
+  return message(booking.title, rows, [['Submission', page], ['Brief', `${page}/brief`]])
 }

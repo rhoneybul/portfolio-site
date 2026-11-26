@@ -43,7 +43,7 @@ export function BuildDialog({answers, prototype, name, accent, icon, tagline, bo
   const [error, setError] = useState<string | null>(null)
   const count = Object.keys(notes).length
 
-  const send = async () => {
+  const send = async (again = false) => {
     if (!EMAIL.test(contact.email.trim())) {
       setError('Your email, so Rob can get back to you.')
       return false
@@ -54,7 +54,7 @@ export function BuildDialog({answers, prototype, name, accent, icon, tagline, bo
       const res = await fetch('/api/builder-event', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({event: 'interest', answers, prototype, ref: builderRef, contact: {...contact, email: contact.email.trim(), notes: notesText(notes)}}),
+        body: JSON.stringify({event: 'interest', answers, prototype, ref: builderRef, again, contact: {...contact, email: contact.email.trim(), notes: notesText(notes)}}),
       })
       setState(res.ok ? 'sent' : 'failed')
       return res.ok
@@ -83,7 +83,7 @@ export function BuildDialog({answers, prototype, name, accent, icon, tagline, bo
     e.preventDefault()
     const first = state !== 'sent'
     sentOnce.current = true
-    if ((await send()) && !first) setUpdated(true)
+    if ((await send(!first)) && !first) setUpdated(true)
   }
 
   const field = (k: keyof typeof contact) => ({

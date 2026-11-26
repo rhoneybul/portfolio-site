@@ -1,6 +1,6 @@
 import {NextResponse} from 'next/server'
 import {toSlack} from '@/app-builder/slack'
-import {builderLines, claimBooking, embedLines} from '@/booking/booking'
+import {bookingMessage, claimBooking, embedBooking} from '@/booking/booking'
 
 /**
  * The booking embed saying a call was booked (components/book-call.tsx). Pings Slack unless
@@ -21,6 +21,6 @@ export async function POST(request: Request) {
   seen.set(key, Date.now())
   if (!(await claimBooking(key))) return NextResponse.json({ok: true})
 
-  await toSlack([...embedLines(body), ...(await builderLines(body.ref))])
+  await toSlack(await bookingMessage(embedBooking(body), body.ref))
   return NextResponse.json({ok: true})
 }

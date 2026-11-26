@@ -71,6 +71,7 @@ export const buildInput = z.object({
   doing: text(600).describe('What people should be doing in the app. The headline is written from it.'),
   nameSure: z.enum(['yes', 'no']).optional().describe('Whether they are sure of the name.'),
   interests: text(300).describe('What people are there for, a few words comma-separated: tiles in onboarding.'),
+  connects: text(300).describe('The apps or devices people already track with, comma-separated, e.g. "Concept2 Logbook, Garmin, Apple Health".').optional(),
   goals: text(300).describe('What people work towards: places, events or milestones, e.g. "Races: London Marathon, Hackney Half".'),
   content: text(600).describe('Links to videos, posts and courses they already publish.'),
   inspiration: text(300).describe('Apps they like the look of, comma-separated, e.g. Runna, Strava, Headspace.'),

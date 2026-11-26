@@ -38,6 +38,7 @@ export function factsOf(o: Options, raw: Answers) {
     line('The landing page headline', o.tagline),
     line('What people are here for (onboarding’s tiles)', raw.interests),
     line('What people work towards: places, events or trips', raw.goals),
+    line('The apps and devices people already track with (the app connects to them)', raw.connects),
     line('What the business already publishes (the library points at it)', raw.content),
     line('Apps the owner likes the look and feel of', o.inspiration),
     ...referencesIn(o.inspiration).map((r) => line(`What ${r.name} looks like, from its screens on Mobbin`, r.takes)),
@@ -83,6 +84,7 @@ The look:
 - canvas: ${CANVASES.join(' or ')}. corners: ${CORNERS.join(', ')} (round is soft and generous, square is crisp and editorial). home: ${HOMES.join(' or ')} (Home leads with a photo of the goal, or with the list of what's next).
 - type, one of: ${TYPES.map((t) => `${t} (${TYPE_FACES[t].about})`).join('; ')}.
 - icon: the app's own icon, its mark in the accent's square. shape: ${SHAPES.join(', ')}; a monogram gives 1 or 2 letters from the app's name. Choose what suits the name and the business, as a designer would.
+- Connections: design in the real services and devices this activity's members already record with: the ones the owner named, or, when they named none, the ones that exist for it (rowing: Concept2's Logbook and PM5, Garmin, Apple Health, Strava; running: Garmin, Strava, Apple Health; cycling: Garmin, Wahoo, Strava, Zwift). Name them: a Connect step in onboarding with each by name, what was done coming in with its real numbers (a 2k on the erg with its split, a run with its pace), the source shown on each, and a Connected list in Account. Leave them out only where nothing like that exists for the activity. Say which you chose in "decisions".
 - The apps the owner likes are the strongest guide: recall how each looks and feels (its canvas, type, corners, density, how its home and its sessions are laid out, its signature screens) and carry that into the look and the units' layouts, within the house style's family. Say what you took from each in "from". With none named, choose from the business, its audience and the photos.
 
 Rules:

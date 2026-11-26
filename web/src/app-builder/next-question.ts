@@ -17,6 +17,7 @@ const ORDER: {key: string; part: 1 | 2 | 3}[] = [
   {key: 'doing', part: 1},
   {key: 'interests', part: 2},
   {key: 'goals', part: 2},
+  {key: 'connects', part: 2},
   {key: 'content', part: 2},
   {key: 'inspiration', part: 3},
   {key: 'accent', part: 3},
@@ -33,7 +34,7 @@ export const FIRST = 'idea'
 export const LAST = 'email'
 
 /** Answers kept as a comma-separated list, where a suggestion adds itself rather than replacing the answer. */
-export const LISTS = new Set(['interests', 'goals', 'inspiration', 'content'])
+export const LISTS = new Set(['interests', 'goals', 'connects', 'inspiration', 'content'])
 
 /** Rows Claude may never skip: the anchors, and what the app can't be drawn without. */
 const UNSKIPPABLE = new Set([FIRST, LAST, 'name'])
