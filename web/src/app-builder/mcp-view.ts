@@ -11,7 +11,7 @@ import {HOUSE, iconMarkCss} from './prototype-doc'
 export const BRIDGE_PATH = '/mcp/ext-apps-2.0.4.js'
 
 /** The origins the view loads from: the bridge, the photos and the prototype's fonts. */
-export const viewDomains = (site: string) => [site, 'https://upload.wikimedia.org', 'https://fonts.googleapis.com', 'https://fonts.gstatic.com']
+export const viewDomains = (site: string) => [site, 'https://images.pexels.com', 'https://upload.wikimedia.org', 'https://fonts.googleapis.com', 'https://fonts.gstatic.com']
 
 export function viewHtml(site: string) {
   return `<!doctype html>

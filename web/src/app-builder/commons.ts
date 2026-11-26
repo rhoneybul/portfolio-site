@@ -71,8 +71,15 @@ async function query(gsrsearch: string): Promise<Found[]> {
 }
 
 
-/** Open-licence photos for a search: big JPEGs (photos, not logos or diagrams) first, any bitmap if there are none. */
+/**
+ * Open-licence photos for a search: Commons' Quality images first (photos its reviewers judged
+ * technically excellent, so far fewer phone snaps of a boat shed), then big JPEGs (photos, not
+ * logos or diagrams), then any bitmap if there are none.
+ */
 export async function searchCommons(q: string): Promise<Found[]> {
-  const photos = await query(`filetype:bitmap filemime:jpeg filew:>1300 ${q}`).catch(() => [])
+  // One at a time (Commons rate-limits hard), and the second only when the best don't fill the grid.
+  const best = await query(`hastemplate:"QualityImage" filetype:bitmap filemime:jpeg ${q}`).catch(() => [])
+  const big = best.length >= 12 ? [] : await query(`filetype:bitmap filemime:jpeg filew:>1300 ${q}`).catch(() => [])
+  const photos = [...best, ...big].filter((p, i, all) => all.findIndex((x) => x.url === p.url) === i).slice(0, 12)
   return photos.length ? photos : query(`filetype:bitmap ${q}`)
 }

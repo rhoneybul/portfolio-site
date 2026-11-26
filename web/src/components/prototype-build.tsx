@@ -1,7 +1,8 @@
 'use client'
 
 import {useEffect, useRef, useState, type CSSProperties} from 'react'
-import {Mark, goalsOf, type Pic} from '@/components/app-prototype'
+import {goalsOf, type Pic} from '@/components/app-prototype'
+import {AppIcon} from '@/components/app-icon'
 import {ideasFor, search} from '@/components/photo-search'
 import {PrototypeThumb} from '@/components/prototype-frame'
 import type {Answers, Options} from '@/app-builder/options'
@@ -185,7 +186,7 @@ export function PrototypeBuild({
   const steps: [string, string, boolean, boolean][] = [
     [
       'Finding photos',
-      stage === 'photos' ? 'Searching Wikimedia Commons for open-licence photos that fit what you told us' : `${photoCount ? `${photoCount} photos found` : 'No photos found, so Claude draws without them'}, in ${tookFor('photos', 'planning')}`,
+      stage === 'photos' ? 'Searching for free-to-use photos that fit what you told us' : `${photoCount ? `${photoCount} photos found` : 'No photos found, so Claude draws without them'}, in ${tookFor('photos', 'planning')}`,
       stage !== 'photos',
       stage === 'photos',
     ],
@@ -211,7 +212,7 @@ export function PrototypeBuild({
     <div className="builder building" style={{'--x-accent': options.accent} as CSSProperties}>
       <header className="ready">
         <span className="ready__mark">
-          <Mark size={56} />
+          <AppIcon name={options.name} accent={options.accent} icon={job?.look.style?.icon} />
         </span>
         <div>
           <span className="label">Claude is designing your app</span>

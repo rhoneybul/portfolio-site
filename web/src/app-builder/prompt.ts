@@ -76,7 +76,7 @@ export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl,
       : `The name isn't final: run the naming round first (reference/naming.md), in the direction above, and put **Name not final** on the checklist until I pick one.`,
     o.logo === 'yes' ? 'I have a logo: ask me for the artwork and trace it into assets/brand/.' : 'I have no logo: run the logo round (the app-design skill’s reference/logo.md) once the name is settled.',
     o.photo
-      ? `Lead the landing page, onboarding’s opening and Home’s goal card with this photo${o.photoCredit ? ` (${o.photoCredit}, from Wikimedia Commons)` : ', once its licence or my permission is recorded'}: ${o.photo}`
+      ? `Lead the landing page, onboarding’s opening and Home’s goal card with this photo${o.photoCredit ? ` (${o.photoCredit}${/Pexels$/.test(o.photoCredit) ? ', under the Pexels licence' : ', from Wikimedia Commons'})` : ', once its licence or my permission is recorded'}: ${o.photo}`
       : 'Find open-licence photos for every slot (reference/photos.md).',
     `It’s ${o.kind === 'game' ? 'a game' : o.coach === 'yes' ? 'programs to follow, and a real person who answers people: both' : 'programs to follow, with nobody pretending to be a coach'}.`,
   ]

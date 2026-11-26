@@ -19,7 +19,7 @@ const SECTIONS: [string, string[]][] = [
     [
       'Your answers about your app (its name, what it does, who it’s for, your business, your colour and the like), and where you’re based if you say.',
       'Your email address, which you give before your app is designed.',
-      'The prototype designed for you, and the photos chosen for it from Wikimedia Commons.',
+      'The prototype designed for you, and the photos chosen for it from Wikimedia Commons and Pexels.',
       'If you ask to build it with us: your name, email and any note you add, and a call you book.',
       'From an AI assistant, only what it sends to the builder’s tools: never the rest of your conversation.',
     ],
@@ -41,7 +41,7 @@ const SECTIONS: [string, string[]][] = [
     'In an AI assistant',
     [
       'The builder’s tools receive only what the assistant sends them: your answers to its questions, your email, and, if you ask to be contacted, your name and a note. It never reads your conversation, the assistant’s memory, your chat history or your files.',
-      'It sets no cookies and does no tracking in the assistant. The prototype shown there loads its photos from Wikimedia Commons and its fonts from Google Fonts.',
+      'It sets no cookies and does no tracking in the assistant. The prototype shown there loads its photos from Wikimedia Commons and Pexels and its fonts from Google Fonts.',
     ],
   ],
   [

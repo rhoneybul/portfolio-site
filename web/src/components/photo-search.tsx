@@ -8,7 +8,7 @@ import type {Found} from '@/app-builder/commons'
 export type {Found}
 
 /**
- * Finds photos for the visitor's app on Wikimedia Commons from what they've told us about it: a
+ * Finds photos for the visitor's app (Pexels and Wikimedia Commons) from what they've told us about it: a
  * few searches picked from their answers (/api/photo-ideas), a few photos from each to choose
  * from (/api/photos, open licences only: app-builder/commons.ts), and their own words or a link to
  * their own if none fit.
@@ -21,8 +21,13 @@ export type {Found}
 export async function search(q: string): Promise<Found[]> {
   const res = await fetch(`/api/photos?q=${encodeURIComponent(q.trim().slice(0, 80))}`)
   if (!res.ok) throw new Error(`Photo search: ${res.status}`)
-  return ((await res.json()) as {photos?: Found[]}).photos ?? []
+  const body = (await res.json()) as {photos?: Found[]; sources?: string[]}
+  if (body.sources?.length) sources = body.sources
+  return body.photos ?? []
 }
+
+// Where the last search's photos came from, for the note under them.
+let sources = ['Wikimedia Commons']
 
 // One browser tab's memory: the photo step and the finished app ask once for the same answers.
 const asked = new Map<string, Promise<string[]>>()
@@ -169,7 +174,7 @@ export function PhotoSearch({answers, value, onChange}: {answers: Answers; value
           ))}
         </div>
       )}
-      <p className="photos__credit">{value && !own && chosen ? chosen.credit : 'Photos from Wikimedia Commons, open licences only.'}</p>
+      <p className="photos__credit">{value && !own && chosen ? chosen.credit : `Free-to-use photos from ${sources.join(' and ')}, each credited.`}</p>
 
       <label className="photos__own">
         <span>Or a link to your own</span>

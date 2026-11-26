@@ -2,7 +2,8 @@
 
 import {useEffect, useRef, useState, type CSSProperties, type FormEvent} from 'react'
 import {Arrow} from '@/components/arrow'
-import {Mark, goalsOf, type Pic} from '@/components/app-prototype'
+import {goalsOf, type Pic} from '@/components/app-prototype'
+import {AppIcon} from '@/components/app-icon'
 import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
@@ -232,7 +233,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
       <div className={`builder builder--built ${className ?? ''}`} ref={top}>
         <header className="ready" style={{'--x-accent': options.accent} as CSSProperties}>
           <span className="ready__mark">
-            <Mark size={56} />
+            <AppIcon name={options.name} accent={options.accent} icon={app?.look.style?.icon} />
           </span>
           <div>
             <span className="label">{app ? 'Your app, designed by Claude' : 'Your app, as a quick sketch'}</span>
