@@ -122,7 +122,10 @@ export function cleanTurn(raw: unknown, answers: Answers, done: readonly string[
   const ask = plain(r.ask, 160) || q.ask
   const why = plain(r.why, 220) || q.why
   const typed = !q.choices && !q.suggestions && key !== 'photo' && key !== 'accent'
-  const suggestions = typed && Array.isArray(r.suggestions) ? r.suggestions.map((s) => plain(s, 60)).filter(Boolean).slice(0, 4) : []
+  // On a comma-separated answer each pick is one item, so several can be picked: "Erg scores, 2k times" is two.
+  const picks = typed && Array.isArray(r.suggestions) ? r.suggestions.map((s) => plain(s, 60)).filter(Boolean) : []
+  const items = LISTS.has(key) ? picks.flatMap((s) => s.split(',').map((x) => x.trim()).filter(Boolean)) : picks
+  const suggestions = items.filter((s, i) => items.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i).slice(0, LISTS.has(key) ? 6 : 4)
   const prefill = cleanPrefill(q, r.prefill)
   const skip = Array.isArray(r.skip)
     ? r.skip.filter((k): k is string => typeof k === 'string' && k !== key && rows.includes(k) && !UNSKIPPABLE.has(k) && !questionOf(k).required)

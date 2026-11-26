@@ -28,7 +28,7 @@ Choose:
 Word it:
 - "ask": the row's question reworded in their world, using their words (their sport, their members, their business). One short question, plain English, no emoji, under 120 characters.
 - "why": one short line on why it's asked or what it becomes, under 160 characters.
-- "suggestions": three or four short example answers tailored to their app (a few words each), only for rows answered by typing that don't have their own suggestions.
+- "suggestions": three or four short example answers tailored to their app (a few words each), only for rows answered by typing that don't have their own suggestions. For a row answered as a comma-separated list, give four to six, each a single item with no comma (they can pick several).
 
 Reply with JSON only:
 {"key": "doing", "ask": "...", "why": "...", "suggestions": ["...", "..."], "prefill": "...", "skip": ["content"]}

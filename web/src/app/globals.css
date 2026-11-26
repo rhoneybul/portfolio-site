@@ -4276,9 +4276,20 @@ a.proof:hover .proof__arrow {
 
 /* The app builder as a chat: Claude's questions on the left, the visitor's answers on the right, the options to tap under the newest question. */
 .builder--chat {
-  display: grid;
-  gap: 18px;
+  /* A chat window of a fixed height: the conversation scrolls inside it, the reply sits at its foot, and the page stays put. */
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   max-width: 760px;
+  height: min(820px, calc(100svh - 32px));
+  min-height: 460px;
+  padding: clamp(14px, 2vw, 22px);
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.builder--chat > .builder__sections {
+  flex: none;
 }
 
 /* Before the chat: what it is, and what comes out of it. */
@@ -4331,7 +4342,13 @@ a.proof:hover .proof__arrow {
 
 .chat {
   display: grid;
+  flex: 1;
+  align-content: start;
   gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 4px 2px 0;
 }
 
 .chat__pair {
@@ -4460,15 +4477,18 @@ a.proof:hover .proof__arrow {
 }
 
 .chat__reply {
+  flex: none;
   gap: 10px;
-  padding-top: 6px;
+  max-height: 55%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Room for the composer's offset shadow, which the scroll would clip. */
+  padding: 10px 6px 6px 0;
+  border-top: 1px solid var(--line);
 }
 
-/* The reply box, like any chat's: the field and Send in one bordered bar, kept in sight at the foot of the screen. */
+/* The reply box, like any chat's: the field and Send in one bordered bar, at the foot of the chat's window. */
 .chat__composer {
-  position: sticky;
-  bottom: 12px;
-  z-index: 2;
   display: flex;
   gap: 8px;
   align-items: flex-end;
