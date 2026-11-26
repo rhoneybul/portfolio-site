@@ -13,7 +13,7 @@ import {QUESTIONS, emptyAnswers, resolveOptions, type Answers, type Question, ty
 import {REFERENCES} from '@/app-builder/references'
 import {schemeById, schemesFor} from '@/app-builder/schemes'
 import {onAccent} from '@/app-builder/options'
-import {RefSketch} from '@/components/ref-sketch'
+import {RefPicture} from '@/components/ref-picture'
 import {LAST, LISTS, PARTS, fallbackNext, needsClaude, totalQuestions, type Next, type Turn} from '@/app-builder/next-question'
 
 /**
@@ -283,6 +283,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   const value = answers[q.key] ?? ''
   const fallback = value.trim() ? '' : `${options[q.key] ?? ''}`
   const suggestions = turn.suggestions ?? q.suggestions
+  // Several picks or one: Claude says which for its own picks, a list row's are several.
+  const several = turn.suggestions ? (turn.multi ?? LISTS.has(q.key)) : LISTS.has(q.key)
   const prefilled = Boolean(turn.prefill) && value === turn.prefill
   const chosen = value
     .split(',')
@@ -401,7 +403,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
                       aria-pressed={on}
                       onClick={() => set((on ? chosen.filter((x) => x.toLowerCase() !== r.name.toLowerCase()) : [...chosen, r.name]).join(', '))}
                     >
-                      <RefSketch name={r.name} />
+                      <RefPicture name={r.name} />
                       <strong>{r.name}</strong>
                       <span>{r.look}</span>
                     </button>
@@ -413,9 +415,9 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
               })}
             </ul>
           ) : suggestions && (
-            <div className="builder__picks" role="group" aria-label="Pick from these">
+            <div className="builder__picks" role="group" aria-label={several ? 'Pick any of these' : 'Pick one of these'}>
               {suggestions.map((s) => {
-                const list = LISTS.has(q.key)
+                const list = several
                 const on = list ? chosen.some((x) => x.toLowerCase() === s.toLowerCase()) : value.trim().toLowerCase() === s.toLowerCase()
                 return (
                   <button
@@ -527,8 +529,10 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
               'Filled in from what you’ve told me: change it if it’s not right, then send.'
             ) : q.choices && !q.multi ? (
               'Tap one to answer.'
-            ) : suggestions && LISTS.has(q.key) && !value.trim() ? (
+            ) : suggestions && several && !value.trim() ? (
               'Pick as many as you like, or type your own, then send.'
+            ) : suggestions && !value.trim() ? (
+              'Tap one to answer, or type your own.'
             ) : value.trim() || q.choices ? (
               ' '
             ) : fallback ? (
@@ -608,7 +612,7 @@ const questionOf = (key: string) => QUESTIONS.find((q) => q.key === key) as Ques
 const firstTurns = (): Turn[] => [fallbackNext(emptyAnswers(), []) as Turn]
 
 /** How long Claude gets to choose before the fixed order's next question is shown instead. */
-const CHOOSING = 14_000
+const CHOOSING = 26_000
 
 /**
  * The next question: Claude's pick (/api/builder/next) when there's a choice to make, else the

@@ -1601,6 +1601,23 @@ a.proof:hover .proof__arrow {
   display: block;
 }
 
+.builder__ref .ref-shots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.ref-shots img {
+  display: block;
+  width: 62px;
+  height: auto;
+  aspect-ratio: 392 / 848;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #f1f1f3;
+}
+
 .builder__shuffle {
   flex: none;
   min-height: 44px;
@@ -4005,6 +4022,91 @@ a.proof:hover .proof__arrow {
   max-width: 60ch;
   font-size: 15px;
   color: var(--muted);
+}
+
+.building__logos {
+  display: grid;
+  gap: 12px;
+}
+
+.building__logos-head {
+  display: grid;
+  gap: 2px;
+}
+
+.building__logos-head strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.building__logos-head span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.building__logos ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.building__logos button {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.building__logos button .app-icon {
+  margin-bottom: 6px;
+}
+
+.building__logos button.is-on {
+  border-color: var(--x-accent, var(--ink));
+  box-shadow: 0 0 0 1px var(--x-accent, var(--ink));
+}
+
+.building__logos button strong {
+  font-size: 15px;
+}
+
+.building__logos button span:not(.app-icon) {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.building__logo-blank {
+  display: block;
+  height: 132px;
+  border-radius: 14px;
+  background: var(--line);
+  animation: building-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes building-blink {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .building__logo-blank {
+    animation: none;
+  }
 }
 
 .building__steps {
