@@ -6,7 +6,7 @@
  * sends it to Fohm (contact_fohm). The host bridge is served from the site, not a CDN.
  */
 
-import {RING_PATH} from './prototype-doc'
+import {HOUSE, iconMarkCss} from './prototype-doc'
 
 export const BRIDGE_PATH = '/mcp/ext-apps-2.0.4.js'
 
@@ -21,7 +21,7 @@ export function viewHtml(site: string) {
 @media (prefers-color-scheme:dark){:root{--ink:#f2f2f4;--muted:#a6a6b0;--line:#33333a;--card:#1c1c20;--canvas:#141417}}
 *{box-sizing:border-box}html,body{margin:0;background:transparent;color:var(--ink);font-size:14px;line-height:1.45}
 .wrap{max-width:720px;margin:0 auto;padding:16px;display:grid;gap:16px}
-.head{display:flex;align-items:flex-start;gap:12px}.head h1{margin-top:1px}.icon{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:var(--accent);color:var(--on-accent,#fff);flex:none}.icon svg{width:26px;height:26px}
+.head{display:flex;align-items:flex-start;gap:12px}.head h1{margin-top:1px}.icon{display:grid;place-items:center;width:40px;height:40px;font-size:40px;border-radius:11px;background:var(--accent);color:var(--on-accent,#fff);flex:none;overflow:hidden}
 .head h1{font-size:18px;margin:0}.head p{margin:2px 0 0;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
 .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:10px 0 4px}.bar span{display:block;height:100%;background:var(--accent);transition:width .6s}
@@ -37,9 +37,9 @@ form{display:grid;gap:10px}label{display:grid;gap:4px;font-size:13px;color:var(-
 input,textarea{font:inherit;color:var(--ink);background:var(--canvas);border:1px solid var(--line);border-radius:10px;padding:10px;width:100%}
 .note{color:var(--muted);font-size:13px;margin:0}.err{color:#b3261e;font-size:13px;margin:0}[hidden]{display:none!important}
 h2{font-size:16px;margin:0 0 4px}
-</style></head><body>
+</style><style id="iconcss">${iconMarkCss('.icon::after', HOUSE.icon)}</style></head><body>
 <div class="wrap">
-  <div class="head"><span class="icon"><svg viewBox="192 192 640 640" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="${RING_PATH}"/></svg></span><div><h1 id="name">Your app</h1><p id="line">Starting…</p></div></div>
+  <div class="head"><span class="icon" aria-hidden="true"></span><div><h1 id="name">Your app</h1><p id="line">Starting…</p></div></div>
   <div class="card" id="building" hidden>
     <strong id="left">Claude is designing every screen</strong>
     <div class="bar"><span id="fill" style="width:5%"></span></div>
@@ -100,6 +100,7 @@ async function look() {
   if (!s) { timer = setTimeout(look, 8000); return }
   document.documentElement.style.setProperty('--accent', s.accent || '#2F6B4F')
   document.documentElement.style.setProperty('--on-accent', s.onAccent || '#fff')
+  if (typeof s.iconCss === 'string') $('iconcss').textContent = s.iconCss
   $('name').textContent = s.name || 'Your app'
   url = s.url || url; show('open', Boolean(url)); show('contact', true)
   if (s.status === 'done' && s.html) {

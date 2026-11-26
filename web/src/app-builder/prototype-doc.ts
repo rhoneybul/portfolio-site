@@ -19,6 +19,8 @@ export interface Unit {
   steps: number
   /** What it shows, for Claude: the content, the copy's gist, which photo. */
   shows: string
+  /** How it's arranged, for Claude: what leads, what follows, the layout patterns it uses. Plans from before it had none. */
+  layout?: string
   /** The units its buttons and links lead to. */
   links: string[]
 }
@@ -31,6 +33,8 @@ export interface Plan {
   world: string[]
   tabs: {label: string; to: string}[]
   units: Unit[]
+  /** The look Claude chose (copied onto the job's look); plans from before it had none. */
+  style?: Style
 }
 
 export interface Photo {
@@ -43,7 +47,30 @@ export interface Photo {
 export interface Look {
   name: string
   accent: string
+  /** The look Claude chose for this app (prototype.ts, parseStyle); prototypes from before it had none, and get the house's. */
+  style?: Style
 }
+
+/** The variations a prototype may take within the house style's family, chosen by Claude from the answers and the apps the owner likes. */
+export const CANVASES = ['light', 'dark'] as const
+export const CORNERS = ['round', 'soft', 'square'] as const
+export const TYPES = ['grotesk', 'serif', 'clean', 'rounded'] as const
+export const HOMES = ['photo', 'list'] as const
+export const SHAPES = ['monogram', 'ring', 'arch', 'peak', 'bars', 'leaf'] as const
+
+export interface Style {
+  canvas: (typeof CANVASES)[number]
+  corners: (typeof CORNERS)[number]
+  type: (typeof TYPES)[number]
+  /** Whether Home leads with a photo or with the list of what's next. */
+  home: (typeof HOMES)[number]
+  icon: {shape: (typeof SHAPES)[number]; letters: string}
+  /** What it took from the apps the owner likes, one line each, for the owner and the screens' designers. */
+  from: string[]
+}
+
+/** The house style as it was before the looks: what an older prototype is drawn in. */
+export const HOUSE: Style = {canvas: 'light', corners: 'soft', type: 'grotesk', home: 'photo', icon: {shape: 'ring', letters: ''}, from: []}
 
 /** Everything a prototype is drawn from: signed by the server that planned it (prototype.ts). */
 export interface Job {
@@ -62,27 +89,68 @@ export interface Drawn {
 
 export const SIZE: Record<Frame, {w: number; h: number}> = {phone: {w: 390, h: 844}, laptop: {w: 1280, h: 800}}
 
-const FONTS = 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Space+Grotesk:wght@500;600&display=swap'
+/** The font pairings: a display face for titles and figures, a text face for the rest, each from Google Fonts. */
+export const TYPE_FACES: Record<Style['type'], {display: string; text: string; families: string; about: string}> = {
+  grotesk: {display: 'Space Grotesk', text: 'DM Sans', families: 'family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Space+Grotesk:wght@500;600', about: 'Space Grotesk and DM Sans: technical and sporty, the house pairing'},
+  serif: {display: 'Fraunces', text: 'DM Sans', families: 'family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,500;9..144,600', about: 'Fraunces and DM Sans: editorial and calm, a serif for titles'},
+  clean: {display: 'Inter Tight', text: 'Inter', families: 'family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600', about: 'Inter Tight and Inter: neutral, dense and data-led'},
+  rounded: {display: 'Nunito', text: 'Nunito Sans', families: 'family=Nunito:wght@600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600', about: 'Nunito and Nunito Sans: soft, friendly and playful'},
+}
+
+const fontsUrl = (type: Style['type']) => `https://fonts.googleapis.com/css2?${TYPE_FACES[type].families}&display=swap`
+
+const CANVAS: Record<Style['canvas'], string> = {
+  light: '--bg:#F2F2F6;--surface:#FFFFFF;--raised:#F4F4F7;--track:#E6E6EB;--line:#E3E3E9;--ink:#111113;--on-ink:#FFFFFF;--mid:#4A4A52;--faint:#5F6672;--shadow:rgba(17,17,19,.14)',
+  dark: '--bg:#0E0E10;--surface:#1B1B1F;--raised:#24242A;--track:#2E2E35;--line:#2C2C33;--ink:#F2F2F6;--on-ink:#111113;--mid:#B9B9C3;--faint:#9A9AA6;--shadow:rgba(0,0,0,.5)',
+}
+
+/** The corners: cards, tiles, small things (thumbs, fields), the buttons, and a hero's lower edge. */
+const RADII: Record<Style['corners'], string> = {
+  round: '--r-card:28px;--r-tile:24px;--r-sm:16px;--r-field:18px;--r-pill:999px;--r-hero:36px',
+  soft: '--r-card:20px;--r-tile:18px;--r-sm:12px;--r-field:14px;--r-pill:999px;--r-hero:28px',
+  square: '--r-card:6px;--r-tile:6px;--r-sm:4px;--r-field:4px;--r-pill:8px;--r-hero:0px',
+}
 
 /** The app's mark, a ring (the one the website's deck shows as every app's icon: components/app-prototype.tsx's Mark), on a 640 square from 192. */
 export const RING_PATH =
   'M 192 512 A 320 320 0 1 0 832 512 A 320 320 0 1 0 192 512 Z M 262 512 A 250 250 0 1 0 762 512 A 250 250 0 1 0 262 512 Z M 402 512 A 110 110 0 1 0 622 512 A 110 110 0 1 0 402 512 Z'
 
 
-/** The ring drawn in CSS alone, in the current colour (no image, so no host's content policy can block it): the dot, a gap, the ring. */
-const RING_CSS = 'radial-gradient(circle closest-side,currentColor 0 34%,transparent 35% 77.5%,currentColor 78.5% 99%,transparent 100%)'
+/**
+ * The app's icon's mark, drawn in CSS alone on the selector given (a ::after), in the current
+ * colour: no image, so no host's content policy can block it. The monogram is its letters, the
+ * others a shape. Used by the prototype's kit and the chat's view (mcp-view.ts).
+ */
+export function iconMarkCss(sel: string, icon: Style['icon']) {
+  const base = `${sel}{content:'';display:block;background:currentColor}`
+  switch (icon.shape) {
+    case 'monogram':
+      return `${sel}{content:'${icon.letters.replace(/[^A-Za-z0-9&]/g, '').slice(0, 2) || '?'}';display:block;font:600 .5em/1 var(--d,system-ui);letter-spacing:-.02em;background:none}`
+    case 'arch':
+      return `${base}${sel}{width:60%;height:52%;margin-top:8%;border-radius:999px 999px 3px 3px}`
+    case 'peak':
+      return `${base}${sel}{width:66%;height:58%;clip-path:polygon(50% 0,100% 100%,0 100%)}`
+    case 'bars':
+      return `${base}${sel}{width:56%;height:58%;background:repeating-linear-gradient(currentColor 0 22%,transparent 22% 39%)}`
+    case 'leaf':
+      return `${base}${sel}{width:56%;height:56%;border-radius:0 100% 0 100%}`
+    default:
+      return `${base}${sel}{width:64%;height:64%;background:radial-gradient(circle closest-side,currentColor 0 34%,transparent 35% 77.5%,currentColor 78.5% 99%,transparent 100%)}`
+  }
+}
 
 const escAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
 /** The kit: every class a screen may use. Claude is told these and only these (prototype.ts, KIT). */
-export function kitCss(accent: string) {
+export function kitCss(accent: string, style: Style = HOUSE) {
   const a = /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#2F6B4F'
   const lifted = liftedAccent(a)
+  const faces = TYPE_FACES[style.type]
   return `
-:root{--bg:#F2F2F6;--surface:#FFFFFF;--raised:#F4F4F7;--track:#E6E6EB;--line:#E3E3E9;--ink:#111113;--mid:#4A4A52;--faint:#5F6672;
+:root{${CANVAS[style.canvas]};${RADII[style.corners]};
 --accent:${a};--on-accent:${onAccent(a)};--accent-soft:${soften(a)};--dash-accent:${lifted};--on-dash:${onAccent(lifted)};--needs-you:${needsYou(a)};
 --g-bg:#111113;--g-side:#0B0B0D;--g-card:#1C1C20;--g-line:#2A2A30;--g-text:#F2F2F6;--g-mid:#A3A3AD;
---d:'Space Grotesk',system-ui,sans-serif;--t:'DM Sans',system-ui,sans-serif}
+--d:'${faces.display}',system-ui,sans-serif;--t:'${faces.text}',system-ui,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font:400 16px/1.45 var(--t);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
@@ -118,30 +186,35 @@ li{list-style:none}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .scroll-x{display:flex;gap:12px;overflow-x:auto;padding:0 20px;scrollbar-width:none}
 .scroll-x>*{flex:none;width:240px}
-.card{background:var(--surface);border-radius:20px;padding:16px}
-.list{background:var(--surface);border-radius:20px;overflow:hidden}
+.scroll-x.sm>*{width:150px}
+.scroll-x.lg>*{width:300px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.center{text-align:center;justify-items:center}
+.card{background:var(--surface);border-radius:var(--r-card);padding:16px}
+.list{background:var(--surface);border-radius:var(--r-card);overflow:hidden}
 .row{display:flex;align-items:center;gap:14px;padding:12px 16px;min-height:64px}
 .list>.row+.row{border-top:1px solid var(--line)}
 .grow{flex:1;min-width:0}
 .t{font:500 16px/1.3 var(--t)}
 .s{font-size:13px;line-height:1.35;color:var(--faint)}
-.chev::after{content:'';flex:none;width:8px;height:8px;margin-right:4px;border-right:2px solid var(--faint);border-top:2px solid var(--faint);transform:rotate(45deg)}
-.thumb{width:56px;height:56px;border-radius:12px;object-fit:cover;background:var(--track);flex:none}
+.chev::after{content:'';display:block;flex:none;width:8px;height:8px;margin-right:4px;border-right:2px solid var(--faint);border-top:2px solid var(--faint);transform:rotate(45deg)}
+.thumb{width:56px;height:56px;border-radius:var(--r-sm);object-fit:cover;background:var(--track);flex:none}
 .hero{width:100%;height:340px;object-fit:cover;background:var(--track)}
-.hero.round{border-radius:0 0 28px 28px}
-.photo-card{display:block;background:var(--surface);border-radius:20px;overflow:hidden}
+.hero.round{border-radius:0 0 var(--r-hero) var(--r-hero)}
+.photo-card{display:block;background:var(--surface);border-radius:var(--r-card);overflow:hidden}
 .photo-card img{width:100%;height:180px;object-fit:cover;background:var(--track)}
+.photo-card.tall img{height:300px}
 .photo-card .in{padding:14px 16px;display:grid;gap:4px}
 .credit{font-size:11px;line-height:1.3;color:var(--faint)}
-.app-icon{display:inline-grid;place-items:center;flex:none;width:44px;height:44px;border-radius:12px;background:var(--accent)}
+.app-icon{display:inline-grid;place-items:center;flex:none;width:44px;height:44px;font-size:44px;border-radius:calc(var(--r-sm) * .9 + 2px);background:var(--accent);overflow:hidden}
 .app-icon{color:var(--on-accent)}
-.app-icon::after{content:'';width:64%;height:64%;background:${RING_CSS}}
-.app-icon.sm{width:32px;height:32px;border-radius:9px}
-.app-icon.lg{width:76px;height:76px;border-radius:18px}
+${iconMarkCss('.app-icon::after', style.icon)}
+.app-icon.sm{width:32px;height:32px;font-size:32px;border-radius:calc(var(--r-sm) * .7 + 1px)}
+.app-icon.lg{width:76px;height:76px;font-size:76px;border-radius:calc(var(--r-sm) * 1.5)}
 .hero-top{position:relative}
 .hero-top>.over{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:52px 20px 32px;color:#fff;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0))}
 .hero-top>.over .link{color:#fff}
-.screen.cover{padding:0;background:var(--ink);color:#fff;overflow:hidden}
+.screen.cover{padding:0;background:#111113;color:#fff;overflow:hidden}
 .screen.cover.is-on{display:flex;flex-direction:column;justify-content:flex-end;gap:16px;min-height:844px;padding:0 0 36px}
 .cover>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .screen.cover::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 42%,rgba(0,0,0,.82) 78%)}
@@ -149,7 +222,7 @@ li{list-style:none}
 .cover>.over{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:52px 20px 0}
 .cover .lead,.cover .mid,.cover .small,.cover .s,.cover .credit{color:rgba(255,255,255,.8)}
 .cover .link{color:#fff}
-.cover .pill{background:#fff;color:var(--ink)}
+.cover .pill{background:#fff;color:#111113}
 .cover .dots i{background:rgba(255,255,255,.35)}
 .cover .dots i.on{background:#fff}
 .cover .foot{position:static;padding:0 20px;background:none}
@@ -157,48 +230,48 @@ li{list-style:none}
 .avatar.lg{width:88px;height:88px}
 .initials{display:inline-grid;place-items:center;font:600 15px var(--d);color:var(--mid);background:var(--track)}
 .avatar.lg.initials{font-size:28px}
-.pill{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;height:58px;padding:0 9px 0 24px;border-radius:999px;background:var(--ink);color:#fff;font:600 16px var(--d)}
-.disc{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--accent);color:var(--on-accent);flex:none}
+.pill{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;height:58px;padding:0 9px 0 24px;border-radius:var(--r-pill);background:var(--ink);color:var(--on-ink);font:600 16px var(--d)}
+.disc{display:grid;place-items:center;width:40px;height:40px;border-radius:calc(var(--r-pill) - 4px);background:var(--accent);color:var(--on-accent);flex:none}
 .disc::after{content:'';width:9px;height:9px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:translateX(-2px) rotate(45deg)}
-.quiet{display:flex;align-items:center;justify-content:center;width:100%;height:52px;border-radius:999px;background:var(--raised);font:600 15px var(--d)}
+.quiet{display:flex;align-items:center;justify-content:center;width:100%;height:52px;border-radius:var(--r-pill);background:var(--raised);font:600 15px var(--d)}
 .link{font:500 15px var(--t);text-decoration:underline;text-underline-offset:3px}
-.foot{position:fixed;left:0;right:0;bottom:0;padding:16px 20px 30px;background:linear-gradient(rgba(242,242,246,0),var(--bg) 28%);display:grid;gap:10px}
+.foot{position:fixed;left:0;right:0;bottom:0;padding:16px 20px 30px;background:linear-gradient(transparent,var(--bg) 28%);display:grid;gap:10px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:999px;background:var(--raised);font:500 14px var(--t);color:var(--ink)}
-.chip.on{background:var(--ink);color:#fff}
-.choice{display:flex;align-items:center;gap:14px;width:100%;padding:16px;border-radius:18px;background:var(--surface);border:2px solid transparent}
+.chip{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:var(--r-pill);background:var(--raised);font:500 14px var(--t);color:var(--ink)}
+.chip.on{background:var(--ink);color:var(--on-ink)}
+.choice{display:flex;align-items:center;gap:14px;width:100%;padding:16px;border-radius:var(--r-tile);background:var(--surface);border:2px solid transparent}
 .choice.on{border-color:var(--ink)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tile{display:block;border-radius:18px;overflow:hidden;background:var(--surface);border:2px solid transparent}
+.tile{display:block;border-radius:var(--r-tile);overflow:hidden;background:var(--surface);border:2px solid transparent}
 .tile img{width:100%;height:112px;object-fit:cover;background:var(--track)}
 .tile .t{padding:10px 12px}
 .tile.on{border-color:var(--ink)}
 .dots{display:flex;gap:6px;align-items:center}
 .dots i{width:8px;height:8px;border-radius:4px;background:var(--track)}
 .dots i.on{width:22px;background:var(--ink)}
-.stat{background:var(--surface);border-radius:20px;padding:16px;display:grid;gap:6px}
+.stat{background:var(--surface);border-radius:var(--r-card);padding:16px;display:grid;gap:6px}
 .track{height:8px;border-radius:4px;background:var(--track);overflow:hidden}
 .track>span{display:block;height:100%;border-radius:4px;background:var(--ink)}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .day{display:grid;justify-items:center;gap:6px;font:500 12px var(--t);color:var(--faint)}
 .day b{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;font:600 15px var(--d);color:var(--ink);background:var(--surface)}
-.day.done b{background:var(--ink);color:#fff}
+.day.done b{background:var(--ink);color:var(--on-ink)}
 .day.today b{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
 .live{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;background:var(--accent);color:var(--on-accent);font:600 12px var(--d)}
-.note{background:var(--raised);border-radius:16px;padding:14px 16px;color:var(--mid)}
+.note{background:var(--raised);border-radius:var(--r-tile);padding:14px 16px;color:var(--mid)}
 .field{display:grid;gap:6px}
 .field>span{font:500 14px var(--t);color:var(--mid)}
-.input{display:flex;align-items:center;min-height:52px;padding:0 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line);color:var(--faint)}
-.seg{display:flex;padding:3px;border-radius:12px;background:var(--track)}
-.seg>*{flex:1;text-align:center;padding:8px 6px;border-radius:10px;font:500 14px var(--t);color:var(--mid)}
+.input{display:flex;align-items:center;min-height:52px;padding:0 16px;border-radius:var(--r-field);background:var(--surface);border:1px solid var(--line);color:var(--faint)}
+.seg{display:flex;padding:3px;border-radius:var(--r-sm);background:var(--track)}
+.seg>*{flex:1;text-align:center;padding:8px 6px;border-radius:calc(var(--r-sm) - 2px);font:500 14px var(--t);color:var(--mid)}
 .seg>.on{background:var(--surface);color:var(--ink)}
-.player{position:relative;display:block;border-radius:20px;overflow:hidden;background:var(--track)}
+.player{position:relative;display:block;border-radius:var(--r-card);overflow:hidden;background:var(--track)}
 .player img{width:100%;height:220px;object-fit:cover}
-.play{position:absolute;left:14px;bottom:14px;display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--ink);color:#fff}
+.play{position:absolute;left:14px;bottom:14px;display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--ink);color:var(--on-ink)}
 .play::after{content:'';margin-left:4px;border-left:14px solid currentColor;border-top:9px solid transparent;border-bottom:9px solid transparent}
-.bubble{max-width:82%;padding:12px 14px;border-radius:18px;background:var(--surface)}
-.bubble.me{margin-left:auto;background:var(--ink);color:#fff}
-.tabbar{position:fixed;left:16px;right:16px;bottom:20px;z-index:5;display:flex;justify-content:space-around;align-items:center;height:66px;padding:0 6px;border-radius:33px;background:var(--surface);box-shadow:0 8px 28px rgba(17,17,19,.14)}
+.bubble{max-width:82%;padding:12px 14px;border-radius:var(--r-tile);background:var(--surface)}
+.bubble.me{margin-left:auto;background:var(--ink);color:var(--on-ink)}
+.tabbar{position:fixed;left:16px;right:16px;bottom:20px;z-index:5;display:flex;justify-content:space-around;align-items:center;height:66px;padding:0 6px;border-radius:min(33px,calc(var(--r-card) + 8px));background:var(--surface);box-shadow:0 8px 28px var(--shadow)}
 .tab{display:grid;justify-items:center;gap:3px;min-width:58px;font:500 11px var(--t);color:var(--faint)}
 .tab svg{width:22px;height:22px}
 .tab.on{color:var(--ink)}
@@ -206,7 +279,8 @@ li{list-style:none}
 .dash{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
 .side{display:grid;align-content:start;gap:4px;padding:24px 14px;background:var(--g-side)}
 .brand{display:flex;align-items:center;gap:10px;padding:4px 10px 20px;font:600 17px var(--d);color:#fff}
-.brand i{width:24px;height:24px;color:#fff;background:${RING_CSS}}
+.brand i{display:grid;place-items:center;width:26px;height:26px;font-size:26px;border-radius:7px;background:var(--dash-accent);color:var(--on-dash);overflow:hidden}
+${iconMarkCss('.brand i::after', style.icon)}
 .side a{display:flex;align-items:center;gap:10px;height:40px;padding:0 12px;border-radius:10px;font:500 14px var(--t);color:#C9CCD1}
 .side a.on{background:var(--g-card);color:#fff}
 .main{display:grid;align-content:start;gap:24px;padding:32px 40px}
@@ -256,8 +330,8 @@ export function prototypeDocument({look, units, view, start = ''}: {look: Look; 
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=${SIZE[view].w}">
 <title>${escAttr(look.name)} prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="${FONTS}" media="print" onload="this.media='all'">
-<style>${kitCss(look.accent)}</style></head>
+<link rel="stylesheet" href="${fontsUrl(look.style?.type ?? 'grotesk')}" media="print" onload="this.media='all'">
+<style>${kitCss(look.accent, look.style ?? HOUSE)}</style></head>
 <body data-view="${view}" data-start="${escAttr(start)}">
 ${units.map((u) => u.html).join('\n')}
 <script>${SHELL}</script>

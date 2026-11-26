@@ -5,7 +5,7 @@ import {z} from 'zod'
 import {INSTRUCTIONS, SERVER_NAME, SERVER_TITLE, answersOf, buildInput, builtText, contactInput, questionsForChat, resolveOptions} from '@/app-builder/mcp'
 import {readShare, runBuild, shareUrl, startShare, tell} from '@/app-builder/mcp-build'
 import {readPrototype} from '@/app-builder/prototypes'
-import {prototypeDocument} from '@/app-builder/prototype-doc'
+import {iconMarkCss, prototypeDocument} from '@/app-builder/prototype-doc'
 import {viewDomains, viewHtml} from '@/app-builder/mcp-view'
 import {limiter} from '@/app-builder/rate-limit'
 import {onAccent} from '@/app-builder/options'
@@ -108,6 +108,8 @@ const handler = createMcpHandler(
           name: options.name,
           accent: options.accent,
           onAccent: onAccent(options.accent),
+          // The app's own icon, once Claude has chosen it: the view draws its mark from this.
+          ...(saved?.job.look.style ? {iconCss: iconMarkCss('.icon::after', saved.job.look.style.icon)} : {}),
           url: shareUrl(share.id),
           parts: share.parts ?? 0,
           drawn: share.drawn?.length ?? 0,
