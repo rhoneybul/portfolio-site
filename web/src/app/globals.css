@@ -4119,7 +4119,9 @@ a.proof:hover .proof__arrow {
 }
 
 .gen--phone {
-  width: min(375px, 100%);
+  /* The phone fits the window as well as its column: never taller than the screen, so the whole of it is in view (390 by 844, inside a 10px frame). */
+  --phone-w: min(375px, calc((100svh - 64px) * 390 / 844 + 20px));
+  width: min(var(--phone-w), 100%);
   justify-self: center;
 }
 
@@ -4177,6 +4179,23 @@ a.proof:hover .proof__arrow {
   border-color: var(--ink);
   background: var(--ink);
   color: #fff;
+}
+
+/* With room beside it, the screens to go to sit next to the phone, not under it, so both are on screen at once. */
+@media (min-width: 1000px) {
+  .gen--phone:has(.gen__screens) {
+    grid-template-columns: var(--phone-w) minmax(0, 240px);
+    align-items: start;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .gen--phone:has(.gen__screens) .gen__screens {
+    justify-content: flex-start;
+    align-content: start;
+    max-height: calc(var(--phone-w) * 844 / 390);
+    overflow-y: auto;
+  }
 }
 
 .gen__screens .gen__again {
