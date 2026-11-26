@@ -40,9 +40,12 @@ const SLOTS = [
   {x: 38, y: 24, size: 0.75, turn: -18},
 ]
 
+/** Apps left out of the scatter (still listed under Work). */
+const LEFT_OUT = new Set(['catalyst-planet'])
+
 export function AppScatter({apps}: {apps: App[]}) {
   const shown = apps
-    .filter((a) => a.slug && (STORE_ICONS[a.slug] || a.logo?.asset))
+    .filter((a) => a.slug && !LEFT_OUT.has(a.slug) && (STORE_ICONS[a.slug] || a.logo?.asset))
     .slice(0, SLOTS.length)
   if (!shown.length) return null
   return (

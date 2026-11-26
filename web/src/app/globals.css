@@ -247,12 +247,8 @@ main {
   height: calc(var(--unit) * var(--size));
   border-radius: 22%;
   transform: rotate(var(--turn));
-  box-shadow: 4px 4px 0 var(--accent);
-  transition: transform 0.35s var(--ease, ease), box-shadow 0.35s var(--ease, ease);
-}
-
-.app-scatter__item:nth-child(even) .app-scatter__icon {
   box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.35s var(--ease, ease), box-shadow 0.35s var(--ease, ease);
 }
 
 .app-scatter__logo {
@@ -280,7 +276,7 @@ main {
 .app-scatter__icon:hover,
 .app-scatter__icon:focus-visible {
   transform: rotate(0deg) scale(1.08);
-  box-shadow: 7px 7px 0 var(--accent);
+  box-shadow: 7px 7px 0 var(--ink);
   z-index: 1;
 }
 
