@@ -8,7 +8,10 @@
  *   isn't set up yet, so a booking never goes unseen and never pings twice.
  */
 import {createHmac, timingSafeEqual} from 'node:crypto'
-import {esc} from '@/app-builder/slack'
+import {appLines, esc} from '@/app-builder/slack'
+import {resolveOptions} from '@/app-builder/options'
+import {submissionOfRef} from '@/app-builder/submissions'
+import {siteUrl} from '@/site-url'
 
 export const webhookOn = () => Boolean(process.env.CAL_WEBHOOK_SECRET)
 
@@ -47,6 +50,8 @@ export type CalWebhook = {
     responses?: Record<string, {value?: unknown} | undefined>
     location?: string
     uid?: string
+    /** What the site put on the booking (components/book-call.tsx): where it came from, and the builder session. */
+    metadata?: {from?: string; ref?: string}
   }
 }
 
@@ -83,4 +88,23 @@ export function embedLines(b: {title?: unknown; startTime?: unknown; from?: unkn
     (from || page) && `From ${esc(from || 'the site')}${page ? ` on ${esc(page)}` : ''}`,
     'Who booked is in Cal.com.',
   ].filter(Boolean) as string[]
+}
+
+/**
+ * For a call booked from the app builder: the app they built and a link to their submission (its answers, the
+ * prototype and the brief), found from the session's reference. Empty when it can't be found; a booking is never held
+ * up by it.
+ */
+export async function builderLines(ref: unknown): Promise<string[]> {
+  const submission = await submissionOfRef(String(ref ?? '')).catch((error) => {
+    console.error('[booking] submission', error)
+    return null
+  })
+  if (!submission) return []
+  const page = `${siteUrl}/app-builder/submissions/${submission.id}`
+  return [
+    '*From the app builder*',
+    ...appLines(resolveOptions(submission.answers).options, submission.answers),
+    `<${page}|Open their submission> · <${page}/brief|The brief for Claude>`,
+  ]
 }

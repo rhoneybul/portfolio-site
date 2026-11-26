@@ -55,10 +55,33 @@ export function calLinkOf(url: string) {
   return {origin: u.origin, calLink: u.pathname.replace(/^\/+|\/+$/g, '')}
 }
 
-export function BookCall({url, label = 'Book a call', variant = 'primary'}: {
+/** Details already given, filled into Cal.com's form so nobody types them twice. Empty ones are left out. */
+type Prefill = {name?: string; email?: string; notes?: string}
+
+/**
+ * Cal.com's embed config: the layout, what's already known, and where the booking came from. Cal.com keeps
+ * `metadata[...]` on the booking and sends it in its webhook, which is how /api/cal-webhook knows a call came from
+ * the app builder and which session (`ref`) made it.
+ */
+export function embedConfig(prefill: Prefill = {}, from?: string, builderRef?: string) {
+  const known = Object.fromEntries(Object.entries(prefill).filter(([, v]) => v?.trim()))
+  return {
+    theme: 'light',
+    ...known,
+    ...(from ? {'metadata[from]': from} : {}),
+    ...(builderRef ? {'metadata[ref]': builderRef} : {}),
+  }
+}
+
+export function BookCall({url, label = 'Book a call', variant = 'primary', from, builderRef, prefill}: {
   url: string
   label?: string
   variant?: 'primary' | 'outline'
+  /** Where on the site the call was booked from, e.g. "app-builder". */
+  from?: string
+  /** The app builder session it was booked from (components/app-builder.tsx). */
+  builderRef?: string
+  prefill?: Prefill
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const started = useRef(false)
@@ -73,7 +96,7 @@ export function BookCall({url, label = 'Book a call', variant = 'primary'}: {
     const cal = calApi()
     cal('init', namespace, {origin})
     const ns = cal.ns![namespace]
-    ns('inline', {elementOrSelector: `#${elementId}`, calLink, layout: 'month_view', config: {theme: 'light'}})
+    ns('inline', {elementOrSelector: `#${elementId}`, calLink, layout: 'month_view', config: embedConfig(prefill, from, builderRef)})
     ns('ui', {hideEventTypeDetails: false, layout: 'month_view'})
     ns('on', {
       action: 'bookingSuccessfulV2',
@@ -89,6 +112,7 @@ export function BookCall({url, label = 'Book a call', variant = 'primary'}: {
             endTime: data.endTime,
             from: label,
             page: window.location.pathname,
+            ref: builderRef,
           }),
         }).catch(() => {})
       },

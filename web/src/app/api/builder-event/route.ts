@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     event?: string
     answers?: Answers
     contact?: {name?: string; email?: string; note?: string; website?: string}
+    ref?: string
     prototype?: string
   } | null
   const event = body?.event as keyof typeof EVENTS
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
   let id = ''
   if ((event === 'used' || event === 'interest') && submissionsOn()) {
     try {
-      id = await saveSubmission(event, answers, event === 'interest' ? contact : undefined, prototype)
+      id = await saveSubmission(event, answers, event === 'interest' ? contact : undefined, prototype, String(body?.ref ?? ''))
     } catch (error) {
       console.error('[builder] save', error)
     }

@@ -29,6 +29,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   className?: string
 }) {
   const [answers, setAnswers] = useState<Answers>(emptyAnswers)
+  // This visit's reference: sent with what they build and with a call they book, so Slack can join the two.
+  const [ref] = useState(sessionRef)
   const [step, setStep] = useState(0)
   const [phase, setPhase] = useState<Phase>('asking')
   const [error, setError] = useState<string | null>(null)
@@ -98,7 +100,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   /** Tells the Fohm Slack channel what happened (/api/builder-event). Never waits, never fails the page. */
   const tell = (event: 'used' | 'whatsapp') => {
     try {
-      const body = JSON.stringify({event, answers, prototype: app?.id})
+      const body = JSON.stringify({event, answers, prototype: app?.id, ref})
       if (!navigator.sendBeacon?.('/api/builder-event', new Blob([body], {type: 'application/json'})))
         void fetch('/api/builder-event', {method: 'POST', headers: {'Content-Type': 'application/json'}, body, keepalive: true}).catch(() => {})
     } catch {
@@ -199,7 +201,9 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           </p>
           {(bookingUrl || whatsapp) && (
             <div className="interest__actions">
-              {bookingUrl && <BookCall url={bookingUrl} label="Book a free call" />}
+              {bookingUrl && (
+                <BookCall url={bookingUrl} label="Book a free call" from="app-builder" builderRef={ref} prefill={{email: answers.email, notes: callNote(options.name)}} />
+              )}
               {whatsapp && (
                 <a
                   className={`btn ${bookingUrl ? 'btn-outline' : 'btn-primary'}`}
@@ -213,7 +217,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
               )}
             </div>
           )}
-          <Interest answers={answers} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} />
+          <Interest answers={answers} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} builderRef={ref} />
         </section>
       </div>
     )
@@ -400,15 +404,26 @@ function Screenshots({shots}: {shots: Shots}) {
   )
 }
 
+/** A random reference for this visit (32 hex characters), never tied to who they are. */
+function sessionRef() {
+  const bytes = new Uint8Array(16)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+/** What a call booked from the builder is about, written into the booking's notes. */
+const callNote = (app: string) => `About ${app}, from the app builder.`
+
 /**
  * "Build it with me": name, email and a note, sent with their answers to the Fohm Slack channel; then a thank-you,
  * with a call to book.
  */
-function Interest({answers, prototype, name, bookingUrl}: {
+function Interest({answers, prototype, name, bookingUrl, builderRef}: {
   answers: Answers
   prototype?: string
   name: string
   bookingUrl?: string | null
+  builderRef: string
 }) {
   const [contact, setContact] = useState({name: '', email: answers.email ?? '', note: '', website: ''})
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
@@ -427,7 +442,7 @@ function Interest({answers, prototype, name, bookingUrl}: {
       const res = await fetch('/api/builder-event', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({event: 'interest', answers, contact, prototype}),
+        body: JSON.stringify({event: 'interest', answers, contact, prototype, ref: builderRef}),
       })
       setState(res.ok ? 'sent' : 'failed')
     } catch {
@@ -445,7 +460,13 @@ function Interest({answers, prototype, name, bookingUrl}: {
         {bookingUrl && (
           <>
             <p>Want to talk sooner? Pick a time that suits you.</p>
-            <BookCall url={bookingUrl} label="Book a free call" />
+            <BookCall
+              url={bookingUrl}
+              label="Book a free call"
+              from="app-builder"
+              builderRef={builderRef}
+              prefill={{name: contact.name.trim(), email: contact.email.trim(), notes: [callNote(name), contact.note.trim()].filter(Boolean).join('\n\n')}}
+            />
           </>
         )}
       </div>
