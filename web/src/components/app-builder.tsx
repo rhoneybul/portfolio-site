@@ -5,7 +5,7 @@ import {Arrow} from '@/components/arrow'
 import {Mark, goalsOf, type Pic} from '@/components/app-prototype'
 import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
-import {ACCENTS, SECTIONS, asked, emptyAnswers, resolveOptions, type Answers} from '@/app-builder/options'
+import {ACCENTS, SECTIONS, asked, emptyAnswers, resolveOptions, type Answers, type Shots} from '@/app-builder/options'
 
 /**
  * The app builder: asks what a first look at the visitor's app needs, one question to a screen in
@@ -209,6 +209,8 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
                 >
                   <strong>{c.label}</strong>
                   {c.hint && <span>{c.hint}</span>}
+                  {c.description && <span className="builder__about">{c.description}</span>}
+                  {c.shots && <Screenshots shots={c.shots} />}
                 </button>
               )
               // A live app to look at sits beside its choice, never inside it: a link in a button is neither.
@@ -305,6 +307,20 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
         </div>
       </form>
     </div>
+  )
+}
+
+/**
+ * An example's screenshots, inside its choice: the description says what they show, so they are
+ * decoration to a screen reader, and a tap on one picks the app like the rest of the card.
+ */
+function Screenshots({shots}: {shots: Shots}) {
+  return (
+    <span className={`builder__shots${shots.wide ? ' builder__shots--wide' : ''}`}>
+      {shots.srcs.map((src) => (
+        <img key={src} src={src} alt="" loading="lazy" decoding="async" width={shots.wide ? 960 : 360} height={shots.wide ? 540 : 780} />
+      ))}
+    </span>
   )
 }
 
