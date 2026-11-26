@@ -14,7 +14,7 @@ import {photoIdeas} from './photo-ideas'
 import {drawUnit, planPrototype} from './prototype'
 import {saveJob, saveUnit} from './prototypes'
 import {saveSubmission, submissionsOn, type Contact} from './submissions'
-import {appLines, esc, toSlack} from './slack'
+import {appRows, message, toSlack} from './slack'
 import type {Photo} from './prototype-doc'
 import {siteUrl} from '@/site-url'
 
@@ -149,13 +149,21 @@ export async function tell(event: keyof typeof EVENTS, answers: Answers, prototy
       console.error('[mcp] save', e)
     }
   const page = id ? `${siteUrl}/app-builder/submissions/${id}` : ''
-  await toSlack([
-    EVENTS[event],
-    contact ? `*${esc(contact.name || 'No name given')}* · ${esc(contact.email)}` : `From ${esc(answers.email ?? '')}`,
-    ...(contact?.note ? [`> ${esc(contact.note)}`] : []),
-    ...appLines(options, answers),
-    ...(ref ? [`<${shareUrl(ref)}|What they see>`] : []),
-    ...(page ? [`<${page}|Open the submission>${prototype ? ` · <${page}/prototype|The prototype Claude drew>` : ' · _the quick sketch_'} · <${page}/brief|The brief for Claude>`] : ['_Not saved: BLOB_READ_WRITE_TOKEN isn’t set._']),
-  ])
+  const who = contact?.name || contact?.email || answers.email || 'Someone'
+  await toSlack(
+    message(
+      event === 'interest' ? `:raised_hand: ${who} wants to build ${options.name} (from a chat)` : `:hammer_and_wrench: ${who} built ${options.name} in a chat (MCP)`,
+      [
+        ['Email', contact?.email ?? answers.email],
+        ['Their note', contact?.note],
+        ...appRows(options, answers),
+        ['Not saved', !page && 'BLOB_READ_WRITE_TOKEN isn’t set'],
+      ],
+      [
+        ...(ref ? ([['What they see', shareUrl(ref)]] as [string, string][]) : []),
+        ...(page ? ([['Submission', page], ...(prototype ? [['Prototype', `${page}/prototype`]] : []), ['Brief', `${page}/brief`]] as [string, string][]) : []),
+      ],
+    ),
+  )
   return id
 }

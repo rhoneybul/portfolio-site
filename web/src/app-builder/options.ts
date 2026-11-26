@@ -161,6 +161,9 @@ export const QUESTIONS: Question[] = [
   {key: 'interests', section: 'Onboarding', ask: 'Which parts of it can people choose between? A few words, comma-separated', why: 'Tiles in onboarding: what they pick comes first in the app.', example: 'Strength, Breath-holds, Mobility, Spots', when: notGame},
   {key: 'goals', section: 'Onboarding', ask: 'What one thing do people work towards: an event, a place or a milestone?', example: 'Big-wave spots: Nazaré, Mavericks, Jaws', when: notGame},
 
+  // Connections: the devices and services members already record with, which the app reads from.
+  {key: 'connects', section: 'Onboarding', ask: 'Which apps or devices do people already track with?', why: 'The app connects to them, so what they’ve done comes in on its own.', example: 'Concept2 Logbook, Garmin, Apple Health, Strava', when: notGame},
+
   // The method
   {key: 'content', section: 'The method', ask: 'Links to the videos, posts and courses you already publish', why: 'The library points at them.', example: 'youtube.com/@yourschool, instagram.com/yourschool', when: notGame},
 

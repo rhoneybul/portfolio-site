@@ -136,6 +136,17 @@ export function whatYouGet(o: Options): Part[] {
         'Pro switches on and off from the store’s own record, and opens wherever they sign in',
       ],
     },
+    ...(o.connects?.trim()
+      ? [
+          {
+            title: 'Connections',
+            items: [
+              `Connects to ${o.connects.trim()}, so what ${members} do comes in on its own`,
+              `Each connection in onboarding and Account, with what came from where`,
+            ],
+          },
+        ]
+      : []),
     {
       title: 'Email, notifications and sharing',
       items: [
