@@ -53,11 +53,13 @@ export async function POST(request: Request) {
   // The prototype Claude drew for them, if it did: its id, never its contents.
   const prototype = isPrototypeId(String(body?.prototype ?? '')) ? String(body?.prototype) : undefined
   let id = ''
+  let notSaved = 'BLOB_READ_WRITE_TOKEN isn’t set.'
   if ((event === 'used' || event === 'interest') && submissionsOn()) {
     try {
       id = await saveSubmission(event, answers, event === 'interest' ? contact : undefined, prototype, String(body?.ref ?? ''))
     } catch (error) {
       console.error('[builder] save', error)
+      notSaved = `the save failed: ${error instanceof Error ? error.message : String(error)}`
     }
   }
 
@@ -70,7 +72,7 @@ export async function POST(request: Request) {
         ? [`From ${esc(answers.email)}`]
         : []),
     ...appLines(options, answers),
-    ...(page ? [`<${page}|Open the submission>${prototype ? ` · <${page}/prototype|The prototype Claude drew>` : ' · _the quick sketch: Claude didn’t draw one_'} · <${page}/brief|The brief for Claude>`] : event === 'whatsapp' ? [] : ['_Not saved: BLOB_READ_WRITE_TOKEN isn’t set._']),
+    ...(page ? [`<${page}|Open the submission>${prototype ? ` · <${page}/prototype|The prototype Claude drew>` : ' · _the quick sketch: Claude didn’t draw one_'} · <${page}/brief|The brief for Claude>`] : event === 'whatsapp' ? [] : [`_Not saved: ${esc(notSaved)}_`]),
   ])
   return NextResponse.json({ok: true})
 }
