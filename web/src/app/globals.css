@@ -5322,7 +5322,7 @@ details.calls[open] > summary::after {
 }
 
 .scheme strong {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 15px;
 }
 
@@ -5384,18 +5384,33 @@ details.calls[open] > summary::after {
   background-color: var(--sc-line);
 }
 
-.scheme__line {
-  top: 48px;
-  left: 6px;
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--sc-line);
+.scheme__deep {
+  top: 46px;
+  right: 5px;
+  left: 5px;
+  height: 18px;
+  border-radius: 6px;
 }
 
-.scheme__line--short {
-  top: 57px;
-  width: 22px;
+.scheme__tint {
+  top: 68px;
+  right: 5px;
+  left: 5px;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.scheme__shades {
+  display: flex;
+  margin-top: 6px;
+}
+
+.scheme__shades i {
+  width: 16px;
+  height: 16px;
+  margin-right: -4px;
+  border: 2px solid #fff;
+  border-radius: 50%;
 }
 
 .scheme__pill {
