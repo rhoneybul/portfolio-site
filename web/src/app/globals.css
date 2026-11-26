@@ -2765,6 +2765,15 @@ a.proof:hover .proof__arrow {
   color: var(--ink);
 }
 
+.builder__heads-up {
+  max-width: 60ch;
+  padding: 14px 16px;
+  border-left: 2px solid var(--accent);
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
 .builder__why {
   margin-top: -8px;
   color: var(--muted);

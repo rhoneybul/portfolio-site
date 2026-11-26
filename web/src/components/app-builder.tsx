@@ -7,11 +7,13 @@ import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
 import {PrototypeBuild, type Built} from '@/components/prototype-build'
-import {ACCENTS, SECTIONS, asked, emptyAnswers, resolveOptions, type Answers, type Shots} from '@/app-builder/options'
+import {ACCENTS, QUESTIONS, emptyAnswers, resolveOptions, type Answers, type Question, type Shots} from '@/app-builder/options'
+import {LAST, LISTS, PARTS, fallbackNext, needsClaude, totalQuestions, type Next, type Turn} from '@/app-builder/next-question'
 
 /**
  * The app builder: asks what a first look at the visitor's app needs, one question to a screen in
- * sections, with the scaffolder's own defaults; then Claude designs their app, live, screen by
+ * three parts, each chosen by Claude from what they've said so far (/api/builder/next; the fixed
+ * order without it), with the scaffolder's own defaults; then Claude designs their app, live, screen by
  * screen (PrototypeBuild: a few minutes); then it walks them through it as a deck (the prototype
  * Claude drew, the dashboard, alerts, metrics, monitoring, payments, security, the stores), and
  * ends on Build it with me. Without Claude (no ANTHROPIC_API_KEY, or it couldn't finish), the deck
@@ -31,7 +33,10 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   const [answers, setAnswers] = useState<Answers>(emptyAnswers)
   // This visit's reference: sent with what they build and with a call they book, so Slack can join the two.
   const [ref] = useState(sessionRef)
-  const [step, setStep] = useState(0)
+  // The questions asked so far, in order, and the one on screen.
+  const [turns, setTurns] = useState<Turn[]>(firstTurns)
+  const [at, setAt] = useState(0)
+  const [thinking, setThinking] = useState(false)
   const [phase, setPhase] = useState<Phase>('asking')
   const [error, setError] = useState<string | null>(null)
   const [gallery, setGallery] = useState<Pic[]>([])
@@ -46,6 +51,12 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     try {
       const kept = sessionStorage.getItem(KEPT)
       if (kept) setAnswers({...emptyAnswers(), ...JSON.parse(kept)})
+      const keptTurns = JSON.parse(sessionStorage.getItem(KEPT_TURNS) ?? 'null') as {turns?: Turn[]; at?: number} | null
+      const restored = keptTurns?.turns?.filter((t) => t && typeof t.ask === 'string' && QUESTIONS.some((q) => q.key === t.key))
+      if (restored?.length) {
+        setTurns(restored)
+        setAt(Math.min(Math.max(0, Number(keptTurns?.at) || 0), restored.length - 1))
+      }
     } catch {
       // No storage: start empty.
     }
@@ -53,14 +64,14 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   useEffect(() => {
     try {
       sessionStorage.setItem(KEPT, JSON.stringify(answers))
+      sessionStorage.setItem(KEPT_TURNS, JSON.stringify({turns, at}))
     } catch {
       // No storage: nothing kept.
     }
-  }, [answers])
+  }, [answers, turns, at])
 
-  const questions = asked(answers)
-  const at = Math.min(step, questions.length - 1)
-  const q = questions[at]
+  const turn = turns[at]
+  const q = questionOf(turn.key)
   const {options, errors} = resolveOptions(answers)
 
   useEffect(() => {
@@ -116,22 +127,39 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   const key = JSON.stringify(answers)
   const app = built?.for === key ? built.app : null
 
-  const forward = () => {
-    if (at < questions.length - 1) return setStep(at + 1)
+  const build = () => {
     setPhase(built?.for === key ? 'built' : 'building')
     top.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
   }
 
+  /** On to the next question: Claude's pick from what they've said, or the fixed order's at once. */
+  const forward = async (given: Answers) => {
+    const done = turns.slice(0, at + 1).flatMap((t) => [t.key, ...(t.skip ?? [])])
+    setThinking(true)
+    const next = await nextTurn(given, done)
+    setThinking(false)
+    if (next.done) return build()
+    // Rows their answers make irrelevant take their defaults; an answer they've already given waits for their yes.
+    const skipped = Object.fromEntries((next.skip ?? []).map((k) => [k, questionOf(k).default ?? '']))
+    const untouched = !given[next.key]?.trim() || given[next.key] === (questionOf(next.key).default ?? '')
+    setAnswers({...given, ...skipped, ...(next.prefill && untouched ? {[next.key]: next.prefill} : {})})
+    setTurns([...turns.slice(0, at + 1), next])
+    setAt(at + 1)
+  }
+
   const next = (e?: FormEvent) => {
     e?.preventDefault()
+    if (thinking) return
     if (errors[q.key]) return setError(errors[q.key])
-    forward()
+    void forward(answers)
   }
 
   const skip = () => {
-    setAnswers({...answers, [q.key]: q.default ?? ''})
+    if (thinking) return
+    const given = {...answers, [q.key]: q.default ?? ''}
+    setAnswers(given)
     setError(null)
-    forward()
+    void forward(given)
   }
 
   if (phase === 'building')
@@ -225,7 +253,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
 
   const value = answers[q.key] ?? ''
   const fallback = value.trim() ? '' : `${options[q.key] ?? ''}`
-  const sectionAt = SECTIONS.indexOf(q.section as (typeof SECTIONS)[number])
+  const suggestions = turn.suggestions ?? q.suggestions
+  const prefilled = Boolean(turn.prefill) && value === turn.prefill
   const chosen = value
     .split(',')
     .map((x) => x.trim())
@@ -233,30 +262,37 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
 
   return (
     <div className={`builder ${className ?? ''}`} ref={top}>
-      <ol className="builder__sections" aria-label="Sections">
-        {SECTIONS.filter((s) => questions.some((x) => x.section === s)).map((s) => (
-          <li key={s} className={s === q.section ? 'is-on' : SECTIONS.indexOf(s) < sectionAt ? 'is-past' : undefined}>
-            {s}
+      <ol className="builder__sections" aria-label="Parts">
+        {PARTS.map((name, i) => (
+          <li key={name} className={i + 1 === turn.part ? 'is-on' : i + 1 < turn.part ? 'is-past' : undefined}>
+            {name}
           </li>
         ))}
       </ol>
       <form className="builder__ask" onSubmit={next}>
+        {at === 0 && (
+          <p className="builder__heads-up">
+            About {totalQuestions(answers)} questions in three parts: the idea, how it works, and how it looks. Five minutes or so. Each question
+            comes from what you’ve already said, so anything your answers cover is skipped, and you can skip what you’re not sure of. Then
+            Claude designs your app while you watch.
+          </p>
+        )}
         <div className="builder__count">
           <span className="label">
-            {String(at + 1).padStart(2, '0')} / {questions.length}
+            Part {turn.part} of {turn.parts} · {turn.left ? `about ${turn.left} to go` : 'last question'}
           </span>
           <span className="builder__bar" aria-hidden>
-            <span style={{width: `${((at + 1) / questions.length) * 100}%`}} />
+            <span style={{width: `${((at + 1) / (at + 1 + turn.left)) * 100}%`}} />
           </span>
         </div>
 
         <label className="builder__question" htmlFor={`q-${q.key}`}>
-          {q.ask}
+          {turn.ask}
         </label>
-        {q.why && <p className="builder__why">{q.why}</p>}
+        {turn.why && <p className="builder__why">{turn.why}</p>}
 
         {q.choices ? (
-          <div className="builder__kinds" role={q.multi ? 'group' : 'radiogroup'} aria-label={q.ask}>
+          <div className="builder__kinds" role={q.multi ? 'group' : 'radiogroup'} aria-label={turn.ask}>
             {q.choices.map((c) => {
               const on = q.multi ? chosen.includes(c.value) : value === c.value
               const choice = (
@@ -339,17 +375,19 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           />
         )}
 
-        {q.suggestions && (
+        {suggestions && (
           <div className="builder__picks" role="group" aria-label="Pick from these">
-            {q.suggestions.map((s) => {
-              const on = chosen.some((x) => x.toLowerCase() === s.toLowerCase())
+            {suggestions.map((s) => {
+              const on = LISTS.has(q.key) ? chosen.some((x) => x.toLowerCase() === s.toLowerCase()) : value.trim().toLowerCase() === s.toLowerCase()
               return (
                 <button
                   key={s}
                   type="button"
                   aria-pressed={on}
                   className={`builder__pick${on ? ' is-on' : ''}`}
-                  onClick={() => set((on ? chosen.filter((x) => x.toLowerCase() !== s.toLowerCase()) : [...chosen, s]).join(', '))}
+                  onClick={() =>
+                    LISTS.has(q.key) ? set((on ? chosen.filter((x) => x.toLowerCase() !== s.toLowerCase()) : [...chosen, s]).join(', ')) : set(on ? '' : s)
+                  }
                 >
                   {s}
                 </button>
@@ -359,8 +397,12 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
         )}
 
         <p className="builder__hint">
-          {error ? (
+          {thinking ? (
+            'Choosing your next question from what you’ve said…'
+          ) : error ? (
             <span className="builder__error">{error}</span>
+          ) : prefilled ? (
+            'Filled in from what you’ve told us: change it if it’s not right.'
           ) : value.trim() || q.choices ? (
             ' '
           ) : fallback ? (
@@ -372,15 +414,15 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
 
         <div className="builder__nav">
           {at > 0 && (
-            <button type="button" className="text-btn" onClick={() => setStep(at - 1)}>
+            <button type="button" className="text-btn" onClick={() => setAt(at - 1)} disabled={thinking}>
               Back
             </button>
           )}
-          <button type="submit" className="btn btn-primary">
-            {at < questions.length - 1 ? 'Next' : 'See my app'} <Arrow />
+          <button type="submit" className="btn btn-primary" disabled={thinking} aria-busy={thinking}>
+            {turn.key === LAST ? 'See my app' : 'Next'} <Arrow />
           </button>
           {!q.required && !q.choices && (
-            <button type="button" className="text-btn" onClick={skip}>
+            <button type="button" className="text-btn" onClick={skip} disabled={thinking}>
               Skip
             </button>
           )}
@@ -402,6 +444,43 @@ function Screenshots({shots}: {shots: Shots}) {
       ))}
     </span>
   )
+}
+
+const KEPT_TURNS = 'fohm-app-builder-turns'
+
+const questionOf = (key: string) => QUESTIONS.find((q) => q.key === key) as Question
+
+/** The first question is always the idea, asked before anything else is known. */
+const firstTurns = (): Turn[] => [fallbackNext(emptyAnswers(), []) as Turn]
+
+/** How long Claude gets to choose before the fixed order's next question is shown instead. */
+const CHOOSING = 14_000
+
+/**
+ * The next question: Claude's pick (/api/builder/next) when there's a choice to make, else the
+ * fixed order's, straight away. A slow or failed answer never holds them up: the fixed order's.
+ */
+async function nextTurn(answers: Answers, done: string[]): Promise<Next> {
+  const fallback = fallbackNext(answers, done)
+  if (!needsClaude(answers, done)) return fallback
+  const stop = new AbortController()
+  const timer = setTimeout(() => stop.abort(), CHOOSING)
+  try {
+    const res = await fetch('/api/builder/next', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({answers, done}),
+      signal: stop.signal,
+    })
+    const next = res.ok ? ((await res.json()) as Next) : null
+    if (!next) return fallback
+    // Only a question still to ask: anything else is the fixed order's.
+    return next.done || (typeof next.key === 'string' && !done.includes(next.key) && QUESTIONS.some((q) => q.key === next.key)) ? next : fallback
+  } catch {
+    return fallback
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /** A random reference for this visit (32 hex characters), never tied to who they are. */

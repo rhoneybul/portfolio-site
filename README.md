@@ -59,7 +59,13 @@ npx sanity schema deploy # keeps the Sanity MCP / AI tools in sync
 
 ## The app builder (`/app-builder`)
 
-Asks what a first look at an app needs (17 questions), then Claude designs the visitor's app while they watch, a few minutes start to finish:
+Asks what a first look at an app needs, then Claude designs the visitor's app while they watch, a few minutes start to finish.
+
+The questions are dynamic, like fohm-scaffold's new-app discovery chat.
+A heads-up before the first says about how many there are, in three parts (the idea; how it works; how it looks and the practical bits), and every question says where they are ("Part 2 of 3 · about 6 to go").
+The idea is always first and the email always last; in between, Claude (`claude-haiku-5-5`, `/api/builder/next`) picks the next row of the catalogue (`QUESTIONS` in `web/src/app-builder/options.ts`) from what they've said, rewords it in their terms with picks for their app, fills in what an earlier answer already said for them to confirm, and skips what their answers make irrelevant.
+Everything it sends back is checked (`web/src/app-builder/next-question.ts`), and without Claude, or when it's slow or wrong, the next question comes from the fixed order at once.
+Then:
 
 1. Open-licence photos are found on Wikimedia Commons from searches Claude picks from their answers (`/api/photo-ideas`, falling back to words from the answers). The site's server searches Commons (`/api/photos`, `src/app-builder/commons.ts`), named by its User-Agent and cached for a day, because Commons rate-limits anonymous searches from browsers: one build found no photos that way, and Claude drew every photo slot empty.
 2. Claude plans the whole prototype (`/api/prototype/plan`): every screen a member meets, from the landing page through onboarding, Home, a session and a goal to Account, and the owner's dashboard, with what they all share. The plan comes back signed, so the next step draws only plans this site made.
