@@ -342,14 +342,14 @@ main {
   color: var(--ink);
 }
 
-.hero__price {
+.hero__note {
   max-width: 46ch;
   color: var(--muted);
   font-size: clamp(18px, 1.6vw, 24px);
   line-height: 1.5;
 }
 
-.hero__price strong {
+.hero__note strong {
   color: var(--ink);
   font-weight: 600;
   white-space: nowrap;
