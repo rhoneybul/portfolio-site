@@ -2,14 +2,15 @@
 
 import {useEffect, useRef, useState, type CSSProperties, type FormEvent} from 'react'
 import {Arrow} from '@/components/arrow'
-import {goalsOf, type Pic} from '@/components/app-prototype'
-import {AppIcon} from '@/components/app-icon'
+import {AppPrototype, goalsOf, type Pic} from '@/components/app-prototype'
+import {AppReveal, BuildBar} from '@/components/app-reveal'
 import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
 import {PrototypeBuild, type Built} from '@/components/prototype-build'
 import {ACCENTS, QUESTIONS, emptyAnswers, resolveOptions, type Answers, type Question, type Shots} from '@/app-builder/options'
 import {REFERENCES} from '@/app-builder/references'
+import {RefSketch} from '@/components/ref-sketch'
 import {LAST, LISTS, PARTS, fallbackNext, needsClaude, totalQuestions, type Next, type Turn} from '@/app-builder/next-question'
 
 /**
@@ -231,34 +232,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     const message = `Hi Rob, I used the app builder on your website for ${options.name}. I’d like to build it with you.`
     return (
       <div className={`builder builder--built ${className ?? ''}`} ref={top}>
-        <header className="ready" style={{'--x-accent': options.accent} as CSSProperties}>
-          <span className="ready__mark">
-            <AppIcon name={options.name} accent={options.accent} icon={app?.look.style?.icon} />
-          </span>
-          <div>
-            <span className="label">{app ? 'Your app, designed by Claude' : 'Your app, as a quick sketch'}</span>
-            <h2 className="ready__name">{options.name}</h2>
-            <p className="ready__line">{app?.plan.summary || options.tagline}</p>
-            {note && <p className="ready__note">{note}</p>}
-          </div>
-          <button type="button" className="text-btn ready__change" onClick={() => setPhase('asking')}>
-            Change my answers
-          </button>
-        </header>
-
-        {app && app.plan.decisions.length > 0 && (
-          <section className="calls" aria-labelledby="calls-title">
-            <h3 id="calls-title" className="calls__title">
-              What Claude decided for you
-            </h3>
-            <ul>
-              {app.plan.decisions.map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-            <p className="calls__line">Any of it can change: these are the calls we’d go through with you first.</p>
-          </section>
-        )}
+        <AppReveal options={options} app={app} note={note} onChange={() => setPhase('asking')} sketch={<AppPrototype o={options} gallery={gallery} />} />
 
         <Showcase o={options} gallery={gallery} built={app} />
 
@@ -291,6 +265,9 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           )}
           <Interest answers={answers} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} builderRef={ref} />
         </section>
+        <BuildBar name={options.name}>
+          {bookingUrl && <BookCall url={bookingUrl} label="Book a free call" from="app-builder" builderRef={ref} prefill={{email: answers.email, notes: callNote(options.name)}} variant="outline" />}
+        </BuildBar>
       </div>
     )
   }
@@ -416,6 +393,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
                       aria-pressed={on}
                       onClick={() => set((on ? chosen.filter((x) => x.toLowerCase() !== r.name.toLowerCase()) : [...chosen, r.name]).join(', '))}
                     >
+                      <RefSketch name={r.name} />
                       <strong>{r.name}</strong>
                       <span>{r.look}</span>
                     </button>

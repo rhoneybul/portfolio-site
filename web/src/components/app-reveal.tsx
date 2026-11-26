@@ -1,0 +1,128 @@
+'use client'
+
+import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
+import {Arrow} from '@/components/arrow'
+import {AppIcon} from '@/components/app-icon'
+import {PrototypeFrame} from '@/components/prototype-frame'
+import type {Built} from '@/components/prototype-build'
+import {onAccent, type Options} from '@/app-builder/options'
+import {TYPE_FACES} from '@/app-builder/prototype-doc'
+import {referencesIn} from '@/app-builder/references'
+
+/**
+ * The moment the visitor first sees their app: a dark stage where its icon, its name and then the
+ * phone come up one after another, with a way to have it built right beside it. The page is taken
+ * to the stage's top once, without a scroll animation, so nothing slides about under the reveal.
+ * What Claude decided waits, folded, under it. Without Claude's prototype, `sketch` is the phone.
+ */
+export function AppReveal({
+  options,
+  app,
+  sketch,
+  note,
+  onChange,
+}: {
+  options: Options
+  app: Built | null
+  sketch?: ReactNode
+  note?: string | null
+  onChange?: () => void
+}) {
+  const stage = useRef<HTMLElement>(null)
+  useEffect(() => {
+    stage.current?.scrollIntoView({block: 'start'})
+  }, [])
+
+  const style = app?.look.style
+  const liked = referencesIn(options.inspiration).map((r) => r.name)
+  const look = style
+    ? [style.canvas === 'dark' ? 'A dark canvas' : 'A light canvas', `${TYPE_FACES[style.type].display} for titles`, `${style.corners === 'square' ? 'Square' : style.corners === 'round' ? 'Round' : 'Soft'} corners`, ...(liked.length ? [`After ${liked.join(' and ')}`] : [])]
+    : []
+  const phone = app ? app.units.filter((u) => app.plan.units.find((p) => p.id === u.id)?.frame === 'phone') : []
+  const vars = {'--x-accent': options.accent, '--x-on-accent': onAccent(options.accent)} as CSSProperties
+
+  return (
+    <>
+      <section ref={stage} className="reveal" style={vars} aria-labelledby="reveal-name">
+        <div className="reveal__glow" aria-hidden />
+        <div className="reveal__copy">
+          <span className="reveal__kicker reveal__in" style={{'--i': 0} as CSSProperties}>
+            {app ? 'Your app is ready' : 'Your app, as a quick sketch'}
+          </span>
+          <span className="reveal__icon">
+            <AppIcon name={options.name} accent={options.accent} icon={style?.icon} size={88} />
+          </span>
+          <h2 id="reveal-name" className="reveal__name reveal__in" style={{'--i': 1} as CSSProperties}>
+            {options.name}
+          </h2>
+          <p className="reveal__line reveal__in" style={{'--i': 2} as CSSProperties}>
+            {options.tagline}
+          </p>
+          {look.length > 0 && (
+            <ul className="reveal__look reveal__in" style={{'--i': 3} as CSSProperties} aria-label="Its look">
+              {look.map((l) => (
+                <li key={l}>{l}</li>
+              ))}
+            </ul>
+          )}
+          {note && <p className="reveal__note reveal__in" style={{'--i': 3} as CSSProperties}>{note}</p>}
+          <div className="reveal__actions reveal__in" style={{'--i': 4} as CSSProperties}>
+            <a className="btn btn-primary reveal__cta" href="#interest">
+              Build {options.name} with Fohm <Arrow />
+            </a>
+            {onChange && (
+              <button type="button" className="text-btn reveal__change" onClick={onChange}>
+                Change my answers
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="reveal__phone">{phone.length ? <PrototypeFrame look={app!.look} units={phone} view="phone" title={`${options.name} on a phone`} /> : sketch}</div>
+      </section>
+
+      {app && app.plan.decisions.length > 0 && (
+        <details className="calls">
+          <summary className="calls__title">Why it looks like this</summary>
+          {app.plan.summary && <p className="calls__summary">{app.plan.summary}</p>}
+          <ul>
+            {app.plan.decisions.map((d) => (
+              <li key={d}>{d}</li>
+            ))}
+          </ul>
+          <p className="calls__line">Any of it can change: these are the calls we’d go through with you first.</p>
+        </details>
+      )}
+    </>
+  )
+}
+
+/**
+ * A bar that stays at the foot of the screen while they look around: the one thing to do next.
+ * It steps aside while the reveal's own button or the form it leads to is on screen.
+ */
+export function BuildBar({name, children}: {name: string; children?: ReactNode}) {
+  const [away, setAway] = useState(true)
+  useEffect(() => {
+    const watched = [document.querySelector('.reveal'), document.getElementById('interest')].filter((el): el is Element => Boolean(el))
+    const seen = new Map<Element, boolean>()
+    const watch = new IntersectionObserver((entries) => {
+      for (const e of entries) seen.set(e.target, e.isIntersecting)
+      setAway([...seen.values()].some(Boolean))
+    })
+    watched.forEach((el) => watch.observe(el))
+    return () => watch.disconnect()
+  }, [])
+  return (
+    <div className={`build-bar${away ? ' is-away' : ''}`} role="complementary" aria-label={`Build ${name}`} aria-hidden={away}>
+      <p>
+        Like <strong>{name}</strong>? I’ll build it for real: web, App Store and Google Play.
+      </p>
+      <div className="build-bar__actions">
+        {children}
+        <a className="btn btn-primary" href="#interest">
+          I’m interested <Arrow />
+        </a>
+      </div>
+    </div>
+  )
+}
