@@ -74,7 +74,7 @@ Reply with JSON only, in this shape:
   "world": ["What every screen shares, one fact a line, concrete and in the business's words: the member we follow (a first name), their goal and why, where they are in it (week 3 of 8, sessions done), the path or program and its parts, the things onboarding offers, the library's items, the five people on the owner's dashboard (first name and last initial, what each is on, two needing the owner), any price as a [placeholder]."],
   "look": {"from": ["What you took from each app the owner likes, one line each: Runna: dark, data-led home with the week's plan first."], "canvas": "light|dark", "corners": "round|soft|square", "type": "grotesk|serif|clean|rounded", "home": "photo|list", "icon": {"shape": "monogram|ring|arch|peak|bars|leaf", "letters": "for a monogram"}},
   "tabs": [{"label": "Home", "to": "home"}],
-  "units": [{"id": "landing", "title": "Landing page", "frame": "phone", "steps": 1, "shows": "What it shows top to bottom, the gist of its words, which photo by number, and what each tap leads to.", "layout": "How it is arranged: what leads, what follows, and which patterns (a full-screen photo with the words over it, a hero with cards under it, a sideways strip, a grid of tiles, a big number first, a list).", "links": ["sign-in"]}]
+  "units": [{"id": "landing", "title": "Landing page", "frame": "web", "steps": 1, "shows": "What it shows top to bottom, the gist of its words, which photo by number, and what each tap leads to.", "layout": "How it is arranged: what leads, what follows, and which patterns (a full-screen photo with the words over it, a hero with cards under it, a sideways strip, a grid of tiles, a big number first, a list).", "links": ["sign-in"]}]
 }
 
 The look:
@@ -84,8 +84,8 @@ The look:
 - The apps the owner likes are the strongest guide: recall how each looks and feels (its canvas, type, corners, density, how its home and its sessions are laid out, its signature screens) and carry that into the look and the units' layouts, within the house style's family. Say what you took from each in "from". With none named, choose from the business, its audience and the photos.
 
 Rules:
-- 10 to 15 units. The member's journey on the phone first, in the order they meet it ("frame": "phone"); then 2 to 4 units of the owner's dashboard ("frame": "laptop").
-- The first unit is always the landing page, id "landing": the business's web page that sells the app, led by the strongest photo, with the headline, how it works in three steps, what people get, the price as a [placeholder] and Get started (leading to signing in). The owner judges it on its own, so it is never skipped or folded into another unit.
+- 10 to 15 units. First the landing page ("frame": "web"); then the member's journey on the phone, in the order they meet it ("frame": "phone"); then 2 to 4 units of the owner's dashboard ("frame": "laptop").
+- The first unit is always the landing page, id "landing", "frame": "web": the business's website that sells the app, seen on a laptop at full width, not a phone screen: a nav with the app's icon and name and Sign in, a hero with the headline and Get started beside the strongest photo, how it works in three steps, what people get, the price as a [placeholder], a last call to start and a footer. The owner judges it on its own, so it is never skipped or folded into another unit.
 - Onboarding is one unit of 4 to 7 steps. A session from start to done may be 2 or 3 steps. Every other unit is 1 step.
 - ids are short kebab-case words, unique. links name unit ids only. Every unit is reachable from the landing page, and every phone unit leads somewhere.
 - tabs: 3 to 5, each to a phone unit that shows the tab bar; or [] for an app with one hub screen.
@@ -123,7 +123,7 @@ const lines = (v: unknown, most: number, each: number) => (Array.isArray(v) ? v.
 const landingUnit = (next?: string): Unit => ({
   id: 'landing',
   title: 'Landing page',
-  frame: 'phone',
+  frame: 'web',
   steps: 1,
   shows: 'The landing page that sells the app: the strongest photo as the hero, the headline, how it works in three steps, what people get, the price as a [placeholder], and Get started.',
   links: next ? [next] : [],
@@ -156,7 +156,7 @@ export function parsePlan(answer: string): Plan {
       let id = kebab(u?.id) || 'screen'
       while (seen.has(id)) id = `${id}-x`
       seen.add(id)
-      const frame: Unit['frame'] = u?.frame === 'laptop' ? 'laptop' : 'phone'
+      const frame: Unit['frame'] = u?.frame === 'laptop' ? 'laptop' : u?.frame === 'web' ? 'web' : 'phone'
       return {
         id,
         title: text(u?.title, 60) || id,
@@ -172,6 +172,9 @@ export function parsePlan(answer: string): Plan {
   const landing = units.findIndex((u) => u.id === 'landing')
   if (landing > 0) units.unshift(...units.splice(landing, 1))
   if (landing < 0) units.unshift(landingUnit(units.find((u) => u.frame === 'phone')?.id))
+  // The landing page is a website, whatever the plan said: the owner sees it in a browser, not as an app screen.
+  units[0].frame = 'web'
+  units[0].steps = 1
   const ids = new Set(units.map((u) => u.id))
   for (const u of units) u.links = [...new Set(u.links.filter((l) => ids.has(l) && l !== u.id))].slice(0, 8)
   if (!units.some((u) => u.frame === 'phone')) throw new Error('The plan has no phone screens')
@@ -228,7 +231,7 @@ A quiet, native-feeling app: a canvas, borderless cards one step off it, hairlin
 - No stat tile for a long fact: a fact longer than a number or a word is a row.
 - Photos in every slot: a hero on the landing page and onboarding's opening, the goal on Home (as its hero when the look's Home leads with a photo), a .thumb on every row of things (sessions, goals, library items), a photo on every hub card, an empty state with a photo and a line. Use only the photo URLs given, as <img src="URL" alt="what it shows">. Where a photo leads a card or a screen, its credit goes in a .credit line inside that card or under the hero.
 - People have no photos: initials in an avatar, <span class="avatar initials">MO</span>.
-- The app's icon is <span class="app-icon"></span> (.sm 32px, .lg 76px), drawn for you; never draw a logo of your own, and never a photo or letter in its place. It goes, with the app's name beside it, at the top of the landing page (in a .hero-top, a cover's .over or a bar), on onboarding's opening and on signing in (.lg, above the title); the dashboard's .brand shows it too.
+- The app's icon is <span class="app-icon"></span> (.sm 32px, .lg 76px), drawn for you; never draw a logo of your own, and never a photo or letter in its place. It goes, with the app's name beside it, at the top of the landing page (in its .site-nav), on onboarding's opening and on signing in (.lg, above the title); the dashboard's .brand shows it too.
 - A screen that is one photo and a line or two (onboarding's opening, a welcome, a goal reached) is a .cover, never a hero over an empty screen.
 - Words: the business's own, in plain English, warm and direct, using the app's words for its people. Never lorem ipsum. A fact not given (a price, a date, a count about the business) is a [placeholder] in square brackets, like [YOUR PRICE]. The plan's world gives the sample member and the dashboard's people: use it.
 - No coach is shown or offered unless the facts say there is a real coach.
@@ -244,6 +247,9 @@ Phone screens (390 wide; the top 44px are left clear; long screens scroll):
 - Picks: .chips of .chip; .choice rows; .tiles of .tile (an img and <span class="t">Label</span>); .on marks the chosen one; wrap a group in data-pick="one" or data-pick="many" and a tap picks.
 - Progress: .dots with an <i></i> a step (.on for this step); <div class="track"><span style="width:40%"></span></div>; .stat (a .big-num or .num, and a .small); .week of seven .day (<span>M</span><b>12</b>; .done, .today); .live (a small accent badge); .seg (a segmented control; .on on the chosen child); .field (<span>Label</span><div class="input">Placeholder</div>); .bubble and .bubble.me (messages).
 - The tab bar: on a screen that shows the app's tabs, put exactly <nav class="tabbar" data-tab="TAB"></nav> as the section's last child, where TAB is the unit of the tab it belongs to. It is filled in for you.
+The website (frame web: only the landing page, 1280 wide, scrolls; in the app's own look, never graphite and never laid out as a phone screen):
+- <div class="site"> holds each band, centred, 1120 wide. <nav class="site-nav"> (the app's icon and name, a few .links, Sign in); <div class="site-hero"> (two columns: the words and the pill on one side, an <img> of the strongest photo with its .credit on the other); <div class="site-band"> for each section after (a .title, then .site-grid-3 of .card for how it works or what people get, or .site-grid-2); <footer class="site-foot">.
+- Inside them use the phone kit's classes too (.card, .hero-title, .lead, .pill, .chip, .app-icon, .photo-card, .list and .row). The pill is a button of its own width here.
 Laptop screens (the owner's dashboard, 1280x800, graphite):
 - <div class="dash"><nav class="side"><span class="brand"><i></i>App name</span><a class="on" data-go="UNIT">People</a>…</nav><div class="main">…</div></div>
 - .d-title, .d-sub, .d-card, .d-stats of .d-stat (a .num and a .small), table rows .d-row (.head for the header row; five columns: the person, what they're on, last in, their plan, a status or action), .needs (a status that needs the owner), .d-pill (the one primary action), .d-quiet, .d-chip, .bars of <span style="height:60%"></span> (.now on this week's), .note, .avatar.initials, .s, .small.
@@ -277,7 +283,7 @@ export async function drawUnit(job: Job, unitId: string, deadline: number): Prom
   const answer = await askClaude({
     model: DRAW_MODEL(),
     system: [KIT, context(job)],
-    user: `Draw the unit "${unit.id}": ${unit.title}, on the ${unit.frame}, as ${ids.length === 1 ? `one section with the id ${ids[0]}` : `${ids.length} sections with the ids ${ids.join(', ')}`}.\nWhat it shows: ${unit.shows}\nIt leads to: ${unit.links.join(', ') || 'where the plan says'}.${unit.frame === 'phone' && job.plan.tabs.length ? '\nIf it is one of the tabs, or a screen reached from one that still shows them, end each section with the tab bar.' : ''}`,
+    user: `Draw the unit "${unit.id}": ${unit.title}, ${unit.frame === 'web' ? 'as the website on a laptop (frame web)' : `on the ${unit.frame}`}, as ${ids.length === 1 ? `one section with the id ${ids[0]}` : `${ids.length} sections with the ids ${ids.join(', ')}`}.\nWhat it shows: ${unit.shows}\nIt leads to: ${unit.links.join(', ') || 'where the plan says'}.${unit.frame === 'phone' && job.plan.tabs.length ? '\nIf it is one of the tabs, or a screen reached from one that still shows them, end each section with the tab bar.' : ''}`,
     // Thinking counts against this too: room for it and the screens' HTML.
     maxTokens: 32_000,
     deadline,

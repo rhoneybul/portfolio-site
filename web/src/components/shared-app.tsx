@@ -123,7 +123,7 @@ export function SharedApp({
       <AppReveal options={options} app={built} sketch={<AppPrototype o={options} gallery={photos} />} />
       <Showcase o={options} gallery={photos} built={built} />
       {interest}
-      <BuildDialog answers={answers} prototype={built?.id} name={options.name} bookingUrl={bookingUrl} builderRef={id} from="app-builder-mcp" />
+      <BuildDialog answers={answers} prototype={built?.id} name={options.name} accent={options.accent} icon={built?.look.style?.icon} tagline={options.tagline} bookingUrl={bookingUrl} builderRef={id} from="app-builder-mcp" />
       <BuildBar name={options.name}>{bookingUrl && <BookCall url={bookingUrl} label="Book a free call" from="app-builder-mcp" builderRef={id} prefill={{notes: callNote(options.name)}} variant="outline" />}</BuildBar>
     </div>
   )

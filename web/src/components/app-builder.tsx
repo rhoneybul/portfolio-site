@@ -270,7 +270,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           )}
           <Interest answers={{...answers, heard}} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} builderRef={ref} />
         </section>
-        <BuildDialog answers={{...answers, heard}} prototype={app?.id} name={options.name} bookingUrl={bookingUrl} builderRef={ref} from="app-builder" />
+        <BuildDialog answers={{...answers, heard}} prototype={app?.id} name={options.name} accent={options.accent} icon={app?.look.style?.icon} tagline={options.tagline} bookingUrl={bookingUrl} builderRef={ref} from="app-builder" />
         <BuildBar name={options.name}>
           {bookingUrl && <BookCall url={bookingUrl} label="Book a free call" from="app-builder" builderRef={ref} prefill={{email: answers.email, notes: callNote(options.name)}} variant="outline" />}
         </BuildBar>

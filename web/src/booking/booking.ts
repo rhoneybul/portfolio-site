@@ -4,16 +4,43 @@
  * Two ways a booking reaches Slack:
  * - Cal.com's webhook (/api/cal-webhook), signed with CAL_WEBHOOK_SECRET: who booked, their email,
  *   when, and their note. The full story, for every booking, made on the site or not.
- * - The embed itself (/api/booking): the browser says a booking was made. Only when the webhook
- *   isn't set up yet, so a booking never goes unseen and never pings twice.
+ * - The embed itself (/api/booking): the browser says a booking was made.
+ * Both claim the booking first (claimBooking), so whichever arrives first tells Slack and the other
+ * stays quiet: a booking pings once, and is never lost to a webhook Cal.com isn't sending.
  */
 import {createHmac, timingSafeEqual} from 'node:crypto'
+import {put} from '@vercel/blob'
+import {submissionsOn} from '@/app-builder/submissions'
 import {appLines, esc} from '@/app-builder/slack'
 import {resolveOptions} from '@/app-builder/options'
 import {submissionOfRef} from '@/app-builder/submissions'
 import {siteUrl} from '@/site-url'
 
 export const webhookOn = () => Boolean(process.env.CAL_WEBHOOK_SECRET)
+
+// Without the Blob store (development), this instance's memory.
+const claimed = new Set<string>()
+
+/**
+ * True for the first to claim a booking (by Cal.com's uid, or its start time): a marker blob that
+ * can't be written twice. Shared by the webhook and the embed's route, on any instance.
+ */
+export async function claimBooking(uid: string) {
+  const key = uid.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 100)
+  if (!key) return true
+  if (!submissionsOn()) {
+    if (claimed.has(key)) return false
+    claimed.add(key)
+    return true
+  }
+  try {
+    await put(`bookings/${key}.json`, JSON.stringify({at: new Date().toISOString()}), {access: 'private', contentType: 'application/json', addRandomSuffix: false, allowOverwrite: false})
+    return true
+  } catch (error) {
+    // Already there: the other way told Slack. Anything else: better twice than never.
+    return !/already exists/i.test(error instanceof Error ? error.message : String(error))
+  }
+}
 
 /** Cal.com signs the raw body: X-Cal-Signature-256 is its HMAC-SHA256, in hex, with the webhook's secret. */
 export function signedByCal(rawBody: string, signature: string | null, secret: string) {
@@ -86,7 +113,7 @@ export function embedLines(b: {title?: unknown; startTime?: unknown; from?: unkn
     ':calendar: New call booked through the website',
     [title && esc(title), whenOf(b.startTime)].filter(Boolean).join(' · '),
     (from || page) && `From ${esc(from || 'the site')}${page ? ` on ${esc(page)}` : ''}`,
-    'Who booked is in Cal.com.',
+    'Who booked is in Cal.com (its webhook, when it’s sending, says who).',
   ].filter(Boolean) as string[]
 }
 

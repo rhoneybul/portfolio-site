@@ -1,6 +1,6 @@
 'use client'
 
-import {useId, useRef} from 'react'
+import {useEffect, useId, useRef} from 'react'
 import {Arrow} from '@/components/arrow'
 
 /**
@@ -73,6 +73,62 @@ export function embedConfig(prefill: Prefill = {}, from?: string, builderRef?: s
   }
 }
 
+/**
+ * Starts Cal.com's embed inside an element, with what's known filled in, and tells /api/booking
+ * (and `onBooked`) when a call is booked.
+ */
+function startCal({namespace, elementId, url, prefill, from, builderRef, label, onBooked}: {
+  namespace: string
+  elementId: string
+  url: string
+  prefill?: Prefill
+  from?: string
+  builderRef?: string
+  label: string
+  onBooked?: () => void
+}) {
+  const {origin, calLink} = calLinkOf(url)
+  const cal = calApi()
+  cal('init', namespace, {origin})
+  const ns = cal.ns![namespace]
+  ns('inline', {elementOrSelector: `#${elementId}`, calLink, layout: 'month_view', config: embedConfig(prefill, from, builderRef)})
+  ns('ui', {hideEventTypeDetails: false, layout: 'month_view'})
+  ns('on', {
+    action: 'bookingSuccessfulV2',
+    callback: (e: CustomEvent<{data?: Record<string, unknown>}>) => {
+      const data = e.detail?.data ?? {}
+      onBooked?.()
+      void fetch('/api/booking', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({uid: data.uid, title: data.title, startTime: data.startTime, endTime: data.endTime, from: label, page: window.location.pathname, ref: builderRef}),
+      }).catch(() => {})
+    },
+  })
+}
+
+/** Cal.com's calendar in place, started once it's mounted: for a window that holds it with other things (build-dialog.tsx). */
+export function CalInline({url, prefill, from, builderRef, label = 'Build it with me', onBooked}: {
+  url: string
+  prefill?: Prefill
+  from?: string
+  builderRef?: string
+  label?: string
+  onBooked?: () => void
+}) {
+  const namespace = `cal${useId().replace(/[^a-zA-Z0-9]/g, '')}`
+  const elementId = `${namespace}-inline`
+  const started = useRef(false)
+  useEffect(() => {
+    if (started.current) return
+    started.current = true
+    startCal({namespace, elementId, url, prefill, from, builderRef, label, onBooked})
+    // Started once, with what was known when it opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return <div id={elementId} className="booking-dialog__cal" />
+}
+
 export function BookCall({url, label = 'Book a call', variant = 'primary', from, builderRef, prefill}: {
   url: string
   label?: string
@@ -92,31 +148,7 @@ export function BookCall({url, label = 'Book a call', variant = 'primary', from,
     dialog.current?.showModal()
     if (started.current) return
     started.current = true
-    const {origin, calLink} = calLinkOf(url)
-    const cal = calApi()
-    cal('init', namespace, {origin})
-    const ns = cal.ns![namespace]
-    ns('inline', {elementOrSelector: `#${elementId}`, calLink, layout: 'month_view', config: embedConfig(prefill, from, builderRef)})
-    ns('ui', {hideEventTypeDetails: false, layout: 'month_view'})
-    ns('on', {
-      action: 'bookingSuccessfulV2',
-      callback: (e: CustomEvent<{data?: Record<string, unknown>}>) => {
-        const data = e.detail?.data ?? {}
-        void fetch('/api/booking', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            uid: data.uid,
-            title: data.title,
-            startTime: data.startTime,
-            endTime: data.endTime,
-            from: label,
-            page: window.location.pathname,
-            ref: builderRef,
-          }),
-        }).catch(() => {})
-      },
-    })
+    startCal({namespace, elementId, url, prefill, from, builderRef, label})
   }
 
   return (

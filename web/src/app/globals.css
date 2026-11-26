@@ -4168,7 +4168,8 @@ a.proof:hover .proof__arrow {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
 }
 
-.gen--laptop .gen__device {
+.gen--laptop .gen__device,
+.gen--web .gen__device {
   width: 100%;
 }
 
@@ -4189,6 +4190,10 @@ a.proof:hover .proof__arrow {
 
 .gen--laptop .gen__screen iframe {
   background: #111113;
+}
+
+.gen--web .gen__screen iframe {
+  background: #fff;
 }
 
 .gen__screens {
@@ -4581,85 +4586,87 @@ details.calls[open] > summary::after {
   padding-bottom: 96px;
 }
 
-/* "Build it with me" (components/build-dialog.tsx). */
+/* "Build it with me" (components/build-dialog.tsx): the booking window's frame, wider, with what they're building and who they are beside the calendar. */
 .build-dialog {
-  width: min(560px, calc(100vw - 32px));
-  max-height: calc(100svh - 32px);
-  padding: 0;
-  border: 1px solid var(--ink);
-  background: #fff;
-  color: var(--ink);
-  box-shadow: 6px 6px 0 var(--accent);
+  width: min(1180px, calc(100vw - 32px));
+  height: min(860px, calc(100dvh - 32px));
 }
 
-.build-dialog::backdrop {
-  background: rgba(13, 13, 15, 0.55);
-}
-
-.build-dialog[open] {
-  animation: reveal-up 0.35s var(--ease) both;
-}
-
-.build-dialog__body {
-  position: relative;
+.build-dialog__grid {
   display: grid;
-  gap: 16px;
-  padding: clamp(22px, 4vw, 36px);
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
 }
 
-.build-dialog h2 {
+.build-dialog__side {
+  display: grid;
+  align-content: start;
+  gap: 24px;
+  padding: 22px;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+
+.build-dialog__step {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.build-dialog__step h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
-  font-size: clamp(28px, 4vw, 40px);
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1;
 }
 
-.build-dialog__lead {
+.build-dialog__step h3 span {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+}
+
+.build-dialog__app {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.build-dialog__app div {
+  display: grid;
+  gap: 2px;
+}
+
+.build-dialog__app span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.build-dialog__status {
   margin: 0;
-  font-size: 17px;
-  line-height: 1.5;
+  padding: 10px 12px;
+  background: var(--bg);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .build-dialog__tick {
-  display: grid;
+  display: inline-grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: var(--green);
   color: #fff;
-  font-size: 26px;
-  animation: reveal-icon 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
-}
-
-.build-dialog__close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  background: none;
-  font-size: 28px;
-  line-height: 1;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.build-dialog__call {
-  display: grid;
-  gap: 10px;
-  justify-items: start;
-  padding: 16px;
-  background: var(--bg);
-}
-
-.build-dialog__call p,
-.build-dialog__more {
-  margin: 0;
-  font-size: 15px;
-  color: var(--muted);
+  font-size: 12px;
 }
 
 .build-dialog__form {
@@ -4672,6 +4679,43 @@ details.calls[open] > summary::after {
   gap: 6px;
   font-size: 14px;
   color: var(--muted);
+}
+
+.build-dialog__save {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  color: var(--green);
+}
+
+.build-dialog__call {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 22px 22px 0;
+}
+
+.build-dialog__call .booking-dialog__cal {
+  flex: 1;
+}
+
+@media (max-width: 820px) {
+  .build-dialog__grid {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .build-dialog__side {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    overflow: visible;
+  }
+
+  .build-dialog__call .booking-dialog__cal {
+    min-height: 620px;
+  }
 }
 
 .build-dialog__form input,
@@ -5212,4 +5256,10 @@ details.calls[open] > summary::after {
   padding: 0 12px;
   border: 1px solid var(--line);
   font: inherit;
+}
+
+@media (max-width: 520px) {
+  .build-dialog .booking-dialog__actions a {
+    display: none;
+  }
 }
