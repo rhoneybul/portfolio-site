@@ -237,6 +237,104 @@ function Security() {
   )
 }
 
+/** The services an app runs on, as icons by layer: where people use it, what runs it, and what watches it and tells you. */
+const STACK: {layer: string; items: {key: IconKey; name: string; role: string; colour: string}[]}[] = [
+  {
+    layer: 'Where people use it',
+    items: [
+      {key: 'web', name: 'The web', role: 'The app and its landing page at your domain', colour: '#3F4A5A'},
+      {key: 'apple', name: 'App Store', role: 'The iPhone app, reviewed and listed by Apple', colour: '#0A84FF'},
+      {key: 'play', name: 'Google Play', role: 'The Android app, from the same code', colour: '#01875F'},
+    ],
+  },
+  {
+    layer: 'What runs it',
+    items: [
+      {key: 'vercel', name: 'Vercel', role: 'Hosts the web app and its API; deploys each change', colour: '#111111'},
+      {key: 'supabase', name: 'Supabase', role: 'The database, sign-in and files, with rules on the server', colour: '#3ECF8E'},
+      {key: 'expo', name: 'Expo', role: 'Builds the iPhone and Android apps and ships updates', colour: '#4630EB'},
+      {key: 'stripe', name: 'Stripe', role: 'Takes payments for Pro, in your business’s name', colour: '#635BFF'},
+    ],
+  },
+  {
+    layer: 'What watches it and tells you',
+    items: [
+      {key: 'posthog', name: 'PostHog', role: 'What people do: funnels, dashboards, drop-off', colour: '#F54E00'},
+      {key: 'sentry', name: 'Sentry', role: 'Errors on the web, the apps and the server', colour: '#7553C7'},
+      {key: 'slack', name: 'Slack', role: 'Sign-ups, payments and anything that needs you', colour: '#E01E5A'},
+      {key: 'email', name: 'Resend', role: 'Sign-in links, welcome and reminder emails', colour: '#3F4A5A'},
+    ],
+  },
+]
+
+type IconKey = 'web' | 'apple' | 'play' | 'vercel' | 'supabase' | 'expo' | 'stripe' | 'posthog' | 'sentry' | 'slack' | 'email'
+
+/** A simple glyph for each service: drawn here, never the service's own logo. */
+const GLYPHS: Record<IconKey, ReactNode> = {
+  web: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M4 12h16M12 4c2.5 2.5 2.5 13.5 0 16M12 4c-2.5 2.5-2.5 13.5 0 16" />
+    </>
+  ),
+  apple: (
+    <>
+      <rect x="7" y="3" width="10" height="18" rx="2.5" />
+      <path d="M10.5 18h3" />
+    </>
+  ),
+  play: <path d="M8 5l10 7-10 7z" />,
+  vercel: <path d="M12 5l8 14H4z" />,
+  supabase: <path d="M13 3L6 13h6l-1 8 7-10h-6z" />,
+  expo: <path d="M12 5l7 13H5z M9 15h6" />,
+  stripe: (
+    <>
+      <rect x="4" y="6" width="16" height="12" rx="2" />
+      <path d="M4 10h16" />
+    </>
+  ),
+  posthog: <path d="M5 19V11M10 19V7M15 19v-5M20 19V9" />,
+  sentry: (
+    <>
+      <path d="M12 4l9 16H3z" />
+      <path d="M12 10v4M12 17v.01" />
+    </>
+  ),
+  slack: <path d="M9 4v16M15 4v16M4 9h16M4 15h16" />,
+  email: (
+    <>
+      <rect x="4" y="6" width="16" height="12" rx="2" />
+      <path d="M4 8l8 5 8-5" />
+    </>
+  ),
+}
+
+function Stack() {
+  return (
+    <div className="panel stack">
+      {STACK.map(({layer, items}, i) => (
+        <section key={layer} className="stack__layer" aria-label={layer}>
+          <p className="panel__title">{layer}</p>
+          <ul className="stack__tiles">
+            {items.map((t) => (
+              <li key={t.name} className="stack__tile" style={{'--x-service': t.colour} as CSSProperties}>
+                <span className="stack__icon" aria-hidden>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    {GLYPHS[t.key]}
+                  </svg>
+                </span>
+                <strong>{t.name}</strong>
+                <span>{t.role}</span>
+              </li>
+            ))}
+          </ul>
+          {i < STACK.length - 1 && <span className="stack__down" aria-hidden />}
+        </section>
+      ))}
+    </div>
+  )
+}
+
 function Stores({o, pic}: {o: Options; pic: (n: number) => Pic | undefined}) {
   return (
     <div className="panel store">
@@ -350,9 +448,27 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
       ),
     },
     {
+      name: 'How it runs',
+      node: (
+        <Slide
+          kicker="08 · How it runs"
+          title="The services behind it, each with one job"
+          line="Each is set up in your business’s name, and each stays off until its key is set."
+          items={[
+            'Vercel puts every merged change live, on its own',
+            'Supabase keeps the data, and the rules on who sees what',
+            'Expo builds the store apps and sends updates without a release',
+            'PostHog and Sentry show what people do and what breaks',
+          ]}
+        >
+          <Stack />
+        </Slide>
+      ),
+    },
+    {
       name: 'The stores',
       node: (
-        <Slide kicker="08 · Launch" title="On the web, the App Store and Google Play" line="One codebase, three places, and every step to get there." items={[...pick('Tests, deploys and the stores', 3), ...pick('Launch and handover', 2)]}>
+        <Slide kicker="09 · Launch" title="On the web, the App Store and Google Play" line="One codebase, three places, and every step to get there." items={[...pick('Tests, deploys and the stores', 3), ...pick('Launch and handover', 2)]}>
           <Stores o={o} pic={pic} />
         </Slide>
       ),

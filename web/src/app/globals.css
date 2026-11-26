@@ -4371,3 +4371,57 @@ a.proof:hover .proof__arrow {
     align-items: stretch;
   }
 }
+
+/* How it runs: the services by layer, each an icon in its own colour, with its one job. */
+.stack {
+  gap: 6px;
+}
+
+.stack__layer {
+  display: grid;
+  gap: 8px;
+}
+
+.stack__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stack__tile {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.stack__tile strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.stack__icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--x-service);
+  color: #fff;
+}
+
+.stack__down {
+  justify-self: center;
+  width: 1.5px;
+  height: 14px;
+  margin-top: 6px;
+  background: var(--line);
+}
