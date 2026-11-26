@@ -4,7 +4,6 @@ import {getSettings} from '@/sanity/settings'
 import {TopBar} from '@/components/top-bar'
 import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
-import {Marquee} from '@/components/marquee'
 import {AppBuilder} from '@/components/app-builder'
 
 export const metadata: Metadata = {
@@ -23,17 +22,8 @@ export default async function AppBuilderPage() {
     <>
       <TopBar settings={settings} active="app-builder" />
       <main>
-        <section className="blog">
-          <h1 className="case__title">App builder</h1>
-          <Marquee items={['Early access', 'Early access', 'Early access']} separator="●" className="marquee-role" />
-          <div className="blog__soon">
-            <span className="label">● Early access</span>
-            <p>
-              Answer what we ask before building any app, and watch Claude design yours, screen by screen: its landing
-              page, onboarding, the screens your customers use and your dashboard, in your name, words and colour. Then
-              tap through it. The same foundations as Etapa and Naz.
-            </p>
-          </div>
+        <section className="blog builder-page">
+          <h1 className="sr-only">App builder</h1>
           <AppBuilder
             whatsapp={settings?.whatsapp}
             bookingUrl={settings?.bookingUrl}
