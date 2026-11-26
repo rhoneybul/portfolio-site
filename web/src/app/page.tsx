@@ -15,6 +15,7 @@ import {Arrow} from '@/components/arrow'
 import {Testimonials} from '@/components/testimonials'
 import {WorkList} from '@/components/work-list'
 import {Logo} from '@/components/logo'
+import {AppScatter} from '@/components/app-scatter'
 
 // Rendered on every visit with fresh Sanity data, as the blog is (see blog/layout.tsx): a cached copy
 // only refreshes on a live event, which reaches the site only while someone has it open, so a project
@@ -48,16 +49,39 @@ export default async function HomePage() {
       <TopBar settings={settingsMeta} />
 
       <main>
-        {/* Hero: the offer, stated plainly. Each need opens to a short answer. */}
+        {/* Hero: building an app leads, straight into the app builder, with what a first build costs.
+            The other needs follow, each opening to a short answer. */}
         <section className="hero">
+          <AppScatter apps={work} />
           <div className="hero__text">
           <h1 className="hero__lead">
-            If you’re looking to
+            <Link href="/app-builder" className="hero__link">
+              Looking to build an app?
+            </Link>
+          </h1>
+          <p className="hero__price">
+            A first build costs <strong>£5k to £20k</strong>, depending on what it needs. See yours before you spend a
+            penny: answer a few questions and the app builder walks you through it.
+          </p>
+          <div className="hero__actions">
+            <Link href="/app-builder" className="btn btn-primary">
+              Try the app builder <Arrow />
+            </Link>
+            {settings?.bookingUrl ? (
+              <BookCall url={settings.bookingUrl} label="Book a free call" variant="outline" />
+            ) : (
+              <a href="#contact" className="btn btn-outline">
+                Get in touch
+              </a>
+            )}
+          </div>
+          <h2 className="hero__or">
+            Or if you’re looking to
             <span className="sr-only">
               {' '}
               {services.map((s) => s.need).filter(Boolean).join(', ')}, {BRAND} can help.
             </span>
-          </h1>
+          </h2>
           <ul className="needs">
             {services.map((s, i) => (
               <li key={s._id}>

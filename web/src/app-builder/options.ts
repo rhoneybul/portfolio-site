@@ -18,7 +18,20 @@ export interface Choice {
   hint?: string
   /** A live app to see it in, opened from the choice. */
   url?: string
+  /** What the app is, in a sentence or two, under the hint. */
+  description?: string
+  /** Screenshots of it, under `/public`. */
+  shots?: Shots
 }
+
+/** Phone screens stand upright; a game's lie on their side. */
+export interface Shots {
+  srcs: string[]
+  wide: boolean
+}
+
+/** An example's three screenshots, `public/app-builder/examples/<value>-1.webp` to `-3.webp`. */
+const shotsOf = (value: string, wide = false): Shots => ({srcs: [1, 2, 3].map((n) => `/app-builder/examples/${value}-${n}.webp`), wide})
 
 /**
  * The apps already built on fohm-scaffold, as starting points: a visitor picks the one closest to
@@ -26,11 +39,61 @@ export interface Choice {
  * showcase: each links to the live app.
  */
 export const TEMPLATES: (Choice & {kind: Kind; coach: 'yes' | 'no' | null})[] = [
-  {value: 'naz', label: 'Like Naz', hint: 'Training programs, guided sessions and breathwork for big-wave surfers', url: 'https://naz.surf', kind: 'coaching', coach: 'no'},
-  {value: 'etapa', label: 'Like Etapa', hint: 'A cycling coach that builds each rider their plan and changes it with them', url: 'https://getetapa.com', kind: 'coaching', coach: 'no'},
-  {value: 'aluzam', label: 'Like Aluzam', hint: 'Guitar practice with a real teacher: lessons, a practice plan and feedback', url: 'https://aluzam.app', kind: 'coaching', coach: 'yes'},
-  {value: 'naz-surf', label: 'Like Naz Surf', hint: 'A surf game in the browser, on real big-wave spots', url: 'https://play.naz.surf', kind: 'game', coach: null},
-  {value: 'strawberry-fields', label: 'Like Strawberry Fields', hint: 'A backcountry ski and snowboard game on real mountains', url: 'https://strawberry-fields-peach.vercel.app', kind: 'game', coach: null},
+  {
+    value: 'naz',
+    label: 'Like Naz',
+    hint: 'Training programs, guided sessions and breathwork for big-wave surfers',
+    description:
+      'Gets surfers ready for bigger waves: programs from stepping stone to expert, strength, mobility and breath sessions played step by step, and a forecast for 39 heavy spots. On the web, the App Store and Google Play.',
+    shots: shotsOf('naz'),
+    url: 'https://naz.surf',
+    kind: 'coaching',
+    coach: 'no',
+  },
+  {
+    value: 'etapa',
+    label: 'Like Etapa',
+    hint: 'A cycling coach that builds each rider their plan and changes it with them',
+    description:
+      'An AI cycling coach for beginner and amateur riders: it builds a plan to their event, answers questions in chat and moves sessions when life gets in the way. In the App Store and Google Play.',
+    shots: shotsOf('etapa'),
+    url: 'https://getetapa.com',
+    kind: 'coaching',
+    coach: 'no',
+  },
+  {
+    value: 'aluzam',
+    label: 'Like Aluzam',
+    hint: 'Guitar practice with a real teacher: lessons, a practice plan and feedback',
+    description:
+      'A guitar teacher’s students practise from a weekly plan, short Do now sessions, backing tracks and a theory quiz, and the teacher sees everything they do on a dashboard. A web app.',
+    shots: shotsOf('aluzam'),
+    url: 'https://aluzam.app',
+    kind: 'coaching',
+    coach: 'yes',
+  },
+  {
+    value: 'naz-surf',
+    label: 'Like Naz Surf',
+    hint: 'A surf game in the browser, on real big-wave spots',
+    description:
+      'Every Naz spot as a coast built from real elevation: build your surfer, pick a board, paddle out or tow in, then a competition each day and a career. In the browser, on a phone or a desktop.',
+    shots: shotsOf('naz-surf', true),
+    url: 'https://play.naz.surf',
+    kind: 'game',
+    coach: null,
+  },
+  {
+    value: 'strawberry-fields',
+    label: 'Like Strawberry Fields',
+    hint: 'A backcountry ski and snowboard game on real mountains',
+    description:
+      'Dropped at the top by the heli on real mountains: draw your line, ride it on skis or a board, send the cliffs and stay out of the slide. Competitions, a career, and descents of 8,000 m peaks.',
+    shots: shotsOf('strawberry-fields', true),
+    url: 'https://strawberry-fields-peach.vercel.app',
+    kind: 'game',
+    coach: null,
+  },
   {value: 'other', label: 'Something else', hint: 'Programs to follow, and a real person who answers: you see everything on a dashboard', kind: 'coaching', coach: 'yes'},
 ]
 const templateOf = (a: Answers) => TEMPLATES.find((x) => x.value === a.template) ?? TEMPLATES[0]
@@ -76,7 +139,7 @@ export const QUESTIONS: Question[] = [
     ask: 'What kind of app is it?',
     why: 'Pick the closest. Each of these was built on the same foundations, so yours starts where they did.',
     default: 'naz',
-    choices: TEMPLATES.map(({value, label, hint, url}) => ({value, label, hint, url})),
+    choices: TEMPLATES.map(({value, label, hint, description, shots, url}) => ({value, label, hint, description, shots, url})),
   },
   {key: 'doing', section: 'The idea', ask: 'What should people be doing in the app?', why: 'We write the headline and the landing page from it.', example: 'Following a training plan for bigger waves, a few short sessions a week.', long: true},
 
