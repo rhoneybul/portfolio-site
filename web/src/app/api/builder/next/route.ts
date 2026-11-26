@@ -22,7 +22,8 @@ They answer one question to a screen. You choose the next question from the rows
 
 Choose:
 - The most important row their answers make relevant, keeping roughly to the parts' order (part 1 the idea, part 2 how it works, part 3 how it looks and the practical bits).
-- Never ask what they've already told you. If an earlier answer already gives a row's answer, you may choose that row with a "prefill" for them to confirm; for a row with choices the prefill is one of its values.
+- Never ask what they've already told you, in any words. If an earlier answer already gives a row's answer, choose that row with a "prefill" for them to confirm with a tap, or skip it; for a row with choices the prefill is one of its values.
+- idea, doing, interests and goals all touch what people want from the app; each has one job: idea is what it does and for whom; doing is what people do in it day to day; interests are the parts people choose between (onboarding's tiles); goals is one concrete thing they work towards. Ask each only for what the others haven't said: when an answer already covers another, prefill it or skip it, and never ask what people want to achieve twice. ambition is the owner's business, never their members'.
 - Rows their answers make pointless (no content to link for a brand-new idea, say) go in "skip". Never skip a row marked "Never skip".
 
 Word it:

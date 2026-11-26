@@ -132,7 +132,7 @@ export const SECTIONS = ['The idea', 'The name', 'Onboarding', 'The method', 'Lo
  */
 export const QUESTIONS: Question[] = [
   // The idea
-  {key: 'idea', section: 'The idea', ask: 'In a sentence: what does it do, for whom, and what does it get them to?', example: 'An AI cycling coach that builds riders a training plan and coaches them to their goal, like a first 100 km sportive.', long: true, flag: 'idea'},
+  {key: 'idea', section: 'The idea', ask: 'In a sentence: what does it do, and for whom?', example: 'An AI cycling coach that builds beginner riders a training plan and changes it with them.', long: true, flag: 'idea'},
   {key: 'business', section: 'The idea', ask: 'What do you do today?', why: 'Your business, coaching or content, and what people already pay you for. Leave it blank if the app is a new idea.', example: 'I run a surf school in Cornwall: lessons, retreats and video analysis.', long: true, flag: 'business'},
   {
     key: 'template',
@@ -142,7 +142,7 @@ export const QUESTIONS: Question[] = [
     default: 'naz',
     choices: TEMPLATES.map(({value, label, hint, description, shots, url}) => ({value, label, hint, description, shots, url})),
   },
-  {key: 'doing', section: 'The idea', ask: 'What should people be doing in the app?', why: 'We write the headline and the landing page from it.', example: 'Following a training plan for bigger waves, a few short sessions a week.', long: true},
+  {key: 'doing', section: 'The idea', ask: 'What will people do in the app, day to day?', why: 'We write the headline and the landing page from it.', example: 'Following a training plan for bigger waves, a few short sessions a week.', long: true},
 
   // The name
   {key: 'name', section: 'The name', ask: 'What is the app called?', why: 'A working name is fine: the naming round can find a better one.', example: 'Tidepool', required: true, flag: 'name'},
@@ -158,8 +158,8 @@ export const QUESTIONS: Question[] = [
   },
 
   // Onboarding (Naz's)
-  {key: 'interests', section: 'Onboarding', ask: 'What are people here for? A few words, comma-separated', why: 'Tiles in onboarding: what they pick comes first in the app.', example: 'Strength, Breath-holds, Mobility, Spots', when: notGame},
-  {key: 'goals', section: 'Onboarding', ask: 'What do people work towards: places, events or trips?', example: 'Big-wave spots: Nazaré, Mavericks, Jaws', when: notGame},
+  {key: 'interests', section: 'Onboarding', ask: 'Which parts of it can people choose between? A few words, comma-separated', why: 'Tiles in onboarding: what they pick comes first in the app.', example: 'Strength, Breath-holds, Mobility, Spots', when: notGame},
+  {key: 'goals', section: 'Onboarding', ask: 'What one thing do people work towards: an event, a place or a milestone?', example: 'Big-wave spots: Nazaré, Mavericks, Jaws', when: notGame},
 
   // The method
   {key: 'content', section: 'The method', ask: 'Links to the videos, posts and courses you already publish', why: 'The library points at them.', example: 'youtube.com/@yourschool, instagram.com/yourschool', when: notGame},
@@ -190,7 +190,7 @@ export const QUESTIONS: Question[] = [
 
   // About you: what the research needs first
   {key: 'audience', section: 'About you', ask: 'How big is your audience today?', why: 'Followers, a mailing list, clients: the app sells to them first.', example: '12k on Instagram, 2,000 on the mailing list'},
-  {key: 'ambition', section: 'About you', ask: 'What would success look like in a year?', example: '500 paying members, and the coaching waitlist gone', long: true},
+  {key: 'ambition', section: 'About you', ask: 'For your business: what would success look like in a year?', example: '500 paying members, and the coaching waitlist gone', long: true},
   {key: 'email', section: 'About you', ask: 'Your email, to see your app', why: 'So I can get in touch about it. Never shared, and nothing else is sent.', example: 'you@example.com', required: true},
 ]
 
