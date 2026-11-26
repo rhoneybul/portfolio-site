@@ -1298,6 +1298,11 @@ a.proof:hover .proof__arrow {
   scroll-margin-top: 24px;
 }
 
+/* The app builder's page opens straight on the questions, with nothing above them. */
+.builder-page .builder {
+  margin-top: 0;
+}
+
 .builder__ask {
   display: grid;
   gap: 20px;
