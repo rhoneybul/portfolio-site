@@ -59,7 +59,23 @@ export function mixed(lists: Found[][], most = 12) {
   return out
 }
 
-export function PhotoSearch({answers, value, onChange}: {answers: Answers; value: string; onChange: (url: string, credit: string) => void}) {
+/** A photo picked at the photo question: its address and its credit. */
+export interface Picked {
+  url: string
+  credit: string
+}
+
+/** Tells Unsplash a photo was picked, as its API asks (/api/photos/used). Never waits, never fails the pick. */
+const tellUsed = (f: Found) => {
+  if (f.download) void fetch('/api/photos/used', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({download: f.download}), keepalive: true}).catch(() => {})
+}
+
+/**
+ * The photo question: photos found from their answers to pick from, as many as they like, the
+ * first picked leading the landing page, onboarding and Home and the rest used through the app.
+ */
+export function PhotoSearch({answers, picks, onChange}: {answers: Answers; picks: Picked[]; onChange: (picks: Picked[]) => void}) {
+  const value = picks[0]?.url ?? ''
   const [terms, setTerms] = useState<string[]>([])
   const [found, setFound] = useState<Record<string, Found[]>>({})
   const [looking, setLooking] = useState(true)
@@ -155,26 +171,37 @@ export function PhotoSearch({answers, value, onChange}: {answers: Answers; value
           </div>
         </>
       ) : !shown.length ? (
-        <p className="builder__hint">{on ? 'No open-licence photos for that. Try other words.' : 'Nothing open-licence came up from your answers. Search your own words above.'}</p>
+        <p className="builder__hint">{on ? 'No photos for that. Try other words.' : 'No photos came up from your answers. Search your own words above.'}</p>
       ) : (
-        <div className="photos__grid" role="radiogroup" aria-label="Photos">
-          {shown.map((f) => (
-            <button
-              key={f.url}
-              type="button"
-              role="radio"
-              aria-checked={value === f.url}
-              className={`photos__pick${value === f.url ? ' is-on' : ''}`}
-              onClick={() => onChange(value === f.url ? '' : f.url, value === f.url ? '' : f.credit)}
-              title={f.credit}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={f.thumb} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken((b) => [...b, f.thumb])} />
-            </button>
-          ))}
+        <div className="photos__grid" role="group" aria-label="Photos: pick your favourites">
+          {shown.map((f) => {
+            const n = picks.findIndex((p) => p.url === f.url)
+            return (
+              <button
+                key={f.url}
+                type="button"
+                aria-pressed={n >= 0}
+                className={`photos__pick${n >= 0 ? ' is-on' : ''}`}
+                onClick={() => {
+                  if (n >= 0) return onChange(picks.filter((p) => p.url !== f.url))
+                  tellUsed(f)
+                  onChange([...picks, {url: f.url, credit: f.credit}])
+                }}
+                title={f.credit}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={f.thumb} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken((b) => [...b, f.thumb])} />
+                {n >= 0 && <span className="photos__badge">{n === 0 ? 'Lead' : n + 1}</span>}
+              </button>
+            )
+          })}
         </div>
       )}
-      <p className="photos__credit">{value && !own && chosen ? chosen.credit : `Free-to-use photos from ${sources.join(' and ')}, each credited.`}</p>
+      <p className="photos__credit">
+        {picks.length
+          ? `${picks.length} picked: the first leads the landing page, onboarding and Home, the rest are used through the app.${chosen && !own ? ` Lead: ${chosen.credit}.` : ''}`
+          : `Pick as many as you like. Photos from ${sources.join(' and ')}, each credited.`}
+      </p>
 
       <label className="photos__own">
         <span>Or a link to your own</span>
@@ -183,8 +210,10 @@ export function PhotoSearch({answers, value, onChange}: {answers: Answers; value
           autoCapitalize="none"
           value={own}
           onChange={(e) => {
+            // Their own photo leads; the ones picked follow it.
             setOwn(e.target.value)
-            onChange(e.target.value.trim(), '')
+            const url = e.target.value.trim()
+            onChange([...(url ? [{url, credit: ''}] : []), ...picks.filter((p) => p.url !== own.trim() && p.credit)])
           }}
           placeholder="https://…"
         />

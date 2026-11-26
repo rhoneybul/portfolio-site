@@ -38,7 +38,7 @@ const iconOf = (d: string): Style['icon'] => ({shape: 'svg', letters: '', d})
 const withLogo = (job: Job, d: string): Job => ({...job, look: {...job.look, style: {...(job.look.style ?? HOUSE), icon: iconOf(d)}}})
 
 /** Open-licence photos for the app: their own first, then a few from each search, taking turns. */
-async function findPhotos(answers: Answers, o: Options): Promise<Photo[]> {
+async function findPhotos(answers: Answers, o: Options, favourites: {url: string; credit: string}[] = []): Promise<Photo[]> {
   const ideas = await ideasFor(answers).catch(() => [] as string[])
   const terms = [...ideas, ...(ideas.length < 3 ? goalsOf(o) : [])].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
   const lists = await Promise.all(terms.map((t) => search(t).catch(() => [])))
@@ -48,8 +48,11 @@ async function findPhotos(answers: Answers, o: Options): Promise<Photo[]> {
       const f = l[r]
       if (f && found.length < 11 && !found.some((x) => x.url === f.url)) found.push({url: f.url, credit: f.credit, about: terms[i]})
     })
-  const own = o.photo ? [{url: o.photo, credit: o.photoCredit || 'The owner’s own photo', about: 'their own photo'}] : []
-  return [...own, ...found.filter((f) => f.url !== o.photo)]
+  // Their own or first favourite leads; the rest they picked come next, before anything found for them.
+  const own = o.photo ? [{url: o.photo, credit: o.photoCredit || 'The owner’s own photo', about: o.photoCredit ? 'the photo the owner picked to lead' : 'their own photo'}] : []
+  const picked = favourites.filter((f) => f.url !== o.photo).map((f) => ({url: f.url, credit: f.credit || 'The owner’s own photo', about: 'a photo the owner picked'}))
+  const chosen = [...own, ...picked]
+  return [...chosen, ...found.filter((f) => !chosen.some((c) => c.url === f.url))].slice(0, 12)
 }
 
 const clock = (ms: number) => {
@@ -94,6 +97,7 @@ const timeLeft = (ms: number) => {
 export function PrototypeBuild({
   answers,
   options,
+  favourites = [],
   onBuilt,
   onSketch,
   onGallery,
@@ -102,6 +106,8 @@ export function PrototypeBuild({
 }: {
   answers: Answers
   options: Options
+  /** The photos they picked at the photo question, their favourite first. */
+  favourites?: {url: string; credit: string}[]
   /** Where they heard about Fohm, asked while it builds (heard-ask.tsx). */
   heard?: string
   onHeard?: (v: string) => void
@@ -131,7 +137,7 @@ export function PrototypeBuild({
   const repick = useRef<Promise<void>>(Promise.resolve())
   const started = useRef(false)
   // The props of the first render: the build runs once, from the answers it started with.
-  const first = useRef({answers, options, onBuilt, onSketch, onGallery})
+  const first = useRef({answers, options, favourites, onBuilt, onSketch, onGallery})
 
   useEffect(() => {
     const t0 = Date.now()
@@ -145,7 +151,7 @@ export function PrototypeBuild({
   useEffect(() => {
     if (started.current) return
     started.current = true
-    const {answers: a, options: o, onBuilt: built, onSketch: sketch, onGallery: gallery} = first.current
+    const {answers: a, options: o, favourites: liked, onBuilt: built, onSketch: sketch, onGallery: gallery} = first.current
     const post = (path: string, body: unknown) =>
       fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
 
@@ -159,7 +165,7 @@ export function PrototypeBuild({
     void logos.then((m) => setMarks(m.length ? m : 'none'))
 
     void (async () => {
-      const photos = await findPhotos(a, o)
+      const photos = await findPhotos(a, o, liked)
       gallery(photos.filter((p) => p.url !== o.photo).map((p) => ({url: p.url, credit: p.credit})))
       setPhotoCount(photos.length)
       setStage('planning')

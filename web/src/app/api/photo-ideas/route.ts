@@ -13,7 +13,7 @@ import type {Answers} from '@/app-builder/options'
 const MODEL = 'claude-sonnet-5-5'
 
 const ASK = `You pick photo searches for a new app's landing page, onboarding and home screen.
-The photos come from a stock library (Pexels), then Wikimedia Commons, whose searches match plain, concrete words.
+The photos come from a stock library (Unsplash), whose search matches plain, concrete words.
 Reply with JSON only, like {"terms": ["road cycling", "peloton", "alpine pass road", "bike race"]}:
 four searches, best first, each one to three plain English words naming something a camera can photograph: the activity itself as its members do it (always name the sport or activity in the search: "rowing eight", not "eight"), a scene, a place or the kit.
 Every search must find a photo of THIS app's world: a word that could mean something else gets the activity with it ("rowing machine", never "machine"; "rowing river", never "river").
