@@ -8,7 +8,8 @@
  */
 import {liftedAccent, needsYou, onAccent, soften} from './options'
 
-export type Frame = 'phone' | 'laptop'
+/** Where a unit is shown: the member's phone, the owner's dashboard on a laptop, or the website (the landing page) in a browser. */
+export type Frame = 'phone' | 'laptop' | 'web'
 
 /** One part of the plan, drawn in one call: a screen, or a short flow of screens (onboarding's steps). */
 export interface Unit {
@@ -87,7 +88,7 @@ export interface Drawn {
   html: string
 }
 
-export const SIZE: Record<Frame, {w: number; h: number}> = {phone: {w: 390, h: 844}, laptop: {w: 1280, h: 800}}
+export const SIZE: Record<Frame, {w: number; h: number}> = {phone: {w: 390, h: 844}, laptop: {w: 1280, h: 800}, web: {w: 1280, h: 800}}
 
 /** The font pairings: a display face for titles and figures, a text face for the rest, each from Google Fonts. */
 export const TYPE_FACES: Record<Style['type'], {display: string; text: string; families: string; about: string}> = {
@@ -275,6 +276,19 @@ ${iconMarkCss('.app-icon::after', style.icon)}
 .tab{display:grid;justify-items:center;gap:3px;min-width:58px;font:500 11px var(--t);color:var(--faint)}
 .tab svg{width:22px;height:22px}
 .tab.on{color:var(--ink)}
+.screen[data-frame=web]{background:var(--bg);padding-bottom:0}
+.site{max-width:1120px;margin:0 auto;padding:0 48px}
+.site-nav{display:flex;align-items:center;justify-content:space-between;gap:24px;height:76px}
+.site-nav .links{display:flex;align-items:center;gap:28px;font:500 15px var(--t);color:var(--mid)}
+.site-hero{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:40px 0 72px}
+.site-hero .hero-title{font-size:56px;line-height:1.02}
+.site-hero img{width:100%;height:460px;object-fit:cover;border-radius:var(--r-card);background:var(--track)}
+.site-hero .pill{width:auto;display:inline-flex;gap:20px}
+.site-band{padding:64px 0;border-top:1px solid var(--line)}
+.site-band .title{margin-bottom:24px}
+.site-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.site-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.site-foot{display:flex;justify-content:space-between;gap:24px;padding:28px 0 40px;border-top:1px solid var(--line);font-size:14px;color:var(--faint)}
 .screen[data-frame=laptop]{background:var(--g-bg);color:var(--g-text)}
 .dash{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
 .side{display:grid;align-content:start;gap:4px;padding:24px 14px;background:var(--g-side)}
@@ -339,4 +353,4 @@ ${units.map((u) => u.html).join('\n')}
 }
 
 /** Which frames a set of units has screens for. */
-export const framesOf = (plan: Plan) => (['phone', 'laptop'] as const).filter((f) => plan.units.some((u) => u.frame === f))
+export const framesOf = (plan: Plan) => (['web', 'phone', 'laptop'] as const).filter((f) => plan.units.some((u) => u.frame === f))

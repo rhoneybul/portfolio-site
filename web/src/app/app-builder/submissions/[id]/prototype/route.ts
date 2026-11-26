@@ -24,7 +24,8 @@ export async function GET(request: Request, {params}: {params: Promise<{id: stri
   const s = await readSubmission(id)
   const saved = s?.prototype ? await readPrototype(s.prototype) : null
   if (!saved) return new Response('Not found', {status: 404})
-  const view: Frame = new URL(request.url).searchParams.get('view') === 'laptop' ? 'laptop' : 'phone'
+  const asked = new URL(request.url).searchParams.get('view')
+  const view: Frame = asked === 'laptop' || asked === 'web' ? asked : 'phone'
   return new Response(prototypeDocument({look: saved.job.look, units: saved.units, view}), {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',

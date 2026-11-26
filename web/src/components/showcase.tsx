@@ -39,14 +39,17 @@ function Slide({kicker, title, line, items, children}: {kicker: string; title: s
   )
 }
 
-function Laptop({o, children}: {o: Options; children: ReactNode}) {
+function Laptop({o, children, path = '/admin'}: {o: Options; children: ReactNode; path?: string}) {
   return (
     <div className="laptop">
       <div className="laptop__bar">
         <span />
         <span />
         <span />
-        <em>{o.domain || `${o.slug}.app`}/admin</em>
+        <em>
+          {o.domain || `${o.slug}.app`}
+          {path}
+        </em>
       </div>
       <div className="laptop__screen">{children}</div>
     </div>
@@ -431,7 +434,11 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
           line="The page that sells the app, at your own domain: your photo, your headline, how it works, and Get started."
           items={pick('The app', 2)}
         >
-          {landing.length ? (
+          {landing.length && built!.plan.units[0]?.frame === 'web' ? (
+            <Laptop o={o} path="">
+              <PrototypeFrame look={built!.look} units={landing} view="web" title={`${o.name}: the landing page`} />
+            </Laptop>
+          ) : landing.length ? (
             <PrototypeFrame look={built!.look} units={landing} view="phone" title={`${o.name}: the landing page`} />
           ) : (
             <AppPrototype o={o} gallery={gallery} />

@@ -1,6 +1,6 @@
 import {NextResponse} from 'next/server'
 import {toSlack} from '@/app-builder/slack'
-import {builderLines, signedByCal, webhookLines, type CalWebhook} from '@/booking/booking'
+import {builderLines, claimBooking, signedByCal, webhookLines, type CalWebhook} from '@/booking/booking'
 
 /**
  * Cal.com's webhook (Cal.com → Settings → Developer → Webhooks, subscriber URL
@@ -23,6 +23,8 @@ export async function POST(request: Request) {
   }
   // Cal.com's "Ping test" and events Slack needn't hear about: acknowledged, nothing sent.
   const lines = webhookLines(body)
-  if (lines) await toSlack([...lines, ...(await builderLines(body.payload?.metadata?.ref))])
+  // A new booking pings once, whichever of this and the embed's route claims it first; a change or a cancellation always does.
+  const fresh = body.triggerEvent !== 'BOOKING_CREATED' || (await claimBooking(String(body.payload?.uid ?? body.payload?.startTime ?? '')))
+  if (lines && fresh) await toSlack([...lines, ...(await builderLines(body.payload?.metadata?.ref))])
   return NextResponse.json({ok: true})
 }
