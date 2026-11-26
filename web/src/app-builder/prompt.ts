@@ -79,7 +79,7 @@ export function claudePrompt(o: Options, raw: Answers, prototypeUrl?: string) {
 
   const order = [
     `Research the market first, before anything is drawn (the skill's step 2), from my audience and ambition above, with a source for every number.`,
-    `Then prototype the whole app end to end in Claude Design (the skill's step 3 and its reference/prototype.md): every screen my members meet, and my dashboard, in the house style, my words and real photos, clickable from the first screen. Send me the link that plays it, with the calls you made and the research's open questions, and revise it until I say build it.${prototypeUrl ? ` The app builder already drew a first prototype from these answers: ${prototypeUrl} (open the dashboard's screens with ?view=laptop). Start from it, but make the real one on a Claude Design canvas.` : ''}`,
+    `Then prototype the whole app end to end in Claude Design (the skill's step 3 and its reference/prototype.md): every screen my members meet, and my dashboard, in the house style, my words and real photos, clickable from the first screen. Send me the link that plays it, with the calls you made and the research's open questions, and revise it until I say build it.${prototypeUrl ? ` The app builder already drew a first prototype from these answers: ${prototypeUrl} (the dashboard's screens: ${prototypeUrl}${prototypeUrl.includes('?') ? '&' : '?'}view=laptop). Start from it, but make the real one on a Claude Design canvas.` : ''}`,
     'Only once I’ve approved the prototype, create the app (below), with the flags the prototype settled.',
   ]
 

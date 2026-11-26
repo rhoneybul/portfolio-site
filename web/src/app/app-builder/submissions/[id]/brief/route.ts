@@ -5,5 +5,5 @@ export async function GET(_request: Request, {params}: {params: Promise<{id: str
   const {id} = await params
   const s = await readSubmission(id)
   if (!s) return new Response('Not found.', {status: 404})
-  return new Response(briefOf(s), {headers: {'Content-Type': 'text/markdown; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex'}})
+  return new Response(await briefOf(s), {headers: {'Content-Type': 'text/markdown; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex'}})
 }

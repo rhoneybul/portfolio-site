@@ -9,8 +9,9 @@ import {CopyButton} from '@/components/copy-button'
 import {QUESTIONS, SECTIONS, asked, resolveOptions} from '@/app-builder/options'
 import {briefOf, prototypeUrlOf, readSubmission} from '@/app-builder/submissions'
 import {siteUrl} from '@/site-url'
+import {keyedUrl} from '@/app-builder/owner'
 
-// A submission is Fohm's: never indexed, never cached, and only found by the link in Slack.
+// A submission is the owner's: behind their password (src/proxy.ts), never indexed, never cached.
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {title: 'App builder submission', robots: {index: false, follow: false}}
 
@@ -23,9 +24,10 @@ export default async function SubmissionPage({params}: {params: Promise<{id: str
   const [s, settings] = await Promise.all([readSubmission(id), getSettings()])
   if (!s) notFound()
   const {options} = resolveOptions(s.answers)
-  const brief = briefOf(s)
+  const brief = await briefOf(s)
   const prototype = prototypeUrlOf(s)
-  const briefUrl = `${siteUrl}/app-builder/submissions/${id}/brief`
+  // Claude can't type the password: the link it reads is keyed to the brief alone.
+  const briefUrl = await keyedUrl(`${siteUrl}/app-builder/submissions/${id}/brief`)
   const ask = `Read ${briefUrl} and build this app with fohm-scaffold, following its new-app skill.`
   const label = (key: string, v: string) => QUESTIONS.find((q) => q.key === key)?.choices?.find((c) => c.value === v)?.label ?? v
 
