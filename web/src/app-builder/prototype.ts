@@ -8,6 +8,7 @@ import {createHash, createHmac, randomBytes, timingSafeEqual} from 'node:crypto'
 import {TEMPLATES, type Answers, type Options} from './options'
 import {CANVASES, CORNERS, HOMES, HOUSE, SHAPES, TYPES, TYPE_FACES, type Drawn, type Job, type Photo, type Plan, type Style, type Unit} from './prototype-doc'
 import {DRAW_MODEL, PLAN_MODEL, askClaude} from './claude'
+import {referencesIn} from './references'
 
 export type {Job}
 
@@ -38,6 +39,7 @@ export function factsOf(o: Options, raw: Answers) {
     line('What people work towards: places, events or trips', raw.goals),
     line('What the business already publishes (the library points at it)', raw.content),
     line('Apps the owner likes the look and feel of', o.inspiration),
+    ...referencesIn(o.inspiration).map((r) => line(`What ${r.name} looks like, from its screens on Mobbin`, r.takes)),
     line('The people who use it are called', `${o.memberWord}s; the person who runs it is the ${o.ownerWord}`),
     line('The accent colour', o.accent.toUpperCase()),
     line('The audience today', raw.audience),
