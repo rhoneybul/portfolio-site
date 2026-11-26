@@ -131,7 +131,7 @@ export const SECTIONS = ['The idea', 'The name', 'Onboarding', 'The method', 'Lo
  */
 export const QUESTIONS: Question[] = [
   // The idea
-  {key: 'idea', section: 'The idea', ask: 'In a sentence, what does it do, and for whom?', example: 'A pocket surf coach that tells beginners what to work on next, between lessons.', long: true, flag: 'idea'},
+  {key: 'idea', section: 'The idea', ask: 'In a sentence: what does it do, for whom, and what does it get them to?', example: 'An AI cycling coach that builds riders a training plan and coaches them to their goal, like a first 100 km sportive.', long: true, flag: 'idea'},
   {key: 'business', section: 'The idea', ask: 'What do you do today?', why: 'Your business, coaching or content, and what people already pay you for. Leave it blank if the app is a new idea.', example: 'I run a surf school in Cornwall: lessons, retreats and video analysis.', long: true, flag: 'business'},
   {
     key: 'template',
@@ -276,7 +276,7 @@ export function resolveOptions(input: Answers): {options: Options; errors: Recor
       (kind === 'game'
         ? `${name}: a quick game to play anywhere.`
         : kind === 'coaching'
-          ? 'Your coach in your pocket, between sessions.'
+          ? 'Your coach, from your first session to your goal.'
           : `${name}: a short line on what it does for people.`),
     memberWord: (t('memberWord') || 'member').toLowerCase(),
     ownerWord: (t('ownerWord') || (!coach ? 'team' : kind === 'coaching' ? 'coach' : 'owner')).toLowerCase(),
