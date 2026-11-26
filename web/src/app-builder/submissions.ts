@@ -6,7 +6,8 @@
  */
 import {randomBytes} from 'node:crypto'
 import {get, put} from '@vercel/blob'
-import {claudePrompt} from './prompt'
+import {claudePrompt, scaffoldOptions} from './prompt'
+import {siteUrl} from '@/site-url'
 import {resolveOptions, type Answers} from './options'
 
 export interface Contact {
@@ -41,5 +42,21 @@ export async function readSubmission(id: string): Promise<Submission | null> {
   return JSON.parse(await new Response(found.stream).text()) as Submission
 }
 
+/** Where a submission's brief is read: the markdown for Claude, the JSON for `fohm-scaffold new --from`. */
+export const briefUrl = (id: string) => `${siteUrl}/app-builder/submissions/${id}/brief`
+export const briefJsonUrl = (id: string) => `${briefUrl(id)}.json`
+
 /** The brief to give Claude, made from what was saved. */
-export const briefOf = (s: Submission) => claudePrompt(resolveOptions(s.answers).options, s.answers)
+export const briefOf = (s: Submission) => claudePrompt(resolveOptions(s.answers).options, s.answers, briefJsonUrl(s.id))
+
+/**
+ * The brief as `fohm-scaffold new --from` reads it (its lib/brief.mjs, version 1): the answers as its
+ * options, the rest of the answers for the new-app skill, and the markdown brief, which the new app
+ * keeps as docs/BRIEF.md. Never the visitor's contact details or email: the scaffolder doesn't need them.
+ */
+export function briefJson(s: Submission) {
+  const {options} = resolveOptions(s.answers)
+  const {email: _email, ...answers} = s.answers
+  // Its brief leaves out the submission's own link: the new app commits it, and the link opens the page with their details.
+  return {fohm: 'app-builder-brief', version: 1, at: s.at, options: scaffoldOptions(options), answers, brief: claudePrompt(options, s.answers)}
+}

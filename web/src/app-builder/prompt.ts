@@ -8,33 +8,47 @@ import {QUESTIONS, SECTIONS, asked, type Answers, type Options} from './options'
 /** A value for the command line: the scaffolder refuses quotes and backslashes, so they never get here. */
 const arg = (v: string) => `"${v.replace(/["\\`$]/g, '')}"`
 
+/** What `fohm-scaffold new` takes, by its option keys (its lib/options.mjs QUESTIONS) and its flags. */
+const SCAFFOLD_OPTIONS: [key: string, flag: string][] = [
+  ['name', 'name'],
+  ['idea', 'idea'],
+  ['business', 'business'],
+  ['kind', 'kind'],
+  ['coach', 'coach'],
+  ['routes', 'routes'],
+  ['inspiration', 'inspiration'],
+  ['tagline', 'tagline'],
+  ['memberWord', 'member-word'],
+  ['ownerWord', 'owner-word'],
+  ['operator', 'operator'],
+  ['country', 'country'],
+  ['registration', 'registration'],
+  ['address', 'address'],
+  ['supportEmail', 'support-email'],
+  ['domain', 'domain'],
+  ['bundleId', 'bundle-id'],
+  ['accent', 'accent'],
+]
+
+/** The answers as `fohm-scaffold new`'s options, only those set: what brief.json carries and the command spells out. */
+export function scaffoldOptions(o: Options): Record<string, string> {
+  const value = (key: string) => (key === 'accent' ? o.accent.toUpperCase() : o[key])
+  return Object.fromEntries(SCAFFOLD_OPTIONS.map(([key]) => [key, value(key)]).filter(([, v]) => v))
+}
+
+/** The command that makes the app from its brief.json: every answer comes with it, so nothing is retyped. */
+export const fromCommand = (briefJsonUrl: string) => `npx github:rhoneybul/fohm-scaffold new --from ${briefJsonUrl}`
+
 export function scaffoldCommand(o: Options) {
-  const flags: [string, string][] = [
-    ['name', o.name],
-    ['idea', o.idea],
-    ['business', o.business],
-    ['kind', o.kind],
-    ['coach', o.coach],
-    ['routes', o.routes],
-    ['inspiration', o.inspiration],
-    ['tagline', o.tagline],
-    ['member-word', o.memberWord],
-    ['owner-word', o.ownerWord],
-    ['operator', o.operator],
-    ['country', o.country],
-    ['registration', o.registration],
-    ['address', o.address],
-    ['support-email', o.supportEmail],
-    ['domain', o.domain],
-    ['bundle-id', o.bundleId],
-    ['accent', o.accent.toUpperCase()],
-  ]
-  const parts = flags.filter(([, v]) => v).map(([k, v]) => `  --${k} ${arg(v)}`)
+  const options = scaffoldOptions(o)
+  const parts = SCAFFOLD_OPTIONS.filter(([key]) => options[key]).map(([key, flag]) => `  --${flag} ${arg(options[key])}`)
   return `npx github:rhoneybul/fohm-scaffold new ${o.slug} \\\n${parts.join(' \\\n')} \\\n  --json`
 }
 
-export function claudePrompt(o: Options, raw: Answers) {
-  const shown = asked(raw)
+/** `briefJsonUrl`: the submission's brief.json, when the brief is read from its page; the create step is then one command. */
+export function claudePrompt(o: Options, raw: Answers, briefJsonUrl?: string) {
+  // The visitor's email is for getting in touch, not for building: it stays out of the brief.
+  const shown = asked(raw).filter((q) => q.key !== 'email')
   const answered = (key: string) => {
     const q = QUESTIONS.find((x) => x.key === key)!
     const given = (raw[key] ?? '').trim()
@@ -87,11 +101,19 @@ ${stillToAsk.map((l) => `- ${l}`).join('\n')}
 
 ## Create it
 
-Once the name is settled and you have those, create it with this, putting my answers in place of the placeholders (the operator, the support email and the app id):
+${
+    briefJsonUrl
+      ? `Every answer above is in the brief's JSON, so one command makes the app and keeps this brief as docs/BRIEF.md. Run it once the name is settled; a flag beside it wins over the brief, so add one for each answer the chat changed or settled (\`--name\`, \`--operator\`, \`--support-email\`, \`--domain\`, \`--bundle-id\`):
+
+\`\`\`bash
+${fromCommand(briefJsonUrl)} --json
+\`\`\``
+      : `Once the name is settled and you have those, create it with this, putting my answers in place of the placeholders (the operator, the support email and the app id):
 
 \`\`\`bash
 ${scaffoldCommand(o)}
-\`\`\`
+\`\`\``
+  }
 
 ## What to do with these answers
 
