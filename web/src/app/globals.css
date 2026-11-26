@@ -1760,24 +1760,6 @@ a.proof:hover .proof__arrow {
   border-color: #b42318;
 }
 
-/* While Claude writes the prototype: the rule breathes, so the page reads as busy, not stuck. */
-.builder__writing {
-  margin-block: 24px 48px;
-  animation: writing 1.4s ease-in-out infinite;
-}
-
-@keyframes writing {
-  50% {
-    border-color: transparent;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .builder__writing {
-    animation: none;
-  }
-}
-
 .interest__form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
