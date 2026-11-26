@@ -1,6 +1,6 @@
 import {NextResponse} from 'next/server'
 import {toSlack} from '@/app-builder/slack'
-import {embedLines, webhookOn} from '@/booking/booking'
+import {builderLines, embedLines, webhookOn} from '@/booking/booking'
 
 /**
  * The booking embed saying a call was booked (components/book-call.tsx). Pings Slack only while
@@ -20,6 +20,6 @@ export async function POST(request: Request) {
   if (Date.now() - (seen.get(key) ?? 0) < 10 * 60_000) return NextResponse.json({ok: true})
   seen.set(key, Date.now())
 
-  await toSlack(embedLines(body))
+  await toSlack([...embedLines(body), ...(await builderLines(body.ref))])
   return NextResponse.json({ok: true})
 }
