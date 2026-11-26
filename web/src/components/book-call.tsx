@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useId, useRef} from 'react'
+import {useEffect, useId, useRef, useState} from 'react'
 import {Arrow} from '@/components/arrow'
 
 /**
@@ -85,7 +85,7 @@ function startCal({namespace, elementId, url, prefill, from, builderRef, label, 
   from?: string
   builderRef?: string
   label: string
-  onBooked?: () => void
+  onBooked?: (startTime?: string) => void
 }) {
   const {origin, calLink} = calLinkOf(url)
   const cal = calApi()
@@ -97,7 +97,7 @@ function startCal({namespace, elementId, url, prefill, from, builderRef, label, 
     action: 'bookingSuccessfulV2',
     callback: (e: CustomEvent<{data?: Record<string, unknown>}>) => {
       const data = e.detail?.data ?? {}
-      onBooked?.()
+      onBooked?.(typeof data.startTime === 'string' ? data.startTime : undefined)
       void fetch('/api/booking', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -114,7 +114,7 @@ export function CalInline({url, prefill, from, builderRef, label = 'Build it wit
   from?: string
   builderRef?: string
   label?: string
-  onBooked?: () => void
+  onBooked?: (startTime?: string) => void
 }) {
   const namespace = `cal${useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const elementId = `${namespace}-inline`
@@ -143,12 +143,13 @@ export function BookCall({url, label = 'Book a call', variant = 'primary', from,
   const started = useRef(false)
   const namespace = `book${useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const elementId = `${namespace}-inline`
+  const [booked, setBooked] = useState<{at?: string} | null>(null)
 
   function open() {
     dialog.current?.showModal()
     if (started.current) return
     started.current = true
-    startCal({namespace, elementId, url, prefill, from, builderRef, label})
+    startCal({namespace, elementId, url, prefill, from, builderRef, label, onBooked: (at) => setBooked({at})})
   }
 
   return (
@@ -174,7 +175,46 @@ export function BookCall({url, label = 'Book a call', variant = 'primary', from,
           </div>
         </div>
         <div id={elementId} className="booking-dialog__cal" />
+        {booked && <Booked at={booked.at} onDone={() => dialog.current?.close()} />}
       </dialog>
     </>
+  )
+}
+
+/** The call's time in the visitor's own words and time zone: "Friday 27 November at 9:45". */
+export function callTime(iso?: string) {
+  const d = iso ? new Date(iso) : null
+  if (!d || Number.isNaN(d.getTime())) return ''
+  const day = d.toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'})
+  const time = d.toLocaleTimeString('en-GB', {hour: 'numeric', minute: '2-digit'})
+  return `${day} at ${time}`
+}
+
+/**
+ * Over the booking window once a call is booked: a big, plain thank-you, so nobody is left reading
+ * Cal.com's small print to find out whether it worked.
+ */
+export function Booked({at, name, onDone}: {at?: string; name?: string; onDone: () => void}) {
+  const when = callTime(at)
+  return (
+    <div className="booked" role="status" aria-live="polite">
+      <span className="booked__tick" aria-hidden>
+        ✓
+      </span>
+      <h2 className="booked__title">Thank you for booking</h2>
+      <p className="booked__line">
+        {when ? (
+          <>
+            Your call with Rob is on <strong>{when}</strong>.
+          </>
+        ) : (
+          'Your call with Rob is booked.'
+        )}{' '}
+        The invite and the link are in your email, and Rob will be in touch before then{name ? ` about ${name}` : ''}.
+      </p>
+      <button type="button" className="btn btn-primary booked__done" onClick={onDone}>
+        Done
+      </button>
+    </div>
   )
 }

@@ -270,7 +270,7 @@ Only the unit's screens, each <section class="screen" id="ID" data-title="A few 
 /** The look, for the screens' designers: what's in the stylesheet already, and what it was taken from. */
 function lookOf(job: Job) {
   const st = job.look.style ?? HOUSE
-  return `THE LOOK (in the stylesheet already)\n- ${st.canvas === 'dark' ? 'A dark canvas: the cards a step lighter, the words light' : 'A light canvas: white cards on grey'}; ${st.corners} corners; ${TYPE_FACES[st.type].about}.\n- Home leads with ${st.home === 'photo' ? 'a photo of the goal' : 'the list of what is next, the photos smaller'}.\n${st.from.map((f) => `- From the apps the owner likes: ${f}`).join('\n')}`.trim()
+  return `THE LOOK (in the stylesheet already)\n- ${st.canvas === 'dark' ? 'A dark canvas: the cards a step lighter, the words light' : 'A light canvas: white cards on grey'}; ${st.corners} corners; ${TYPE_FACES[st.type].about}.\n- Home leads with ${st.home === 'photo' ? 'a photo of the goal' : 'the list of what is next, the photos smaller'}.\n${st.palette ? '- The owner picked a colour scheme, not one colour, so every screen shows the palette: on most screens a .deep band or card (a goal, a hero block, a summary) and a .tint panel, as well as the accent for what to press. The chips and fields are in the tint already.\n' : ''}${st.from.map((f) => `- From the apps the owner likes: ${f}`).join('\n')}`.trim()
 }
 
 /** What every part of one app is drawn from: the facts, the plan and the photos (kept in Anthropic's cache for the app's other parts). */

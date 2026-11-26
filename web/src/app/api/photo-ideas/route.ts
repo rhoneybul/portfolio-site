@@ -10,12 +10,13 @@ import type {Answers} from '@/app-builder/options'
  * step always has something to show.
  */
 
-const MODEL = 'claude-haiku-5-5'
+const MODEL = 'claude-sonnet-5-5'
 
 const ASK = `You pick photo searches for a new app's landing page, onboarding and home screen.
-The photos come from Wikimedia Commons, whose search matches words in file titles and descriptions, so plain, concrete words work best.
+The photos come from a stock library (Pexels), then Wikimedia Commons, whose searches match plain, concrete words.
 Reply with JSON only, like {"terms": ["road cycling", "peloton", "alpine pass road", "bike race"]}:
-four searches, best first, each one to three plain English words naming something a camera can photograph: an activity, a scene, a place or an object.
+four searches, best first, each one to three plain English words naming something a camera can photograph: the activity itself as its members do it (always name the sport or activity in the search: "rowing eight", not "eight"), a scene, a place or the kit.
+Every search must find a photo of THIS app's world: a word that could mean something else gets the activity with it ("rowing machine", never "machine"; "rowing river", never "river").
 No abstract words (events, community, success, wellbeing), no app or brand names.`
 
 // One instance's memory: the same answers never ask twice.
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
       system: [ASK],
       user: told.join('\n'),
       maxTokens: 2_000,
-      deadline: Date.now() + 10_000,
+      deadline: Date.now() + 15_000,
     })
     const terms = tidy(JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}').terms)
     if (!terms.length) throw new Error('No terms')

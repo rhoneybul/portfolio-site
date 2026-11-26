@@ -87,11 +87,12 @@ export function PrototypeFrame({look, units, view, title, notes = false}: {look:
           </nav>
           {notes && here && (
             <label className="gen__note">
-              <span>Your note on “{here.title}”</span>
+              <span className="gen__note-title">Feedback on this screen: “{here.title}”</span>
+              <span className="gen__note-help">Tell Rob what you’d change or keep here. It’s sent with your app when you build it with him.</span>
               <textarea
                 rows={3}
                 maxLength={600}
-                placeholder="What you like, what you’d change: it goes to Rob with your app."
+                placeholder="e.g. Make the sign-in buttons bigger, and lead with Apple"
                 value={noted[here.id]?.text ?? ''}
                 onChange={(e) => setNote(here.id, here.title, e.target.value)}
               />

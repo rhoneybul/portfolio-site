@@ -120,11 +120,10 @@ export function SharedApp({
 
   return (
     <div className="builder builder--built">
-      <AppReveal options={options} app={built} sketch={<AppPrototype o={options} gallery={photos} />} />
-      <Showcase o={options} gallery={photos} built={built} />
+      <Showcase o={options} gallery={photos} built={built} intro={{name: 'Your app', node: <AppReveal options={options} app={built} sketch={<AppPrototype o={options} gallery={photos} />} />}} />
       {interest}
       <BuildDialog answers={answers} prototype={built?.id} name={options.name} accent={options.accent} icon={built?.look.style?.icon} tagline={options.tagline} bookingUrl={bookingUrl} builderRef={id} from="app-builder-mcp" />
-      <BuildBar name={options.name}>{bookingUrl && <BookCall url={bookingUrl} label="Book a free call" from="app-builder-mcp" builderRef={id} prefill={{notes: callNote(options.name)}} variant="outline" />}</BuildBar>
+      <BuildBar name={options.name} accent={options.accent} />
     </div>
   )
 }

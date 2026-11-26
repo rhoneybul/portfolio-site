@@ -176,6 +176,8 @@ export function kitCss(accent: string, style: Style = HOUSE) {
     hex(p?.surface) && `--surface:${p!.surface}`,
     `--deep:${hex(p?.deep) || `color-mix(in srgb, ${a} 45%, #0b0b0d)`}`,
     `--tint:${hex(p?.tint) || (style.canvas === 'dark' ? `color-mix(in srgb, ${a} 18%, #1b1b1f)` : soften(a))}`,
+    // A scheme is a palette, not one colour: its tint fills the quiet surfaces (chips, fields, tracks) too.
+    hex(p?.tint) && `--raised:${p!.tint};--track:${p!.tint}`,
   ]
     .filter(Boolean)
     .join(';')
@@ -276,7 +278,7 @@ ${iconMarkCss('.app-icon::after', style.icon)}
 .foot{position:fixed;left:0;right:0;bottom:0;padding:16px 20px 30px;background:linear-gradient(transparent,var(--bg) 28%);display:grid;gap:10px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:var(--r-pill);background:var(--raised);font:500 14px var(--t);color:var(--ink)}
-.chip.on{background:var(--ink);color:var(--on-ink)}
+.chip.on{background:var(--ink);color:var(--on-ink)}${p && hex(p.deep) ? '\n.chip.on{background:var(--deep);color:#fff}' : ''}
 .choice{display:flex;align-items:center;gap:14px;width:100%;padding:16px;border-radius:var(--r-tile);background:var(--surface);border:2px solid transparent}
 .choice.on{border-color:var(--ink)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
