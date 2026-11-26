@@ -1269,6 +1269,42 @@ a.proof:hover .proof__arrow {
   background: var(--accent-soft);
 }
 
+.builder__about {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* An example's three screenshots, under its description: phone screens upright, a game's on its side. */
+.builder__shots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 360px;
+  margin-top: 12px;
+}
+
+.builder__shots--wide {
+  max-width: 640px;
+}
+
+.builder__shots img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 9 / 19;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--line);
+}
+
+.builder__shots--wide img {
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+}
+
 .builder__template {
   position: relative;
   display: grid;
