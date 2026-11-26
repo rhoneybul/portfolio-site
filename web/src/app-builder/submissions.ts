@@ -45,9 +45,10 @@ export async function readSubmission(id: string): Promise<Submission | null> {
 /** Where a submission's brief is read: the markdown for Claude, the JSON for `fohm-scaffold new --from`. */
 export const briefUrl = (id: string) => `${siteUrl}/app-builder/submissions/${id}/brief`
 export const briefJsonUrl = (id: string) => `${briefUrl(id)}.json`
+export const prototypeUrl = (id: string) => `${siteUrl}/app-builder/submissions/${id}/prototype`
 
 /** The brief to give Claude, made from what was saved. */
-export const briefOf = (s: Submission) => claudePrompt(resolveOptions(s.answers).options, s.answers, briefJsonUrl(s.id))
+export const briefOf = (s: Submission) => claudePrompt(resolveOptions(s.answers).options, s.answers, {briefJson: briefJsonUrl(s.id), prototype: prototypeUrl(s.id)})
 
 /**
  * The brief as `fohm-scaffold new --from` reads it (its lib/brief.mjs, version 1): the answers as its
