@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import type {CSSProperties} from 'react'
 import {Logo} from '@/components/logo'
@@ -7,6 +8,18 @@ type App = {
   title: string | null
   slug: string | null
   logo: Parameters<typeof Logo>[0]['image']
+}
+
+/**
+ * Each app's real store icon, copied from its own repository into public/apps (288px): the icon
+ * people see on their phone. An app without one here shows its logo from Sanity instead.
+ */
+const STORE_ICONS: Record<string, string> = {
+  naz: '/apps/naz.png',
+  etapa: '/apps/etapa.png',
+  aluzam: '/apps/aluzam.png',
+  'naz-surf': '/apps/naz-surf.png',
+  'strawberry-fields': '/apps/strawberry-fields.png',
 }
 
 /**
@@ -28,7 +41,9 @@ const SLOTS = [
 ]
 
 export function AppScatter({apps}: {apps: App[]}) {
-  const shown = apps.filter((a) => a.logo?.asset && a.slug).slice(0, SLOTS.length)
+  const shown = apps
+    .filter((a) => a.slug && (STORE_ICONS[a.slug] || a.logo?.asset))
+    .slice(0, SLOTS.length)
   if (!shown.length) return null
   return (
     <ul className="app-scatter" aria-label="Apps I’ve built">
@@ -44,7 +59,11 @@ export function AppScatter({apps}: {apps: App[]}) {
         return (
           <li key={app._id} className="app-scatter__item" style={style}>
             <Link href={`/work/${app.slug}`} className="app-scatter__icon" aria-label={app.title ?? ''}>
-              <Logo image={app.logo} className="app-scatter__logo" pixels={104} />
+              {STORE_ICONS[app.slug!] ? (
+                <Image src={STORE_ICONS[app.slug!]} alt="" width={144} height={144} className="logo app-scatter__logo" />
+              ) : (
+                <Logo image={app.logo} className="app-scatter__logo" pixels={144} />
+              )}
               <span className="app-scatter__name" aria-hidden>
                 {app.title}
               </span>
