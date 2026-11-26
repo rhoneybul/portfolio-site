@@ -1,0 +1,52 @@
+# Checks every PR into main and every push to main.
+#
+# The "All tests" job at the bottom is the required check in the branch
+# ruleset (.github/rulesets/main-rebase-only.json). The ruleset also requires
+# branches to be up to date with main, so a PR can only merge once it has
+# been rebased onto the latest main and this check is green on that rebased
+# head. See docs/branch-protection.md.
+#
+# No path filters: a required check has to report on every PR, or a PR that
+# only touches docs would wait for it forever.
+name: Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Website typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+
+  # The one check the ruleset requires. Add any new job to `needs`.
+  all-tests:
+    name: All tests
+    if: always()
+    needs: [web]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" = true ]; then
+            echo "A test job didn't pass."; exit 1
+          fi
