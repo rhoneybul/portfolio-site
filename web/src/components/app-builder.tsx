@@ -48,6 +48,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   const top = useRef<HTMLDivElement>(null)
   // The newest message in the conversation: Claude's question, or its typing while it chooses.
   const latest = useRef<HTMLDivElement>(null)
+  // The conversation's own scroll: it moves, the page doesn't.
+  const log = useRef<HTMLDivElement>(null)
 
   // Answers survive a refresh in this tab only.
   useEffect(() => {
@@ -82,8 +84,11 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   useEffect(() => {
     if (phase !== 'asking') return
     input.current?.focus({preventScroll: true})
-    // The newest message stays in view as the conversation grows; the first waits for them to scroll to it.
-    if (at > 0 || thinking) latest.current?.scrollIntoView({block: 'nearest', behavior: 'smooth'})
+    // The chat's window comes into view as the conversation starts, then the page stays where it is.
+    if (at === 0 && !thinking) top.current?.scrollIntoView({block: 'nearest', behavior: 'smooth'})
+    // The newest message stays in view as the conversation grows, inside the window.
+    const el = log.current
+    if (el) el.scrollTo({top: el.scrollHeight, behavior: at > 0 || thinking ? 'smooth' : 'auto'})
   }, [at, phase, thinking])
 
   // Photos for every slot, found from what they told us: the photo step's searches, then each goal.
@@ -320,7 +325,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
         ))}
       </ol>
 
-      <div className="chat" role="log" aria-live="polite" aria-label="Your app, in conversation">
+      <div className="chat" ref={log} role="log" aria-live="polite" aria-label="Your app, in conversation">
         <div className="chat__msg chat__msg--claude">
           <p>Let’s start with the idea. Skip anything you’re not sure of, and I’ll ask later.</p>
         </div>
@@ -491,6 +496,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
               'Filled in from what you’ve told me: change it if it’s not right, then send.'
             ) : q.choices && !q.multi ? (
               'Tap one to answer.'
+            ) : suggestions && LISTS.has(q.key) && !value.trim() ? (
+              'Pick as many as you like, or type your own, then send.'
             ) : value.trim() || q.choices ? (
               ' '
             ) : fallback ? (
