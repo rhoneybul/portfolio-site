@@ -276,6 +276,25 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
           />
         )}
 
+        {q.suggestions && (
+          <div className="builder__picks" role="group" aria-label="Pick from these">
+            {q.suggestions.map((s) => {
+              const on = chosen.some((x) => x.toLowerCase() === s.toLowerCase())
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  aria-pressed={on}
+                  className={`builder__pick${on ? ' is-on' : ''}`}
+                  onClick={() => set((on ? chosen.filter((x) => x.toLowerCase() !== s.toLowerCase()) : [...chosen, s]).join(', '))}
+                >
+                  {s}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         <p className="builder__hint">
           {error ? (
             <span className="builder__error">{error}</span>

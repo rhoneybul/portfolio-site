@@ -1310,6 +1310,31 @@ a.proof:hover .proof__arrow {
   }
 }
 
+/* Picks under a typed answer, like the apps on Mobbin: they wrap, and each adds or removes itself. */
+.builder__picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.builder__pick {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.builder__pick.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .builder__shuffle {
   flex: none;
   min-height: 44px;
