@@ -250,6 +250,19 @@ export function PrototypeBuild({
         ))}
       </ol>
 
+      {!job && (
+        <>
+          <p className="building__summary is-pending" aria-hidden />
+          <ul className="building__units is-pending" aria-hidden>
+            {Array.from({length: 12}, (_, i) => (
+              <li key={i}>
+                <span className={`gen-thumb gen-thumb--${i === 0 ? 'web' : 'phone'} gen-thumb--empty`} />
+                <strong />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       {job && (
         <>
           {job.plan.summary && <p className="building__summary">{job.plan.summary}</p>}

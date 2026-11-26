@@ -4069,6 +4069,24 @@ a.proof:hover .proof__arrow {
   }
 }
 
+/* Before the plan, its summary and its screens hold their room, so nothing jumps when they come. */
+.building__summary.is-pending {
+  min-height: 3.2em;
+  background: repeating-linear-gradient(#ececf0 0 0.9em, transparent 0.9em 1.45em);
+  opacity: 0.7;
+}
+
+.building__units.is-pending strong {
+  width: 70%;
+  height: 0.9em;
+  background: #ececf0;
+}
+
+/* Room under the deck's Back and Next, so the bar at the foot of the screen never covers them. */
+.builder--built .deck {
+  margin-bottom: 72px;
+}
+
 .building__summary {
   max-width: 60ch;
   font-size: clamp(17px, 1.4vw, 19px);
@@ -4130,7 +4148,8 @@ a.proof:hover .proof__arrow {
   background: repeating-linear-gradient(-45deg, #ececf0 0 10px, #f2f2f6 10px 20px);
 }
 
-.gen-thumb--laptop {
+.gen-thumb--laptop,
+.gen-thumb--web {
   aspect-ratio: 1280 / 800;
   border-radius: 8px;
 }
