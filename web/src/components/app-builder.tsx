@@ -45,6 +45,8 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   const [note, setNote] = useState<string | null>(null)
   const input = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
   const top = useRef<HTMLDivElement>(null)
+  // The newest message in the conversation: Claude's question, or its typing while it chooses.
+  const latest = useRef<HTMLDivElement>(null)
 
   // Answers survive a refresh in this tab only.
   useEffect(() => {
@@ -77,9 +79,9 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   useEffect(() => {
     if (phase !== 'asking') return
     input.current?.focus({preventScroll: true})
-    // On a phone, the next question starts in view: back up to it if the page had scrolled past.
-    if ((top.current?.getBoundingClientRect().top ?? 0) < 0) top.current?.scrollIntoView({block: 'start', behavior: 'smooth'})
-  }, [at, phase])
+    // The newest message stays in view as the conversation grows; the first waits for them to scroll to it.
+    if (at > 0 || thinking) latest.current?.scrollIntoView({block: 'nearest', behavior: 'smooth'})
+  }, [at, phase, thinking])
 
   // Photos for every slot, found from what they told us: the photo step's searches, then each goal.
   // Claude's build finds them first; the quick sketch, coming straight here, finds them now.
@@ -259,9 +261,21 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     .split(',')
     .map((x) => x.trim())
     .filter(Boolean)
+  // While Claude chooses the next question, the one just answered joins the conversation.
+  const past = turns.slice(0, thinking ? at + 1 : at)
+  const typed = !q.choices && q.key !== 'photo'
+
+  /** A single choice, or a pick under a one-line answer, is an answer in itself: it's sent as tapped. */
+  const answerWith = (v: string) => {
+    if (thinking) return
+    const given = {...answers, [q.key]: v}
+    setAnswers(given)
+    setError(null)
+    void forward(given)
+  }
 
   return (
-    <div className={`builder ${className ?? ''}`} ref={top}>
+    <div className={`builder builder--chat ${className ?? ''}`} ref={top}>
       <ol className="builder__sections" aria-label="Parts">
         {PARTS.map((name, i) => (
           <li key={name} className={i + 1 === turn.part ? 'is-on' : i + 1 < turn.part ? 'is-past' : undefined}>
@@ -269,167 +283,208 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           </li>
         ))}
       </ol>
-      <form className="builder__ask" onSubmit={next}>
-        {at === 0 && (
-          <p className="builder__heads-up">
-            About {totalQuestions(answers)} questions in three parts: the idea, how it works, and how it looks. Five minutes or so. Each question
-            comes from what you’ve already said, so anything your answers cover is skipped, and you can skip what you’re not sure of. Then
-            Claude designs your app while you watch.
+
+      <div className="chat" role="log" aria-live="polite" aria-label="Your app, in conversation">
+        <div className="chat__msg chat__msg--claude">
+          <p>
+            About {totalQuestions(answers)} questions in three parts: the idea, how it works, and how it looks. Five minutes or so. Each one
+            comes from what you’ve already said, so anything your answers cover is skipped, and you can skip what you’re not sure of. Then I
+            design your app while you watch.
           </p>
-        )}
-        <div className="builder__count">
-          <span className="label">
-            Part {turn.part} of {turn.parts} · {turn.left ? `about ${turn.left} to go` : 'last question'}
-          </span>
-          <span className="builder__bar" aria-hidden>
-            <span style={{width: `${((at + 1) / (at + 1 + turn.left)) * 100}%`}} />
-          </span>
         </div>
-
-        <label className="builder__question" htmlFor={`q-${q.key}`}>
-          {turn.ask}
-        </label>
-        {turn.why && <p className="builder__why">{turn.why}</p>}
-
-        {q.choices ? (
-          <div className="builder__kinds" role={q.multi ? 'group' : 'radiogroup'} aria-label={turn.ask}>
-            {q.choices.map((c) => {
-              const on = q.multi ? chosen.includes(c.value) : value === c.value
-              const choice = (
-                <button
-                  key={c.value}
-                  type="button"
-                  role={q.multi ? 'checkbox' : 'radio'}
-                  aria-checked={on}
-                  className={`builder__kind${on ? ' is-active' : ''}`}
-                  onClick={() => set(q.multi ? (on ? chosen.filter((x) => x !== c.value) : [...chosen, c.value]).join(', ') : c.value)}
-                >
-                  <strong>{c.label}</strong>
-                  {c.hint && <span>{c.hint}</span>}
-                  {c.description && <span className="builder__about">{c.description}</span>}
-                  {c.shots && <Screenshots shots={c.shots} />}
-                </button>
-              )
-              // A live app to look at sits beside its choice, never inside it: a link in a button is neither.
-              return c.url ? (
-                <div key={c.value} className="builder__template">
-                  {choice}
-                  <a className="builder__see" href={c.url} target="_blank" rel="noreferrer">
-                    See {c.label.replace(/^Like /, '')} <Arrow />
-                  </a>
-                </div>
-              ) : (
-                choice
-              )
-            })}
+        {past.map((t, i) => (
+          <div key={`${t.key}-${i}`} className="chat__pair">
+            <div className="chat__msg chat__msg--claude">
+              <p>{t.ask}</p>
+            </div>
+            <div className="chat__msg chat__msg--you">
+              <Said q={questionOf(t.key)} value={answers[t.key] ?? ''} />
+              <button type="button" className="chat__change" onClick={() => setAt(i)} disabled={thinking} aria-label={`Change: ${t.ask}`}>
+                Change
+              </button>
+            </div>
           </div>
-        ) : q.key === 'photo' ? (
-          <PhotoSearch
-            answers={answers}
-            value={value}
-            onChange={(url, credit) => {
-              setAnswers({...answers, photo: url, photoCredit: credit})
-              setError(null)
-            }}
-          />
-        ) : q.key === 'accent' ? (
-          <div className="builder__colour">
-            <input
-              type="color"
-              aria-label="Pick a colour"
-              value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : '#2F6B4F'}
-              onChange={(e) => set(e.target.value.toUpperCase())}
-            />
-            <input ref={input} id={`q-${q.key}`} value={value} onChange={(e) => set(e.target.value)} placeholder={`e.g. ${q.example}`} />
-            <button
-              type="button"
-              className="text-btn builder__shuffle"
-              onClick={() => set(ACCENTS.filter((c) => c !== value.toUpperCase())[Math.floor(Math.random() * (ACCENTS.length - 1))])}
-            >
-              Pick one for me
-            </button>
+        ))}
+        {thinking ? (
+          <div className="chat__msg chat__msg--claude chat__msg--typing" ref={latest} aria-label="Choosing your next question">
+            <span />
+            <span />
+            <span />
           </div>
-        ) : q.long ? (
-          <textarea
-            ref={input}
-            id={`q-${q.key}`}
-            rows={3}
-            value={value}
-            onChange={(e) => set(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) next(e)
-            }}
-            placeholder={`e.g. ${q.example}`}
-          />
         ) : (
-          <input
-            ref={input}
-            id={`q-${q.key}`}
-            value={value}
-            onChange={(e) => set(e.target.value)}
-            placeholder={`e.g. ${q.example}`}
-            type={q.key === 'email' ? 'email' : undefined}
-            autoComplete={q.key === 'email' ? 'email' : undefined}
-            autoCapitalize={q.key === 'email' ? 'none' : undefined}
-            inputMode={q.key === 'email' ? 'email' : undefined}
-          />
-        )}
-
-        {suggestions && (
-          <div className="builder__picks" role="group" aria-label="Pick from these">
-            {suggestions.map((s) => {
-              const on = LISTS.has(q.key) ? chosen.some((x) => x.toLowerCase() === s.toLowerCase()) : value.trim().toLowerCase() === s.toLowerCase()
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  aria-pressed={on}
-                  className={`builder__pick${on ? ' is-on' : ''}`}
-                  onClick={() =>
-                    LISTS.has(q.key) ? set((on ? chosen.filter((x) => x.toLowerCase() !== s.toLowerCase()) : [...chosen, s]).join(', ')) : set(on ? '' : s)
-                  }
-                >
-                  {s}
-                </button>
-              )
-            })}
+          <div className="chat__msg chat__msg--claude chat__msg--now" ref={latest}>
+            <p id={`ask-${q.key}`}>{turn.ask}</p>
+            {turn.why && <p className="chat__why">{turn.why}</p>}
+            <span className="chat__count">
+              Part {turn.part} of {turn.parts} · {turn.left ? `about ${turn.left} to go` : 'last question'}
+            </span>
           </div>
         )}
+      </div>
 
-        <p className="builder__hint">
-          {thinking ? (
-            'Choosing your next question from what you’ve said…'
-          ) : error ? (
-            <span className="builder__error">{error}</span>
-          ) : prefilled ? (
-            'Filled in from what you’ve told us: change it if it’s not right.'
-          ) : value.trim() || q.choices ? (
-            ' '
-          ) : fallback ? (
-            `Leave it blank for: ${fallback}`
-          ) : (
-            'Not sure yet? Skip it: Claude will ask.'
-          )}
-        </p>
+      {!thinking && (
+        <form className="chat__reply builder__ask" onSubmit={next} aria-labelledby={`ask-${q.key}`}>
+          {q.choices ? (
+            <div className="builder__kinds" role={q.multi ? 'group' : 'radiogroup'} aria-labelledby={`ask-${q.key}`}>
+              {q.choices.map((c) => {
+                const on = q.multi ? chosen.includes(c.value) : value === c.value
+                const choice = (
+                  <button
+                    key={c.value}
+                    type="button"
+                    role={q.multi ? 'checkbox' : 'radio'}
+                    aria-checked={on}
+                    className={`builder__kind${on ? ' is-active' : ''}`}
+                    onClick={() => (q.multi ? set((on ? chosen.filter((x) => x !== c.value) : [...chosen, c.value]).join(', ')) : answerWith(c.value))}
+                  >
+                    <strong>{c.label}</strong>
+                    {c.hint && <span>{c.hint}</span>}
+                    {c.description && <span className="builder__about">{c.description}</span>}
+                    {c.shots && <Screenshots shots={c.shots} />}
+                  </button>
+                )
+                // A live app to look at sits beside its choice, never inside it: a link in a button is neither.
+                return c.url ? (
+                  <div key={c.value} className="builder__template">
+                    {choice}
+                    <a className="builder__see" href={c.url} target="_blank" rel="noreferrer">
+                      See {c.label.replace(/^Like /, '')} <Arrow />
+                    </a>
+                  </div>
+                ) : (
+                  choice
+                )
+              })}
+            </div>
+          ) : q.key === 'photo' ? (
+            <PhotoSearch
+              answers={answers}
+              value={value}
+              onChange={(url, credit) => {
+                setAnswers({...answers, photo: url, photoCredit: credit})
+                setError(null)
+              }}
+            />
+          ) : null}
 
-        <div className="builder__nav">
-          {at > 0 && (
-            <button type="button" className="text-btn" onClick={() => setAt(at - 1)} disabled={thinking}>
-              Back
-            </button>
+          {suggestions && (
+            <div className="builder__picks" role="group" aria-label="Pick from these">
+              {suggestions.map((s) => {
+                const list = LISTS.has(q.key)
+                const on = list ? chosen.some((x) => x.toLowerCase() === s.toLowerCase()) : value.trim().toLowerCase() === s.toLowerCase()
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    aria-pressed={on}
+                    className={`builder__pick${on ? ' is-on' : ''}`}
+                    onClick={() => (list ? set((on ? chosen.filter((x) => x.toLowerCase() !== s.toLowerCase()) : [...chosen, s]).join(', ')) : answerWith(s))}
+                  >
+                    {s}
+                  </button>
+                )
+              })}
+            </div>
           )}
-          <button type="submit" className="btn btn-primary" disabled={thinking} aria-busy={thinking}>
-            {turn.key === LAST ? 'See my app' : 'Next'} <Arrow />
-          </button>
-          {!q.required && !q.choices && (
-            <button type="button" className="text-btn" onClick={skip} disabled={thinking}>
-              Skip
-            </button>
+
+          {typed && (
+            <div className={`chat__composer${q.key === 'accent' ? ' chat__composer--colour' : ''}`}>
+              {q.key === 'accent' && (
+                <input
+                  type="color"
+                  aria-label="Pick a colour"
+                  value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : '#2F6B4F'}
+                  onChange={(e) => set(e.target.value.toUpperCase())}
+                />
+              )}
+              {q.long ? (
+                <textarea
+                  ref={input}
+                  id={`q-${q.key}`}
+                  aria-labelledby={`ask-${q.key}`}
+                  rows={2}
+                  value={value}
+                  onChange={(e) => set(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) next(e)
+                  }}
+                  placeholder={`e.g. ${q.example}`}
+                />
+              ) : (
+                <input
+                  ref={input}
+                  id={`q-${q.key}`}
+                  aria-labelledby={`ask-${q.key}`}
+                  value={value}
+                  onChange={(e) => set(e.target.value)}
+                  placeholder={`e.g. ${q.example}`}
+                  type={q.key === 'email' ? 'email' : undefined}
+                  autoComplete={q.key === 'email' ? 'email' : undefined}
+                  autoCapitalize={q.key === 'email' ? 'none' : undefined}
+                  inputMode={q.key === 'email' ? 'email' : undefined}
+                />
+              )}
+              <button type="submit" className="btn btn-primary chat__send">
+                {turn.key === LAST ? 'See my app' : 'Send'} <Arrow />
+              </button>
+            </div>
           )}
-        </div>
-      </form>
+
+          <p className="builder__hint">
+            {error ? (
+              <span className="builder__error">{error}</span>
+            ) : prefilled ? (
+              'Filled in from what you’ve told me: change it if it’s not right, then send.'
+            ) : q.choices && !q.multi ? (
+              'Tap one to answer.'
+            ) : value.trim() || q.choices ? (
+              ' '
+            ) : fallback ? (
+              `Leave it blank for: ${fallback}`
+            ) : (
+              'Not sure yet? Skip it: I’ll ask later.'
+            )}
+          </p>
+
+          <div className="builder__nav">
+            {q.key === 'accent' && (
+              <button
+                type="button"
+                className="text-btn builder__shuffle"
+                onClick={() => set(ACCENTS.filter((c) => c !== value.toUpperCase())[Math.floor(Math.random() * (ACCENTS.length - 1))])}
+              >
+                Pick one for me
+              </button>
+            )}
+            {!typed && (q.multi || q.key === 'photo') && (
+              <button type="submit" className="btn btn-primary">
+                Send <Arrow />
+              </button>
+            )}
+            {!q.required && !(q.choices && !q.multi) && (
+              <button type="button" className="text-btn" onClick={skip}>
+                Skip
+              </button>
+            )}
+          </div>
+        </form>
+      )}
     </div>
   )
+}
+
+/** An answer as it reads in the conversation: a choice by its label, the photo as itself, the colour as a swatch. */
+function Said({q, value}: {q: Question; value: string}) {
+  if (!value.trim()) return <p className="chat__skipped">Skipped</p>
+  if (q.key === 'photo') return <img className="chat__photo" src={value} alt="The photo picked for the app" width={160} height={100} loading="lazy" />
+  if (q.key === 'accent')
+    return (
+      <p className="chat__swatch">
+        <span style={{background: value}} aria-hidden /> {value.toUpperCase()}
+      </p>
+    )
+  const picked = q.choices?.filter((c) => value.split(',').map((x) => x.trim()).includes(c.value)).map((c) => c.label)
+  return <p>{picked?.length ? picked.join(', ') : value}</p>
 }
 
 /**

@@ -47,5 +47,5 @@ export function isOwner(authorization: string | null) {
   }
 }
 
-/** Only the brief and the prototype open by key: the page with their details always asks for the password. */
-export const keyable = (path: string) => /^\/app-builder\/submissions\/[a-f0-9]{32}\/(brief|prototype)$/.test(path)
+/** Only the brief (markdown and JSON) and the prototype open by key: the page with their details always asks for the password. */
+export const keyable = (path: string) => /^\/app-builder\/submissions\/[a-f0-9]{32}\/(brief|brief\.json|prototype)$/.test(path)

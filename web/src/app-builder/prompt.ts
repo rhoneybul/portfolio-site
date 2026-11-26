@@ -11,32 +11,50 @@ import {QUESTIONS, SECTIONS, asked, type Answers, type Options} from './options'
 /** A value for the command line: the scaffolder refuses quotes and backslashes, so they never get here. */
 const arg = (v: string) => `"${v.replace(/["\\`$]/g, '')}"`
 
-export function scaffoldCommand(o: Options) {
-  const flags: [string, string][] = [
-    ['name', o.name],
-    ['idea', o.idea],
-    ['business', o.business],
-    ['kind', o.kind],
-    ['coach', o.coach],
-    ['routes', o.routes],
-    ['inspiration', o.inspiration],
-    ['tagline', o.tagline],
-    ['member-word', o.memberWord],
-    ['owner-word', o.ownerWord],
-    ['operator', o.operator],
-    ['country', o.country],
-    ['registration', o.registration],
-    ['address', o.address],
-    ['support-email', o.supportEmail],
-    ['domain', o.domain],
-    ['bundle-id', o.bundleId],
-    ['accent', o.accent.toUpperCase()],
+/** The answers as `fohm-scaffold new`'s flags, by its option keys (its lib/options.mjs QUESTIONS), only those set. */
+function scaffoldFlags(o: Options): [key: string, flag: string, value: string][] {
+  const flags: [string, string, string][] = [
+    ['name', 'name', o.name],
+    ['idea', 'idea', o.idea],
+    ['business', 'business', o.business],
+    ['kind', 'kind', o.kind],
+    ['coach', 'coach', o.coach],
+    ['routes', 'routes', o.routes],
+    ['inspiration', 'inspiration', o.inspiration],
+    ['tagline', 'tagline', o.tagline],
+    ['memberWord', 'member-word', o.memberWord],
+    ['ownerWord', 'owner-word', o.ownerWord],
+    ['operator', 'operator', o.operator],
+    ['country', 'country', o.country],
+    ['registration', 'registration', o.registration],
+    ['address', 'address', o.address],
+    ['supportEmail', 'support-email', o.supportEmail],
+    ['domain', 'domain', o.domain],
+    ['bundleId', 'bundle-id', o.bundleId],
+    ['accent', 'accent', o.accent.toUpperCase()],
   ]
-  const parts = flags.filter(([, v]) => v).map(([k, v]) => `  --${k} ${arg(v)}`)
+  return flags.filter(([, , v]) => v)
+}
+
+/** What brief.json carries as `new`'s options (fohm-scaffold's lib/brief.mjs, version 1). */
+export const scaffoldOptions = (o: Options) => Object.fromEntries(scaffoldFlags(o).map(([key, , v]) => [key, v]))
+
+/** Every flag spelled out: the way to create it when there's no brief.json to read. */
+export function scaffoldCommand(o: Options) {
+  const parts = scaffoldFlags(o).map(([, flag, v]) => `  --${flag} ${arg(v)}`)
   return `npx github:rhoneybul/fohm-scaffold new ${o.slug} \\\n${parts.join(' \\\n')} \\\n  --json`
 }
 
-export function claudePrompt(o: Options, raw: Answers, prototypeUrl?: string) {
+/** One command that makes the app from a submission's brief.json: every answer comes with it. */
+export const fromCommand = (briefJsonUrl: string) => `npx github:rhoneybul/fohm-scaffold new --from "${briefJsonUrl}" --json`
+
+/** Links the brief carries: the builder's prototype, and the brief.json `new --from` reads. */
+export interface BriefLinks {
+  prototype?: string
+  briefJson?: string
+}
+
+export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl, briefJson}: BriefLinks = {}) {
   const shown = asked(raw)
   const answered = (key: string) => {
     const q = QUESTIONS.find((x) => x.key === key)!
@@ -100,11 +118,19 @@ ${order.map((l, i) => `${i + 1}. ${l}`).join('\n')}
 
 ## Create it, once I've approved the prototype
 
-With the name settled and those answers in, create it with this, putting my answers in place of the placeholders (the operator, the support email and the app id):
+${
+    briefJson
+      ? `Every answer above is in the brief's JSON, so one command makes the app and keeps this brief as docs/BRIEF.md. A flag beside it wins over the brief: add one for each answer the chat or the prototype settled (\`--name\`, \`--operator\`, \`--country\`, \`--registration\`, \`--support-email\`, \`--domain\`, \`--bundle-id\`, \`--scheme\`):
+
+\`\`\`bash
+${fromCommand(briefJson)}
+\`\`\``
+      : `With the name settled and those answers in, create it with this, putting my answers in place of the placeholders (the operator, the support email and the app id):
 
 \`\`\`bash
 ${scaffoldCommand(o)}
-\`\`\`
+\`\`\``
+  }
 
 ## What to do with these answers
 

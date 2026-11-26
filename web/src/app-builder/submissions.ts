@@ -7,7 +7,7 @@
  */
 import {randomBytes} from 'node:crypto'
 import {get, put} from '@vercel/blob'
-import {claudePrompt} from './prompt'
+import {claudePrompt, scaffoldOptions} from './prompt'
 import {resolveOptions, type Answers} from './options'
 import {siteUrl} from '@/site-url'
 import {keyedUrl} from './owner'
@@ -74,8 +74,43 @@ export async function readSubmission(id: string): Promise<Submission | null> {
 /** The page of the prototype Claude drew for a submission, when it did. */
 export const prototypeUrlOf = (s: Submission) => (s.prototype ? `${siteUrl}/app-builder/submissions/${s.id}/prototype` : undefined)
 
-/** The brief to give Claude, made from what was saved: its prototype link opens without the password (owner.ts). */
-export async function briefOf(s: Submission) {
+/** Where a submission's brief lives: the markdown Claude reads, and the JSON `fohm-scaffold new --from` reads. */
+const briefUrl = (s: Submission) => `${siteUrl}/app-builder/submissions/${s.id}/brief`
+
+/** The keyed links a brief carries (owner.ts): each opens its one path without the password. */
+async function linksOf(s: Submission) {
   const prototype = prototypeUrlOf(s)
-  return claudePrompt(resolveOptions(s.answers).options, s.answers, prototype ? await keyedUrl(prototype) : undefined)
+  return {
+    prototype: prototype ? await keyedUrl(prototype) : undefined,
+    briefJson: await keyedUrl(`${briefUrl(s)}.json`),
+  }
+}
+
+/** The brief to give Claude, made from what was saved. */
+export async function briefOf(s: Submission) {
+  return claudePrompt(resolveOptions(s.answers).options, s.answers, await linksOf(s))
+}
+
+/** The keyed link to the brief's markdown: what a Claude session is handed to build the app from. */
+export const keyedBriefUrl = (s: Submission) => keyedUrl(briefUrl(s))
+
+/**
+ * The brief as `fohm-scaffold new --from` reads it (its lib/brief.mjs, version 1): the answers as its options,
+ * the rest of the answers and the prototype's link for the new-app skill, and the markdown brief, which the new
+ * app keeps as docs/BRIEF.md. Never the visitor's email or contact details, and never a link to the submission's
+ * page or to this file: the brief is committed into the new app.
+ */
+export async function briefJson(s: Submission) {
+  const {options} = resolveOptions(s.answers)
+  const {email: _email, ...answers} = s.answers
+  const {prototype} = await linksOf(s)
+  return {
+    fohm: 'app-builder-brief',
+    version: 1,
+    at: s.at,
+    options: scaffoldOptions(options),
+    answers,
+    ...(prototype ? {prototype} : {}),
+    brief: claudePrompt(options, s.answers, {prototype}),
+  }
 }
