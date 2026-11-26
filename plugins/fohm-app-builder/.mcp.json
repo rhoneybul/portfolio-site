@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "fohm-app-builder": {"type": "http", "url": "https://www.fohm.io/mcp"}
+  }
+}

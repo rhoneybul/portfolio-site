@@ -15,6 +15,8 @@ export function appLines(o: Options, raw: Answers) {
     raw.business && `Business: ${esc(raw.business)}`,
     raw.country && `Country: ${esc(raw.country)}`,
     raw.audience && `Audience: ${esc(raw.audience)}`,
+    raw.sector && `Sector: ${esc(raw.sector)}`,
+    raw.location && `Based in: ${esc(raw.location)}${/\blondon\b/i.test(raw.location) ? ' :round_pushpin: *London*' : ''}`,
   ].filter(Boolean) as string[]
 }
 

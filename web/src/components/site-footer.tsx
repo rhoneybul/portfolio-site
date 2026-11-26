@@ -12,6 +12,7 @@ export function SiteFooter({settings}: {settings: Settings}) {
         </span>
         <span>{settings?.location}</span>
         <a href="/brand/index.html">Brand assets</a>
+        <a href="/privacy">Privacy</a>
         <a href="#top">Back to top</a>
       </footer>
     </>
