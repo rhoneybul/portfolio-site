@@ -2,6 +2,7 @@ import {NextResponse} from 'next/server'
 import {QUESTIONS, resolveOptions, type Answers} from '@/app-builder/options'
 import {appLines, esc, toSlack} from '@/app-builder/slack'
 import {saveSubmission, submissionsOn} from '@/app-builder/submissions'
+import {isPrototypeId} from '@/app-builder/prototypes'
 import {siteUrl} from '@/site-url'
 
 /**
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     event?: string
     answers?: Answers
     contact?: {name?: string; email?: string; note?: string; website?: string}
+    prototype?: string
   } | null
   const event = body?.event as keyof typeof EVENTS
   if (!event || !(event in EVENTS)) return NextResponse.json({error: 'Unknown event.'}, {status: 400})
@@ -47,10 +49,12 @@ export async function POST(request: Request) {
   recent.set(key, Date.now())
 
   const {options} = resolveOptions(answers)
+  // The prototype Claude drew for them, if it did: its id, never its contents.
+  const prototype = isPrototypeId(String(body?.prototype ?? '')) ? String(body?.prototype) : undefined
   let id = ''
   if ((event === 'used' || event === 'interest') && submissionsOn()) {
     try {
-      id = await saveSubmission(event, answers, event === 'interest' ? contact : undefined)
+      id = await saveSubmission(event, answers, event === 'interest' ? contact : undefined, prototype)
     } catch (error) {
       console.error('[builder] save', error)
     }
@@ -65,7 +69,7 @@ export async function POST(request: Request) {
         ? [`From ${esc(answers.email)}`]
         : []),
     ...appLines(options, answers),
-    ...(page ? [`<${page}|Open the submission> · <${page}/brief|The brief for Claude>`] : event === 'whatsapp' ? [] : ['_Not saved: BLOB_READ_WRITE_TOKEN isn’t set._']),
+    ...(page ? [`<${page}|Open the submission>${prototype ? ` · <${page}/prototype|The prototype Claude drew>` : ' · _the quick sketch: Claude didn’t draw one_'} · <${page}/brief|The brief for Claude>`] : event === 'whatsapp' ? [] : ['_Not saved: BLOB_READ_WRITE_TOKEN isn’t set._']),
   ])
   return NextResponse.json({ok: true})
 }

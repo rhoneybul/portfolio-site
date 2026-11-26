@@ -7,7 +7,7 @@ import {SiteFooter} from '@/components/site-footer'
 import {Showcase} from '@/components/showcase'
 import {CopyButton} from '@/components/copy-button'
 import {QUESTIONS, SECTIONS, asked, resolveOptions} from '@/app-builder/options'
-import {briefOf, readSubmission} from '@/app-builder/submissions'
+import {briefOf, prototypeUrlOf, readSubmission} from '@/app-builder/submissions'
 import {siteUrl} from '@/site-url'
 
 // A submission is Fohm's: never indexed, never cached, and only found by the link in Slack.
@@ -24,6 +24,7 @@ export default async function SubmissionPage({params}: {params: Promise<{id: str
   if (!s) notFound()
   const {options} = resolveOptions(s.answers)
   const brief = briefOf(s)
+  const prototype = prototypeUrlOf(s)
   const briefUrl = `${siteUrl}/app-builder/submissions/${id}/brief`
   const ask = `Read ${briefUrl} and build this app with fohm-scaffold, following its new-app skill.`
   const label = (key: string, v: string) => QUESTIONS.find((q) => q.key === key)?.choices?.find((c) => c.value === v)?.label ?? v
@@ -90,7 +91,19 @@ export default async function SubmissionPage({params}: {params: Promise<{id: str
 
           <div className={`submission__block ${display.variable} ${text.variable}`}>
             <h2 className="manifest__title">What they saw</h2>
-            <Showcase o={options} gallery={[]} />
+            {prototype ? (
+              <>
+                <p>
+                  The prototype Claude drew from their answers: <a href={prototype}>on a phone</a> · <a href={`${prototype}?view=laptop`}>their dashboard</a>.
+                </p>
+                <div className="submission__prototype">
+                  <iframe src={prototype} title={`${options.name} on a phone`} sandbox="allow-scripts" className="submission__phone" />
+                  <iframe src={`${prototype}?view=laptop`} title={`${options.name}: the dashboard`} sandbox="allow-scripts" className="submission__laptop" />
+                </div>
+              </>
+            ) : (
+              <Showcase o={options} gallery={[]} />
+            )}
           </div>
 
           <div className="submission__block">

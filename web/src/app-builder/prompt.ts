@@ -2,7 +2,10 @@ import {QUESTIONS, SECTIONS, asked, type Answers, type Options} from './options'
 
 /**
  * The prompt the builder hands over: everything answered, ready to paste into Claude with
- * fohm-scaffold's new-app skill, so its first phase (Discover) is done and it starts building.
+ * fohm-scaffold's new-app skill, so its first phase (Discover) is done. It follows the skill's
+ * order: research, then the end-to-end prototype in Claude Design that the owner approves, and
+ * only then the scaffold command. The builder's own prototype, when Claude drew one, is the
+ * first sketch the real one starts from.
  */
 
 /** A value for the command line: the scaffolder refuses quotes and backslashes, so they never get here. */
@@ -33,7 +36,7 @@ export function scaffoldCommand(o: Options) {
   return `npx github:rhoneybul/fohm-scaffold new ${o.slug} \\\n${parts.join(' \\\n')} \\\n  --json`
 }
 
-export function claudePrompt(o: Options, raw: Answers) {
+export function claudePrompt(o: Options, raw: Answers, prototypeUrl?: string) {
   const shown = asked(raw)
   const answered = (key: string) => {
     const q = QUESTIONS.find((x) => x.key === key)!
@@ -74,6 +77,12 @@ export function claudePrompt(o: Options, raw: Answers) {
     'my revenue, time, budget and content rights, for the research',
   ]
 
+  const order = [
+    `Research the market first, before anything is drawn (the skill's step 2), from my audience and ambition above, with a source for every number.`,
+    `Then prototype the whole app end to end in Claude Design (the skill's step 3 and its reference/prototype.md): every screen my members meet, and my dashboard, in the house style, my words and real photos, clickable from the first screen. Send me the link that plays it, with the calls you made and the research's open questions, and revise it until I say build it.${prototypeUrl ? ` The app builder already drew a first prototype from these answers: ${prototypeUrl} (open the dashboard's screens with ?view=laptop). Start from it, but make the real one on a Claude Design canvas.` : ''}`,
+    'Only once I’ve approved the prototype, create the app (below), with the flags the prototype settled.',
+  ]
+
   return `I want to make a new app with fohm-scaffold (github.com/rhoneybul/fohm-scaffold), following its new-app skill end to end.
 My answers to the Discover phase are below. Take them as answered, ask me only what's marked as not answered, then carry on with the playbook.
 
@@ -85,9 +94,13 @@ ${sections.join('\n\n')}
 
 ${stillToAsk.map((l) => `- ${l}`).join('\n')}
 
-## Create it
+## Before anything is created
 
-Once the name is settled and you have those, create it with this, putting my answers in place of the placeholders (the operator, the support email and the app id):
+${order.map((l, i) => `${i + 1}. ${l}`).join('\n')}
+
+## Create it, once I've approved the prototype
+
+With the name settled and those answers in, create it with this, putting my answers in place of the placeholders (the operator, the support email and the app id):
 
 \`\`\`bash
 ${scaffoldCommand(o)}
@@ -97,12 +110,12 @@ ${scaffoldCommand(o)}
 
 ${next.map((l) => `- ${l}`).join('\n')}
 - Publish my checklist of what only I can do (the app-launch skill, step 1): the domain, the business and the store accounts take days, so they start today.
-- Research the market into docs/RESEARCH.md with sources, from my audience and ambition above.
+- Once the app exists, the research becomes docs/RESEARCH.md and the prototype's link goes in DESIGN.md under Prototype.
 - Write the landing page's headline and description from what people should be doing in the app, and PRODUCT.md from my idea and business.
 - Write onboarding's steps (\`ONBOARDING\` in src/lib/progression.ts) from my idea, what people are here for and what they work towards, as the template's docs/ONBOARDING.md says.${o.kind === 'coaching' ? `
 - Put my method into src/lib/progression.ts once you have the levels and skills from me.` : ''}
 - Research the catalogue of goals and the courses that prepare for them, with open-licence photos (reference/research.md).
-- Design with the app-design skill: my references from Mobbin within the house style (Space Grotesk and DM Sans, the grey canvas and white cards, the ink pill with the ${o.accent.toUpperCase()} disc), my answers to its three questions above, photos in every slot, and a fresh review before I see anything.
+- Design with the app-design skill, building the approved prototype for real: my references from Mobbin within the house style (Space Grotesk and DM Sans, the grey canvas and white cards, the ink pill with the ${o.accent.toUpperCase()} disc), photos in every slot, and a fresh review against the prototype before I see anything.
 - Then launch with the app-launch skill, each integration off until its key is set, and never ask me for a secret in the chat.
 `
 }
