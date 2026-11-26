@@ -7,8 +7,8 @@ import {SiteFooter} from '@/components/site-footer'
 import {Showcase} from '@/components/showcase'
 import {CopyButton} from '@/components/copy-button'
 import {QUESTIONS, SECTIONS, asked, resolveOptions} from '@/app-builder/options'
-import {briefOf, readSubmission} from '@/app-builder/submissions'
-import {siteUrl} from '@/site-url'
+import {briefJsonUrl, briefOf, briefUrl, readSubmission} from '@/app-builder/submissions'
+import {fromCommand} from '@/app-builder/prompt'
 
 // A submission is Fohm's: never indexed, never cached, and only found by the link in Slack.
 export const dynamic = 'force-dynamic'
@@ -24,8 +24,9 @@ export default async function SubmissionPage({params}: {params: Promise<{id: str
   if (!s) notFound()
   const {options} = resolveOptions(s.answers)
   const brief = briefOf(s)
-  const briefUrl = `${siteUrl}/app-builder/submissions/${id}/brief`
-  const ask = `Read ${briefUrl} and build this app with fohm-scaffold, following its new-app skill.`
+  const markdown = briefUrl(id)
+  const create = fromCommand(briefJsonUrl(id))
+  const ask = `Read ${markdown} and build this app with fohm-scaffold, following its new-app skill.`
   const label = (key: string, v: string) => QUESTIONS.find((q) => q.key === key)?.choices?.find((c) => c.value === v)?.label ?? v
 
   return (
@@ -55,16 +56,18 @@ export default async function SubmissionPage({params}: {params: Promise<{id: str
             <h2 className="manifest__title">Build it with Claude</h2>
             <ol className="submission__steps">
               <li>
-                Clone the scaffold and open Claude Code in it, so its skills load:
-                <code>git clone https://github.com/rhoneybul/fohm-scaffold && cd fohm-scaffold && claude</code>
+                Make the app in one command, in the folder it should live in: every answer comes from the brief, and the brief is kept in the app as <code>docs/BRIEF.md</code>.
+                <code>{create}</code>
+                <CopyButton text={create} label="Copy the command" />
               </li>
               <li>
-                Give it this:
+                Open the new folder in Claude Code and run the new-app skill. It reads <code>docs/BRIEF.md</code>, asks only what the builder left open, makes the prototype, and launches it with the app-launch skill.
+              </li>
+              <li>
+                Or, before anything is made (to settle the name first), give Claude this with fohm-scaffold&apos;s skills loaded:
                 <code>{ask}</code>
                 <CopyButton text={ask} label="Copy the instruction" />
-              </li>
-              <li>
-                Or paste the whole brief (below, or <a href={briefUrl}>as markdown</a>). It answers the first phase, lists what&apos;s still to ask the owner, and has the scaffold command filled in.
+                The brief (below, or <a href={markdown}>as markdown</a>) ends with the same command.
               </li>
             </ol>
           </div>
