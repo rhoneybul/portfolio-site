@@ -5,7 +5,7 @@
  * sends back is checked here, and without Claude the next row comes from a fixed order with its
  * own words. Plain: used in the browser and on the server.
  */
-import {QUESTIONS, asked, type Answers, type Question} from './options'
+import {QUESTIONS, TEMPLATES, asked, type Answers, type Question} from './options'
 
 export const PARTS = ['The idea', 'How it works', 'How it looks, and the practical bits'] as const
 
@@ -119,8 +119,8 @@ export function cleanTurn(raw: unknown, answers: Answers, done: readonly string[
   if (!rows.includes(key)) throw new Error(`Not a row still to ask: ${key || 'none'}`)
   const q = questionOf(key)
 
-  const ask = plain(r.ask, 160) || q.ask
-  const why = plain(r.why, 220) || q.why
+  const ask = notAnotherApp(plain(r.ask, 160), answers) || q.ask
+  const why = notAnotherApp(plain(r.why, 220), answers) || q.why
   const typed = !q.choices && !q.suggestions && key !== 'photo' && key !== 'accent'
   // On a comma-separated answer each pick is one item, so several can be picked: "Erg scores, 2k times" is two.
   const picks = typed && Array.isArray(r.suggestions) ? r.suggestions.map((s) => plain(s, 60)).filter(Boolean) : []
@@ -139,6 +139,17 @@ export function cleanTurn(raw: unknown, answers: Answers, done: readonly string[
     ...(prefill ? {prefill} : {}),
     ...(skip.length ? {skip} : {}),
   })
+}
+
+/**
+ * Our own apps the visitor can pick a look from ("Like Etapa") are never their app: before it has a
+ * name, Claude took "etapa" for one and asked "What will rowers do in Etapa, day to day?".
+ * Wording that names one of them, other than as their own name, is dropped for the row's own.
+ */
+export function notAnotherApp(text: string, answers: Answers) {
+  const theirs = answers.name?.trim().toLowerCase()
+  const names = TEMPLATES.map((t) => t.label.replace(/^Like /, '')).filter((n) => n.toLowerCase() !== theirs)
+  return names.some((n) => new RegExp(`\\b${n}\\b`, 'i').test(text)) ? '' : text
 }
 
 function cleanPrefill(q: Question, v: unknown) {
@@ -163,10 +174,16 @@ export function rowsFor(answers: Answers, done: readonly string[]) {
     .join('\n')
 }
 
+/** The look they picked, said as another app's, so Claude never takes it for their app's name. */
+function templateSaid(value: string) {
+  const t = TEMPLATES.find((x) => x.value === value.trim())
+  return t ? `${t.label}, one of Fohm's own apps whose look they'd borrow (not their app, and not its name)` : value.trim()
+}
+
 /** What they've said so far, for Claude: the rows they answered, in their words. */
 export function saidSoFar(answers: Answers, done: readonly string[]) {
   return done
     .filter((key) => key !== 'photo' && answers[key]?.trim())
-    .map((key) => `- ${questionOf(key)?.ask ?? key}: ${answers[key].trim()}`)
+    .map((key) => `- ${questionOf(key)?.ask ?? key}: ${key === 'template' ? templateSaid(answers[key]) : answers[key].trim()}`)
     .join('\n')
 }
