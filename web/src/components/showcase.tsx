@@ -3,6 +3,8 @@
 import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppPrototype, Mark, goalsOf, type Pic} from '@/components/app-prototype'
+import {PrototypeFrame} from '@/components/prototype-frame'
+import type {Built} from '@/components/prototype-build'
 import {whatYouGet} from '@/app-builder/manifest'
 import {liftedAccent, needsYou, onAccent, soften, type Options} from '@/app-builder/options'
 
@@ -268,7 +270,8 @@ function Stores({o, pic}: {o: Options; pic: (n: number) => Pic | undefined}) {
   )
 }
 
-export function Showcase({o, gallery}: {o: Options; gallery: Pic[]}) {
+/** With `built`, the app and the dashboard are the prototype Claude drew; without it, the quick sketch. */
+export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built?: Built | null}) {
   const parts = Object.fromEntries(whatYouGet(o).map((p) => [p.title, p.items]))
   const photos: Pic[] = [...(o.photo ? [{url: o.photo, credit: o.photoCredit}] : []), ...gallery]
   const pic = (n: number) => (photos.length ? photos[n % photos.length] : undefined)
@@ -278,8 +281,17 @@ export function Showcase({o, gallery}: {o: Options; gallery: Pic[]}) {
     {
       name: 'The app',
       node: (
-        <Slide kicker="01 · The app" title={`${o.name}, on every phone`} line="The landing page, onboarding and the screens people use, in your name and colour. Tap through it." items={[...pick('The app', 3), ...pick('Onboarding', 2)]}>
-          <AppPrototype o={o} gallery={gallery} />
+        <Slide
+          kicker="01 · The app"
+          title={`${o.name}, on every phone`}
+          line={
+            built
+              ? 'Claude designed every screen from your answers, in the house style Etapa and Naz share. Tap through it, from the landing page on.'
+              : 'The landing page, onboarding and the screens people use, in your name and colour. Tap through it.'
+          }
+          items={[...pick('The app', 3), ...pick('Onboarding', 2)]}
+        >
+          {built ? <PrototypeFrame look={built.look} units={built.units} view="phone" title={`${o.name} on a phone`} /> : <AppPrototype o={o} gallery={gallery} />}
         </Slide>
       ),
     },
@@ -287,7 +299,13 @@ export function Showcase({o, gallery}: {o: Options; gallery: Pic[]}) {
       name: 'Dashboard',
       node: (
         <Slide kicker="02 · Your dashboard" title="Everything people do, in one place" line="Who joined, who’s stuck, who needs a reply, and what they’re working on." items={pick('The dashboard')}>
-          <Dashboard o={o} pic={pic} />
+          {built?.plan.units.some((u) => u.frame === 'laptop') ? (
+            <Laptop o={o}>
+              <PrototypeFrame look={built.look} units={built.units} view="laptop" title={`${o.name}: your dashboard`} />
+            </Laptop>
+          ) : (
+            <Dashboard o={o} pic={pic} />
+          )}
         </Slide>
       ),
     },

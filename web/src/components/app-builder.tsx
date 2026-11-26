@@ -5,17 +5,20 @@ import {Arrow} from '@/components/arrow'
 import {Mark, goalsOf, type Pic} from '@/components/app-prototype'
 import {PhotoSearch, ideasFor, mixed, search} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
+import {PrototypeBuild, type Built} from '@/components/prototype-build'
 import {ACCENTS, SECTIONS, asked, emptyAnswers, resolveOptions, type Answers, type Shots} from '@/app-builder/options'
 
 /**
  * The app builder: asks what a first look at the visitor's app needs, one question to a screen in
- * sections, with the scaffolder's own defaults; then walks them through their app as a deck (the
- * prototype with its logo and photos, the dashboard, alerts, metrics, monitoring, payments,
- * security, the stores), and ends on Build it with me. The full submission, with the brief for
- * Claude, goes to the Fohm Slack channel only (/api/builder-event): the visitor never sees it.
+ * sections, with the scaffolder's own defaults; then Claude designs their app, live, screen by
+ * screen (PrototypeBuild: a few minutes); then it walks them through it as a deck (the prototype
+ * Claude drew, the dashboard, alerts, metrics, monitoring, payments, security, the stores), and
+ * ends on Build it with me. Without Claude (no ANTHROPIC_API_KEY, or it couldn't finish), the deck
+ * shows the quick sketch instead. The full submission, with the brief for Claude, goes to the Fohm
+ * Slack channel only (/api/builder-event): the visitor never sees it.
  */
 
-type Phase = 'asking' | 'built'
+type Phase = 'asking' | 'building' | 'built'
 
 const KEPT = 'fohm-app-builder'
 
@@ -25,6 +28,9 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
   const [phase, setPhase] = useState<Phase>('asking')
   const [error, setError] = useState<string | null>(null)
   const [gallery, setGallery] = useState<Pic[]>([])
+  // Claude's prototype, and the answers it was drawn from: the same answers never draw twice.
+  const [built, setBuilt] = useState<{for: string; app: Built | null} | null>(null)
+  const [note, setNote] = useState<string | null>(null)
   const input = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
   const top = useRef<HTMLDivElement>(null)
 
@@ -58,8 +64,9 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
   }, [at, phase])
 
   // Photos for every slot, found from what they told us: the photo step's searches, then each goal.
+  // Claude's build finds them first; the quick sketch, coming straight here, finds them now.
   useEffect(() => {
-    if (phase !== 'built') return
+    if (phase !== 'built' || gallery.length) return
     let live = true
     ideasFor(answers)
       .then((ideas) => {
@@ -86,7 +93,7 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
   /** Tells the Fohm Slack channel what happened (/api/builder-event). Never waits, never fails the page. */
   const tell = (event: 'used' | 'whatsapp') => {
     try {
-      const body = JSON.stringify({event, answers})
+      const body = JSON.stringify({event, answers, prototype: app?.id})
       if (!navigator.sendBeacon?.('/api/builder-event', new Blob([body], {type: 'application/json'})))
         void fetch('/api/builder-event', {method: 'POST', headers: {'Content-Type': 'application/json'}, body, keepalive: true}).catch(() => {})
     } catch {
@@ -99,9 +106,12 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
     setError(null)
   }
 
+  const key = JSON.stringify(answers)
+  const app = built?.for === key ? built.app : null
+
   const forward = () => {
     if (at < questions.length - 1) return setStep(at + 1)
-    setPhase('built')
+    setPhase(built?.for === key ? 'built' : 'building')
     top.current?.scrollIntoView({behavior: 'smooth', block: 'start'})
   }
 
@@ -117,6 +127,27 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
     forward()
   }
 
+  if (phase === 'building')
+    return (
+      <div className={className} ref={top}>
+        <PrototypeBuild
+          answers={answers}
+          options={options}
+          onGallery={setGallery}
+          onBuilt={(b) => {
+            setBuilt({for: key, app: b})
+            setNote(null)
+            setPhase('built')
+          }}
+          onSketch={(why) => {
+            setBuilt({for: key, app: null})
+            setNote(why ?? null)
+            setPhase('built')
+          }}
+        />
+      </div>
+    )
+
   if (phase === 'built') {
     const message = `Hi Rob, I used the app builder on your website for ${options.name}. I’d like to build it with you.`
     return (
@@ -126,16 +157,31 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
             <Mark size={56} />
           </span>
           <div>
-            <span className="label">Your app, as a prototype</span>
+            <span className="label">{app ? 'Your app, designed by Claude' : 'Your app, as a quick sketch'}</span>
             <h2 className="ready__name">{options.name}</h2>
-            <p className="ready__line">{options.tagline}</p>
+            <p className="ready__line">{app?.plan.summary || options.tagline}</p>
+            {note && <p className="ready__note">{note}</p>}
           </div>
           <button type="button" className="text-btn ready__change" onClick={() => setPhase('asking')}>
             Change my answers
           </button>
         </header>
 
-        <Showcase o={options} gallery={gallery} />
+        {app && app.plan.decisions.length > 0 && (
+          <section className="calls" aria-labelledby="calls-title">
+            <h3 id="calls-title" className="calls__title">
+              What Claude decided for you
+            </h3>
+            <ul>
+              {app.plan.decisions.map((d) => (
+                <li key={d}>{d}</li>
+              ))}
+            </ul>
+            <p className="calls__line">Any of it can change: these are the calls we’d go through with you first.</p>
+          </section>
+        )}
+
+        <Showcase o={options} gallery={gallery} built={app} />
 
         <section id="interest" className="manifest interest" aria-labelledby="interest-title">
           <h2 id="interest-title" className="manifest__title">
@@ -156,7 +202,7 @@ export function AppBuilder({whatsapp, className}: {whatsapp?: string | null; cla
               Message me on WhatsApp <Arrow />
             </a>
           )}
-          <Interest answers={answers} />
+          <Interest answers={answers} prototype={app?.id} />
         </section>
       </div>
     )
@@ -344,7 +390,7 @@ function Screenshots({shots}: {shots: Shots}) {
 }
 
 /** "Build it with me": name, email and a note, sent with their answers to the Fohm Slack channel. */
-function Interest({answers}: {answers: Answers}) {
+function Interest({answers, prototype}: {answers: Answers; prototype?: string}) {
   const [contact, setContact] = useState({name: '', email: answers.email ?? '', note: '', website: ''})
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -362,7 +408,7 @@ function Interest({answers}: {answers: Answers}) {
       const res = await fetch('/api/builder-event', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({event: 'interest', answers, contact}),
+        body: JSON.stringify({event: 'interest', answers, contact, prototype}),
       })
       setState(res.ok ? 'sent' : 'failed')
     } catch {

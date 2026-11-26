@@ -29,9 +29,9 @@ export default async function AppBuilderPage() {
           <div className="blog__soon">
             <span className="label">● Early access</span>
             <p>
-              Answer what we ask before building any app, and see yours: its landing page, onboarding, the screens your
-              customers use and your dashboard, in your name, words and colour. Then take a brief with every answer in it
-              straight into Claude. The same foundations as Etapa and Naz.
+              Answer what we ask before building any app, and watch Claude design yours, screen by screen: its landing
+              page, onboarding, the screens your customers use and your dashboard, in your name, words and colour. Then
+              tap through it. The same foundations as Etapa and Naz.
             </p>
           </div>
           <AppBuilder whatsapp={settings?.whatsapp} className={`${display.variable} ${text.variable}`} />

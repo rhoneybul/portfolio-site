@@ -8,6 +8,7 @@ import {randomBytes} from 'node:crypto'
 import {get, put} from '@vercel/blob'
 import {claudePrompt} from './prompt'
 import {resolveOptions, type Answers} from './options'
+import {siteUrl} from '@/site-url'
 
 export interface Contact {
   name: string
@@ -21,15 +22,17 @@ export interface Submission {
   event: 'used' | 'interest'
   answers: Answers
   contact?: Contact
+  /** The prototype Claude drew for them (app-builder/prototypes.ts), when it did. */
+  prototype?: string
 }
 
 export const submissionsOn = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN)
 const path = (id: string) => `submissions/${id}.json`
 export const isId = (id: string) => /^[a-f0-9]{32}$/.test(id)
 
-export async function saveSubmission(event: Submission['event'], answers: Answers, contact?: Contact): Promise<string> {
+export async function saveSubmission(event: Submission['event'], answers: Answers, contact?: Contact, prototype?: string): Promise<string> {
   const id = randomBytes(16).toString('hex')
-  const s: Submission = {id, at: new Date().toISOString(), event, answers, ...(contact ? {contact} : {})}
+  const s: Submission = {id, at: new Date().toISOString(), event, answers, ...(contact ? {contact} : {}), ...(prototype ? {prototype} : {})}
   await put(path(id), JSON.stringify(s), {access: 'private', contentType: 'application/json', addRandomSuffix: false})
   return id
 }
@@ -41,5 +44,8 @@ export async function readSubmission(id: string): Promise<Submission | null> {
   return JSON.parse(await new Response(found.stream).text()) as Submission
 }
 
+/** The page of the prototype Claude drew for a submission, when it did. */
+export const prototypeUrlOf = (s: Submission) => (s.prototype ? `${siteUrl}/app-builder/submissions/${s.id}/prototype` : undefined)
+
 /** The brief to give Claude, made from what was saved. */
-export const briefOf = (s: Submission) => claudePrompt(resolveOptions(s.answers).options, s.answers)
+export const briefOf = (s: Submission) => claudePrompt(resolveOptions(s.answers).options, s.answers, prototypeUrlOf(s))
