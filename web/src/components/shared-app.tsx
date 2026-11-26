@@ -4,6 +4,8 @@ import {useEffect, type CSSProperties} from 'react'
 import {useRouter} from 'next/navigation'
 import {Arrow} from '@/components/arrow'
 import {AppIcon} from '@/components/app-icon'
+import {AppReveal, BuildBar} from '@/components/app-reveal'
+import {AppPrototype} from '@/components/app-prototype'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
 import {PrototypeFrame} from '@/components/prototype-frame'
@@ -117,31 +119,10 @@ export function SharedApp({
 
   return (
     <div className="builder builder--built">
-      <header className="ready" style={accent}>
-        <span className="ready__mark">
-          <AppIcon name={options.name} accent={options.accent} icon={built?.look.style?.icon} />
-        </span>
-        <div>
-          <span className="label">{built ? 'Your app, designed by Claude' : 'Your app, as a quick sketch'}</span>
-          <h2 className="ready__name">{options.name}</h2>
-          <p className="ready__line">{built?.plan.summary || options.tagline}</p>
-        </div>
-      </header>
-      {built && built.plan.decisions.length > 0 && (
-        <section className="calls" aria-labelledby="calls-title">
-          <h3 id="calls-title" className="calls__title">
-            What Claude decided for you
-          </h3>
-          <ul>
-            {built.plan.decisions.map((d) => (
-              <li key={d}>{d}</li>
-            ))}
-          </ul>
-          <p className="calls__line">Any of it can change: these are the calls we’d go through with you first.</p>
-        </section>
-      )}
+      <AppReveal options={options} app={built} sketch={<AppPrototype o={options} gallery={photos} />} />
       <Showcase o={options} gallery={photos} built={built} />
       {interest}
+      <BuildBar name={options.name}>{bookingUrl && <BookCall url={bookingUrl} label="Book a free call" from="app-builder-mcp" builderRef={id} prefill={{notes: callNote(options.name)}} variant="outline" />}</BuildBar>
     </div>
   )
 }

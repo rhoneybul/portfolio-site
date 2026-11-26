@@ -1515,35 +1515,43 @@ a.proof:hover .proof__arrow {
   background: var(--accent-soft);
 }
 
-/* The apps to pick on the look and feel question: each a toggle with its look, and a link to a screen of it on Mobbin. */
+/* The apps to pick on the look and feel question: a sideways strip of cards, each a sketch of its look (components/ref-sketch.tsx), a toggle, and a link to a screen of it on Mobbin. */
 .builder__refs {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  gap: 10px;
   margin: 0;
-  padding: 0;
+  padding: 2px 2px 8px;
+  overflow-x: auto;
   list-style: none;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
 }
 
 .builder__ref {
-  display: flex;
-  align-items: stretch;
+  display: grid;
+  flex: none;
+  grid-template-rows: 1fr auto;
+  width: 168px;
   border: 1px solid var(--line);
   border-radius: 14px;
+  background: #fff;
   overflow: hidden;
+  scroll-snap-align: start;
 }
 
 .builder__ref.is-on {
   border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
   background: var(--accent-soft);
 }
 
 .builder__ref button {
   display: grid;
-  flex: 1;
-  gap: 2px;
-  min-width: 0;
+  gap: 4px;
+  align-content: start;
+  justify-items: start;
   min-height: 56px;
-  padding: 10px 14px;
+  padding: 12px 12px 10px;
   border: 0;
   background: none;
   font: inherit;
@@ -1552,28 +1560,45 @@ a.proof:hover .proof__arrow {
   cursor: pointer;
 }
 
+.builder__ref .ref-sketch {
+  margin-bottom: 6px;
+}
+
 .builder__ref strong {
   font-size: 15px;
 }
 
-.builder__ref span {
-  font-size: 13px;
+.builder__ref button > span:last-child {
+  font-size: 12.5px;
   line-height: 1.35;
   color: var(--muted, #5b5b66);
 }
 
 .builder__ref a {
   display: flex;
-  flex: none;
   align-items: center;
   gap: 6px;
-  min-width: 44px;
-  padding: 0 14px;
-  border-left: 1px solid var(--line);
-  font-size: 14px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
   color: var(--ink);
   text-decoration: none;
-  white-space: nowrap;
+}
+
+/* A reference app's sketch: a tiny phone in its colours and the shape of its home screen. */
+.ref-sketch {
+  position: relative;
+  display: block;
+  width: 62px;
+  height: 116px;
+  border: 3px solid #161616;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ref-sketch i {
+  display: block;
 }
 
 .builder__shuffle {
@@ -4238,6 +4263,278 @@ a.proof:hover .proof__arrow {
   display: grid;
   gap: 12px;
   max-width: 70ch;
+}
+
+details.calls > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+details.calls > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.calls > summary::after {
+  content: ' +';
+  color: var(--accent);
+}
+
+details.calls[open] > summary::after {
+  content: ' −';
+}
+
+.calls__summary {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* The reveal (components/app-reveal.tsx): the app on a dark stage, its icon, name and phone coming up in turn. */
+.reveal {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: center;
+  min-height: min(920px, calc(100svh - 24px));
+  padding: clamp(28px, 5vw, 64px);
+  overflow: hidden;
+  background: #0d0d0f;
+  color: #f4f4f6;
+  isolation: isolate;
+}
+
+.reveal__glow {
+  position: absolute;
+  inset: -20% -10% -20% 30%;
+  z-index: -1;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--x-accent) 55%, transparent), transparent 70%);
+  opacity: 0;
+  animation: reveal-glow 1.6s 0.5s var(--ease) forwards;
+}
+
+.reveal__copy {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+  align-content: center;
+  max-width: 560px;
+}
+
+.reveal__kicker {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--x-accent) 45%, #fff);
+}
+
+.reveal__icon {
+  display: inline-flex;
+  border-radius: 22px;
+  box-shadow: 0 18px 50px color-mix(in srgb, var(--x-accent) 45%, transparent);
+  animation: reveal-icon 0.9s 0.15s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.reveal__name {
+  margin: 0;
+  font-size: clamp(56px, 9vw, 128px);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.9;
+  color: #fff;
+}
+
+.reveal__line {
+  margin: 0;
+  font-size: clamp(18px, 1.7vw, 22px);
+  line-height: 1.4;
+  color: #c9c9d1;
+}
+
+.reveal__look {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reveal__look li {
+  padding: 6px 12px;
+  border: 1px solid #34343b;
+  border-radius: 999px;
+  font-size: 13px;
+  color: #d8d8de;
+}
+
+.reveal__note {
+  margin: 0;
+  font-size: 14px;
+  color: #a6a6b0;
+}
+
+.reveal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  margin-top: 8px;
+}
+
+.reveal .reveal__cta {
+  min-height: 52px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #111113;
+}
+
+.reveal .reveal__cta:hover,
+.reveal .reveal__cta:focus-visible {
+  background: var(--x-accent);
+  color: var(--x-on-accent, #fff);
+}
+
+.reveal .reveal__change {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: #c9c9d1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.reveal .reveal__change:hover,
+.reveal .reveal__change:focus-visible {
+  color: #fff;
+}
+
+.reveal__phone {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+  animation: reveal-phone 1.1s 0.75s var(--ease) both;
+}
+
+/* Inside the stage, the phone fits the stage's height: the window's, less its padding. */
+.reveal .gen--phone {
+  --phone-w: min(375px, calc((100svh - 150px) * 390 / 844 + 20px));
+}
+
+.reveal .gen--phone .gen__device {
+  border-color: #1d1d21;
+  box-shadow: 0 0 0 1px #3a3a42, 0 40px 90px rgba(0, 0, 0, 0.6);
+}
+
+.reveal__phone .gen__screens button {
+  border-color: #34343b;
+  color: #c9c9d1;
+}
+
+.reveal__phone .gen__screens button.is-active {
+  border-color: #fff;
+  background: #fff;
+  color: #111113;
+}
+
+.reveal__phone .gen__screens .gen__again {
+  color: #c9c9d1;
+}
+
+.reveal__in {
+  animation: reveal-up 0.7s calc(0.35s + var(--i, 0) * 0.12s) var(--ease) both;
+}
+
+@keyframes reveal-icon {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+@keyframes reveal-phone {
+  from {
+    opacity: 0;
+    transform: translateY(60px) scale(0.96);
+  }
+}
+
+@keyframes reveal-glow {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal__glow,
+  .reveal__icon,
+  .reveal__in,
+  .reveal__phone {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .reveal {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .reveal__glow {
+    inset: 30% -30% -10% -30%;
+  }
+}
+
+/* What to do next, kept at the foot of the screen while they look around (components/app-reveal.tsx, BuildBar). */
+/* Fixed, not sticky: body's overflow-x makes body the scroller, which sticky can't follow. */
+.build-bar {
+  position: fixed;
+  right: max(12px, calc((100vw - 1100px) / 2));
+  bottom: 12px;
+  left: max(12px, calc((100vw - 1100px) / 2));
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 12px 16px 12px 20px;
+  border: 1px solid var(--ink);
+  background: #fff;
+  box-shadow: 4px 4px 0 var(--accent);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.build-bar.is-away {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+}
+
+.build-bar p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.build-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
 }
 
 .calls__title {
