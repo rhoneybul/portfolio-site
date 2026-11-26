@@ -3,6 +3,7 @@ import {QUESTIONS, resolveOptions, type Answers} from '@/app-builder/options'
 import {claudeOn} from '@/app-builder/claude'
 import {cleanPhotos, planPrototype, signJob} from '@/app-builder/prototype'
 import {saveJob} from '@/app-builder/prototypes'
+import {addressOf, limiter} from '@/app-builder/rate-limit'
 
 /**
  * The first half of drawing a visitor's app: Claude plans the whole prototype from their answers
@@ -16,17 +17,7 @@ export const maxDuration = 300
 const PER_EMAIL = {most: 3, window: 24 * 60 * 60_000}
 const PER_ADDRESS = {most: 6, window: 60 * 60_000}
 
-// One instance's memory: a soft limit, enough to stop a loop or a bored visitor.
-const seen = new Map<string, number[]>()
-
-function allowed(key: string, {most, window}: {most: number; window: number}) {
-  const now = Date.now()
-  const recent = (seen.get(key) ?? []).filter((t) => now - t < window)
-  if (recent.length >= most) return false
-  seen.set(key, [...recent, now])
-  if (seen.size > 5_000) seen.clear()
-  return true
-}
+const allowed = limiter()
 
 export async function POST(request: Request) {
   if (!claudeOn()) return NextResponse.json({off: true}, {status: 503})
@@ -36,7 +27,7 @@ export async function POST(request: Request) {
   const {options, errors} = resolveOptions(answers)
   if (errors.name || errors.email) return NextResponse.json({error: errors.name || errors.email}, {status: 400})
 
-  const address = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  const address = addressOf(request)
   if (!allowed(`email:${answers.email.toLowerCase()}`, PER_EMAIL) || !allowed(`address:${address}`, PER_ADDRESS))
     return NextResponse.json({error: 'You’ve drawn a few today. Here’s the quick sketch instead.'}, {status: 429})
 
