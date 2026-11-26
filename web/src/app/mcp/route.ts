@@ -4,6 +4,9 @@ import {registerAppResource, registerAppTool, RESOURCE_MIME_TYPE} from '@modelco
 import {z} from 'zod'
 import {INSTRUCTIONS, SERVER_NAME, SERVER_TITLE, answersOf, buildInput, builtText, contactInput, questionsForChat, resolveOptions} from '@/app-builder/mcp'
 import {readShare, runBuild, shareUrl, startShare, tell} from '@/app-builder/mcp-build'
+import {readPrototype} from '@/app-builder/prototypes'
+import {prototypeDocument} from '@/app-builder/prototype-doc'
+import {viewDomains, viewHtml} from '@/app-builder/mcp-view'
 import {limiter} from '@/app-builder/rate-limit'
 import {siteUrl} from '@/site-url'
 
@@ -19,26 +22,6 @@ export const maxDuration = 800
 
 const VIEW = 'ui://fohm/prototype.html'
 const site = new URL(siteUrl).origin
-// The bridge to the host, pinned; the view is a frame around the prototype's own page.
-const BRIDGE = 'https://unpkg.com/@modelcontextprotocol/ext-apps@2.0.4/dist/src/app-with-deps.js'
-
-const viewHtml = `<!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<style>html,body{margin:0;background:transparent;font:14px system-ui,sans-serif}iframe{display:block;width:100%;height:900px;border:0}p{margin:24px;color:#555}</style>
-</head><body><p id="wait">Starting your app…</p><iframe id="proto" title="Your app, as a prototype" hidden></iframe>
-<script type="module">
-import {App} from '${BRIDGE}'
-const app = new App({name: '${SERVER_TITLE}', version: '1.0.0'})
-app.ontoolresult = ({structuredContent}) => {
-  const url = structuredContent && structuredContent.embedUrl
-  if (!url) return
-  const frame = document.getElementById('proto')
-  frame.src = url
-  frame.hidden = false
-  document.getElementById('wait').hidden = true
-}
-await app.connect()
-</script></body></html>`
 
 // Claude costs money: each email gets the website's 3 a day, and the whole server a few an hour.
 const allowed = limiter()
@@ -53,9 +36,9 @@ const handler = createMcpHandler(
       {
         title: 'App builder questions',
         description:
-          'The questions Fohm asks before designing a health, fitness or wellness app (a coaching or training app, a studio, gym, clinic or wellbeing app), with examples and choices. Call this first when someone wants to design, plan, mock up or prototype an app, then ask them the questions in your own words.',
+          'Returns the questions to ask before designing a prototype of an app (for example a fitness, health or wellness app: a coaching or training app, a studio, gym, clinic or wellbeing app), with examples and choices, for when the user asks to design, plan or prototype an app.',
         inputSchema: z.object({}),
-        annotations: {readOnlyHint: true, openWorldHint: false},
+        annotations: {readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false},
       },
       async () => {
         const q = questionsForChat()
@@ -67,9 +50,9 @@ const handler = createMcpHandler(
       server,
       'build_app_prototype',
       {
-        title: 'Design my app',
+        title: 'Design an app prototype',
         description:
-          'Claude designs the person’s app from their answers, every screen (landing page, onboarding, home, a session, their goal, the owner’s dashboard) in their name, words and colour, in about 4 to 6 minutes, and returns a link that fills in as it’s drawn. Use the answers from app_builder_questions, including the email the person typed. Show them the link.',
+          'Starts designing a clickable prototype of the user’s app from their answers (landing page, onboarding, home, a session, a goal and the owner’s dashboard, in their name, words and colour). The design takes about 4 to 6 minutes; returns at once with a link to the prototype, which fills in as it is drawn. Needs the email the user typed.',
         inputSchema: buildInput,
         annotations: {readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true},
         _meta: {ui: {resourceUri: VIEW}},
@@ -96,18 +79,49 @@ const handler = createMcpHandler(
         {
           uri: VIEW,
           mimeType: RESOURCE_MIME_TYPE,
-          text: viewHtml,
-          _meta: {ui: {csp: {resourceDomains: ['https://unpkg.com'], frameDomains: [site]}, prefersBorder: true}},
+          text: viewHtml(site),
+          _meta: {ui: {csp: {resourceDomains: viewDomains(site)}, prefersBorder: true}},
         },
       ],
     }))
 
+    registerAppTool(
+      server,
+      'get_app_prototype',
+      {
+        title: 'Get the app prototype',
+        description: 'Returns how far the design of a prototype started with build_app_prototype has got, and once it is done, the prototype to show. Used by the prototype view.',
+        inputSchema: z.object({prototypeId: z.string().regex(/^[a-f0-9]{32}$/).describe('The id build_app_prototype returned.')}),
+        annotations: {readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false},
+        _meta: {ui: {resourceUri: VIEW, visibility: ['app']}},
+      },
+      async ({prototypeId}: {prototypeId: string}) => {
+        const share = await readShare(prototypeId)
+        if (!share) return {isError: true, content: [{type: 'text', text: 'No prototype with that id. Start one with build_app_prototype.'}]}
+        const {options} = resolveOptions(share.answers)
+        const saved = share.status === 'done' && share.prototype ? await readPrototype(share.prototype) : null
+        const phone = saved ? saved.units.filter((u) => saved.job.plan.units.find((p) => p.id === u.id)?.frame === 'phone') : []
+        const status = share.status === 'done' && !phone.length ? 'sketch' : share.status
+        const state = {
+          status,
+          name: options.name,
+          accent: options.accent,
+          url: shareUrl(share.id),
+          parts: share.parts ?? 0,
+          drawn: share.drawn?.length ?? 0,
+          ...(saved && phone.length ? {summary: saved.job.plan.summary, html: prototypeDocument({look: saved.job.look, units: phone, view: 'phone'})} : {}),
+        }
+        const words = {photos: 'Finding photos', planning: 'Planning the app', drawing: `Drawing: ${state.drawn} of ${state.parts} parts done`, done: 'Done', sketch: 'A quick sketch'}[status]
+        return {content: [{type: 'text', text: `${options.name}: ${words}. ${state.url}`}], structuredContent: state}
+      },
+    )
+
     server.registerTool(
       'contact_fohm',
       {
-        title: 'Send my app to Fohm',
+        title: 'Ask Fohm to build it',
         description:
-          'Sends the person’s prototype and their details to Rob at Fohm, a London app studio, so he can get in touch about building it. Only when they have asked for that; use the name and email they typed, never a guess.',
+          'Sends the user’s prototype with their name, email and an optional note to Fohm, the app studio behind the builder, when the user asks to be contacted about building it.',
         inputSchema: contactInput,
         annotations: {readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true},
       },

@@ -35,7 +35,18 @@ const SECTIONS: [string, string[]][] = [
   ['How long', ['Up to two years from your last contact with us, unless you ask us to delete it sooner.']],
   [
     'Your rights',
-    ['Under UK GDPR you can ask to see, correct or delete what we hold about you, or object to how we use it: use the contact form on this site. You can also complain to the Information Commissioner’s Office (ico.org.uk).'],
+    ['Under UK GDPR you can ask to see, correct or delete what we hold about you, or object to how we use it: email rob@fohm.io. You can also complain to the Information Commissioner’s Office (ico.org.uk).'],
+  ],
+  [
+    'In an AI assistant',
+    [
+      'The builder’s tools receive only what the assistant sends them: your answers to its questions, your email, and, if you ask to be contacted, your name and a note. It never reads your conversation, the assistant’s memory, your chat history or your files.',
+      'It sets no cookies and does no tracking in the assistant. The prototype shown there loads its photos from Wikimedia Commons and its fonts from Google Fonts.',
+    ],
+  ],
+  [
+    'Contact',
+    ['Fohm, London. Email rob@fohm.io about anything on this page.'],
   ],
 ]
 
