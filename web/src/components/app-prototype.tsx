@@ -2,6 +2,9 @@
 
 import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
 import {interestsOf, liftedAccent, needsYou, onAccent, soften, type Options} from '@/app-builder/options'
+import {cap, firstGoal, firstPlacing, goalsOf, levelsOf, screensFor, type ScreenId} from '@/app-builder/prototype'
+
+export {goalsOf}
 
 /**
  * The screens fohm-scaffold's template draws, as a clickable prototype in a phone, in the house
@@ -9,62 +12,6 @@ import {interestsOf, liftedAccent, needsYou, onAccent, soften, type Options} fro
  * cool grey canvas, white cards, hairline rows, the ink pill with an accent disc, the floating tab
  * bar), with the visitor's name, words, colour, photo, onboarding and method. Nothing is stored.
  */
-
-type ScreenId = 'landing' | 'onboarding' | 'home' | 'path' | 'game' | 'dashboard'
-
-const screensFor = (o: Options): {id: ScreenId; name: string}[] => [
-  {id: 'landing', name: 'Landing page'},
-  ...(o.kind === 'game' ? [] : [{id: 'onboarding' as const, name: 'Onboarding'}]),
-  {id: 'home', name: 'Home'},
-  ...(o.kind === 'coaching' ? [{id: 'path' as const, name: o.coach === 'yes' ? 'Your path' : 'Your program'}] : []),
-  ...(o.kind === 'game' ? [{id: 'game' as const, name: 'The game'}] : []),
-  {id: 'dashboard', name: 'Dashboard'},
-]
-
-const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1)
-
-// The template's sample progression (src/lib/progression.ts), used where the visitor gave none.
-const SAMPLE_LEVELS = [
-  {title: 'Getting started', skills: ['The basics', 'A routine you keep']},
-  {title: 'Building', skills: ['Consistency', 'Using feedback']},
-  {title: 'Progressing', skills: ['A real challenge', 'Reviewing your progress']},
-]
-
-/** "Foam board: paddling, pop-ups. Green waves: angling." as levels and their skills. */
-function levelsOf(o: Options) {
-  const parsed = (o.levels || '')
-    .split(/\n|\.\s+|;\s*/)
-    .map((chunk) => chunk.trim().replace(/\.$/, ''))
-    .filter(Boolean)
-    .map((chunk) => {
-      const [title, rest] = chunk.split(/:\s*/, 2)
-      return {title: cap(title.trim()), skills: (rest ?? '').split(/,\s*|\s+and\s+/).map((s) => cap(s.trim())).filter(Boolean)}
-    })
-    .filter((l) => l.title)
-  return parsed.length ? parsed.map((l) => ({...l, skills: l.skills.length ? l.skills : ['The basics']})) : SAMPLE_LEVELS
-}
-
-/** The first goal they named: "Big-wave spots: Nazaré, Mavericks" is Nazaré. */
-function firstGoal(o: Options) {
-  const g = o.goals || ''
-  const list = g.includes(':') ? g.split(':')[1] : g
-  return list.split(/,|\n| and /)[0]?.trim() || 'Your goal'
-}
-
-/** The goals they named, a few: "Big-wave spots: Nazaré, Mavericks, Jaws" is those three. */
-export function goalsOf(o: Options) {
-  const g = o.goals || ''
-  return (g.includes(':') ? g.split(':')[1] : g)
-    .split(/,|\n| and /)
-    .map((x) => x.trim())
-    .filter(Boolean)
-    .slice(0, 3)
-}
-
-const firstPlacing = (o: Options) => {
-  const q = (o.placing || '').split('?')[0]?.trim()
-  return q ? `${q}?` : 'How much have you done before?'
-}
 
 const SAMPLE_PEOPLE = ['Sam Okafor', 'Priya Shah', 'Tom Reilly', 'Ana Costa']
 

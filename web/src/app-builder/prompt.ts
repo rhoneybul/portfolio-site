@@ -1,4 +1,5 @@
 import {QUESTIONS, SECTIONS, asked, type Answers, type Options} from './options'
+import {prototypeBrief} from './prototype'
 
 /**
  * The prompt the builder hands over: everything answered, ready to paste into Claude with
@@ -45,8 +46,14 @@ export function scaffoldCommand(o: Options) {
   return `npx github:rhoneybul/fohm-scaffold new ${o.slug} \\\n${parts.join(' \\\n')} \\\n  --json`
 }
 
-/** `briefJsonUrl`: the submission's brief.json, when the brief is read from its page; the create step is then one command. */
-export function claudePrompt(o: Options, raw: Answers, briefJsonUrl?: string) {
+/** The submission's links, when the brief is read from its page: the create step is then one command, and the prototype has a link. */
+export interface BriefLinks {
+  briefJson: string
+  prototype: string
+}
+
+export function claudePrompt(o: Options, raw: Answers, links?: BriefLinks) {
+  const briefJsonUrl = links?.briefJson
   // The visitor's email is for getting in touch, not for building: it stays out of the brief.
   const shown = asked(raw).filter((q) => q.key !== 'email')
   const answered = (key: string) => {
@@ -89,11 +96,16 @@ export function claudePrompt(o: Options, raw: Answers, briefJsonUrl?: string) {
   ]
 
   return `I want to make a new app with fohm-scaffold (github.com/rhoneybul/fohm-scaffold), following its new-app skill end to end.
-My answers to the Discover phase are below. Take them as answered, ask me only what's marked as not answered, then carry on with the playbook.
+I started it in the app builder: my answers to the Discover phase and the prototype I tapped through are below.
+Take the answers as said and ask me only what's still open, make the Claude Design prototype starting from mine, and once I approve it, create the app yourself with the command under *Create it*, then carry on with the playbook.
 
 ## The app
 
 ${sections.join('\n\n')}
+
+## The prototype
+
+${prototypeBrief(o, links?.prototype)}
 
 ## Still to ask me
 
@@ -103,12 +115,12 @@ ${stillToAsk.map((l) => `- ${l}`).join('\n')}
 
 ${
     briefJsonUrl
-      ? `Every answer above is in the brief's JSON, so one command makes the app and keeps this brief as docs/BRIEF.md. Run it once the name is settled; a flag beside it wins over the brief, so add one for each answer the chat changed or settled (\`--name\`, \`--operator\`, \`--support-email\`, \`--domain\`, \`--bundle-id\`):
+      ? `Every answer above is in the brief's JSON, so one command makes the app and keeps this brief as docs/BRIEF.md. Run it yourself once the name is settled and I've approved the prototype; a flag beside it wins over the brief, so add one for each answer the chat changed or settled (\`--name\`, \`--operator\`, \`--support-email\`, \`--domain\`, \`--bundle-id\`):
 
 \`\`\`bash
 ${fromCommand(briefJsonUrl)} --json
 \`\`\``
-      : `Once the name is settled and you have those, create it with this, putting my answers in place of the placeholders (the operator, the support email and the app id):
+      : `Once the name is settled, I've approved the prototype and you have those, create it with this, putting my answers in place of the placeholders (the operator, the support email and the app id):
 
 \`\`\`bash
 ${scaffoldCommand(o)}
