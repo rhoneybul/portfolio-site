@@ -75,6 +75,7 @@ Reply with JSON only, in this shape:
 
 Rules:
 - 10 to 15 units. The member's journey on the phone first, in the order they meet it ("frame": "phone"); then 2 to 4 units of the owner's dashboard ("frame": "laptop").
+- The first unit is always the landing page, id "landing": the business's web page that sells the app, led by the strongest photo, with the headline, how it works in three steps, what people get, the price as a [placeholder] and Get started (leading to signing in). The owner judges it on its own, so it is never skipped or folded into another unit.
 - Onboarding is one unit of 4 to 7 steps. A session from start to done may be 2 or 3 steps. Every other unit is 1 step.
 - ids are short kebab-case words, unique. links name unit ids only. Every unit is reachable from the landing page, and every phone unit leads somewhere.
 - tabs: 3 to 5, each to a phone unit that shows the tab bar; or [] for an app with one hub screen.
@@ -107,6 +108,16 @@ const kebab = (s: unknown) =>
 const text = (s: unknown, most: number) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, most)
 const lines = (v: unknown, most: number, each: number) => (Array.isArray(v) ? v.map((x) => text(x, each)).filter(Boolean).slice(0, most) : [])
 
+/** The landing page, when a plan left it out: drawn like any other unit, from the plan's facts and photos. */
+const landingUnit = (next?: string): Unit => ({
+  id: 'landing',
+  title: 'Landing page',
+  frame: 'phone',
+  steps: 1,
+  shows: 'The landing page that sells the app: the strongest photo as the hero, the headline, how it works in three steps, what people get, the price as a [placeholder], and Get started.',
+  links: next ? [next] : [],
+})
+
 /** Claude's plan, checked and trimmed: the ids, links and counts the screens rely on. */
 export function parsePlan(answer: string): Plan {
   const raw = JSON.parse(answer.slice(answer.indexOf('{'), answer.lastIndexOf('}') + 1)) as Record<string, unknown>
@@ -127,6 +138,10 @@ export function parsePlan(answer: string): Plan {
       }
     })
     .slice(0, 16)
+  // The landing page is always first, and always there: the owner is shown it on its own (components/showcase.tsx).
+  const landing = units.findIndex((u) => u.id === 'landing')
+  if (landing > 0) units.unshift(...units.splice(landing, 1))
+  if (landing < 0) units.unshift(landingUnit(units.find((u) => u.frame === 'phone')?.id))
   const ids = new Set(units.map((u) => u.id))
   for (const u of units) u.links = [...new Set(u.links.filter((l) => ids.has(l) && l !== u.id))].slice(0, 8)
   if (!units.some((u) => u.frame === 'phone')) throw new Error('The plan has no phone screens')
