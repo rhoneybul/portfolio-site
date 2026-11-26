@@ -2,6 +2,7 @@
 
 import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
 import {interestsOf, liftedAccent, needsYou, onAccent, soften, type Options} from '@/app-builder/options'
+import {RING_PATH} from '@/app-builder/prototype-doc'
 
 /**
  * The screens fohm-scaffold's template draws, as a clickable prototype in a phone, in the house
@@ -194,10 +195,7 @@ function Thumb({p}: {p?: Pic}) {
 export function Mark({size = 28, tone = 'accent'}: {size?: number; tone?: 'accent' | 'white'}) {
   return (
     <svg className={`x-mark x-mark--${tone}`} width={size} height={size} viewBox="192 192 640 640" aria-hidden>
-      <path
-        d="M 192 512 A 320 320 0 1 0 832 512 A 320 320 0 1 0 192 512 Z M 262 512 A 250 250 0 1 0 762 512 A 250 250 0 1 0 262 512 Z M 402 512 A 110 110 0 1 0 622 512 A 110 110 0 1 0 402 512 Z"
-        fillRule="evenodd"
-      />
+      <path d={RING_PATH} fillRule="evenodd" />
     </svg>
   )
 }
