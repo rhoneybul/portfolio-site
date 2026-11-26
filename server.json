@@ -1,0 +1,19 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.rhoneybul/fohm-app-builder",
+  "title": "Fohm App Builder",
+  "description": "Design a health, fitness or wellness app in a chat: Claude draws every screen as a prototype, then build it with Fohm.",
+  "version": "1.0.0",
+  "websiteUrl": "https://www.fohm.io/app-builder",
+  "repository": {
+    "url": "https://github.com/rhoneybul/portfolio-site",
+    "source": "github",
+    "subfolder": "web"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://www.fohm.io/mcp"
+    }
+  ]
+}

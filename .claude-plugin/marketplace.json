@@ -1,0 +1,14 @@
+{
+  "name": "fohm",
+  "owner": {"name": "Fohm", "url": "https://www.fohm.io"},
+  "metadata": {"description": "Fohm's tools for designing and building apps."},
+  "plugins": [
+    {
+      "name": "fohm-app-builder",
+      "source": "./plugins/fohm-app-builder",
+      "description": "Design a health, fitness or wellness app in a chat: Claude draws every screen as a prototype to tap through, then build it with Fohm.",
+      "category": "design",
+      "homepage": "https://www.fohm.io/app-builder"
+    }
+  ]
+}

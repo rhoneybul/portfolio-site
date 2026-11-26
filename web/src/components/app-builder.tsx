@@ -546,13 +546,13 @@ function sessionRef() {
 }
 
 /** What a call booked from the builder is about, written into the booking's notes. */
-const callNote = (app: string) => `About ${app}, from the app builder.`
+export const callNote = (app: string) => `About ${app}, from the app builder.`
 
 /**
  * "Build it with me": name, email and a note, sent with their answers to the Fohm Slack channel; then a thank-you,
  * with a call to book.
  */
-function Interest({answers, prototype, name, bookingUrl, builderRef}: {
+export function Interest({answers, prototype, name, bookingUrl, builderRef}: {
   answers: Answers
   prototype?: string
   name: string

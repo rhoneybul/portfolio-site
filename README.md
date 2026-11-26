@@ -86,3 +86,14 @@ Visitors give their email before they see their app, and never see the brief. Ea
 **Handing it to Claude.** The submission's page gives one prompt to paste into a Claude Code session opened in fohm-scaffold: it links the brief (keyed), which carries every answer, the prototype's link, what's still to ask the owner and the `new --from` command.
 
 A call booked from Build it with me opens Cal.com with their email and a note about their app filled in, and carries the builder session's random reference (`metadata[ref]`, made in the browser). The Slack message for the booking (from Cal.com's webhook, `/api/cal-webhook`, or the embed, `/api/booking`) follows it to their latest submission (`refs/<ref>.json` in the same Blob store) and links it, so the visitor never holds the submission's id.
+
+## The app builder as an MCP server (`/mcp`)
+
+The same builder from inside Claude, ChatGPT or any MCP client, at `https://www.fohm.io/mcp` (Streamable HTTP, stateless, no sign-in), aimed at people building health, fitness and wellness apps, first in London.
+Plan, launch and listings: [`docs/app-builder-mcp.md`](docs/app-builder-mcp.md).
+
+- `app_builder_questions`: the builder's questions (`QUESTIONS`, the email last, no photo step), plus the sector and the city.
+- `build_app_prototype`: needs the email the person typed, as the website does, and the same limits (3 a day an email, 30 an hour in all). It answers at once with a link, `/app-builder/p/<id>`, and Claude designs the app in the background (`web/src/app-builder/mcp-build.ts`: Commons photos from the chat's searches, Claude's plan, five parts at a time, `maxDuration` 800s), saving how far it has got in `shares/<id>.json` (never the email). The page shows the progress, then the website's deck and Build it with me; the build is then saved as a submission and Slack hears it. Where the client renders MCP Apps, the phone and the form show in the chat (`ui://fohm/prototype.html`, a frame around `?embed=1`).
+- `contact_fohm`: the lead, as the website's form sends it, only when the person asks.
+
+Listed as a Claude Code plugin in this repository's marketplace (`.claude-plugin/marketplace.json`), and in the MCP registry from `server.json`. What the builder keeps is on `/privacy`: change it with what the builder stores.
