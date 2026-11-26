@@ -3850,10 +3850,55 @@ a.proof:hover .proof__arrow {
   gap: clamp(28px, 4vw, 48px);
 }
 
-.building__clock {
-  align-self: start;
+.building__progress {
+  display: grid;
+  gap: 10px;
+}
+
+.building__progress-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+
+.building__progress-head strong {
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.building__progress-head span {
   font-size: 15px;
   font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.building__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.building__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--x-accent, var(--ink));
+  transition: width 1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .building__bar span {
+    transition: none;
+  }
+}
+
+.building__next {
+  max-width: 60ch;
+  font-size: 15px;
   color: var(--muted);
 }
 
