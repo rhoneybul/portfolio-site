@@ -3,6 +3,8 @@
 import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppPrototype, Mark, goalsOf, type Pic} from '@/components/app-prototype'
+import {AppIcon} from '@/components/app-icon'
+import type {Style} from '@/app-builder/prototype-doc'
 import {PrototypeFrame} from '@/components/prototype-frame'
 import type {Built} from '@/components/prototype-build'
 import {whatYouGet} from '@/app-builder/manifest'
@@ -335,13 +337,11 @@ function Stack() {
   )
 }
 
-function Stores({o, pic}: {o: Options; pic: (n: number) => Pic | undefined}) {
+function Stores({o, pic, icon}: {o: Options; pic: (n: number) => Pic | undefined; icon?: Style['icon']}) {
   return (
     <div className="panel store">
       <div className="store__head">
-        <span className="store__icon">
-          <Mark size={44} tone="white" />
-        </span>
+        <AppIcon name={o.name} accent={o.accent} icon={icon} size={76} />
         <div>
           <strong>{o.name}</strong>
           <span>{o.tagline}</span>
@@ -487,7 +487,7 @@ export function Showcase({o, gallery, built}: {o: Options; gallery: Pic[]; built
       name: 'The stores',
       node: (
         <Slide kicker="10 · Launch" title="On the web, the App Store and Google Play" line="One codebase, three places, and every step to get there." items={[...pick('Tests, deploys and the stores', 3), ...pick('Launch and handover', 2)]}>
-          <Stores o={o} pic={pic} />
+          <Stores o={o} pic={pic} icon={built?.look.style?.icon} />
         </Slide>
       ),
     },

@@ -2060,6 +2060,15 @@ a.proof:hover .proof__arrow {
   gap: 20px;
 }
 
+/* The visitor's app's icon (components/app-icon.tsx): its mark centred on its colour. */
+.app-icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  --d: var(--x-d, var(--display));
+}
+
 .ready__mark .x-mark {
   display: block;
 }

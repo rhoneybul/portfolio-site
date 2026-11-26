@@ -9,7 +9,7 @@ import {randomBytes} from 'node:crypto'
 import {get, put} from '@vercel/blob'
 import {resolveOptions, type Answers, type Options} from './options'
 import {claudeOn} from './claude'
-import {searchCommons} from './commons'
+import {searchPhotos} from './photos'
 import {photoIdeas} from './photo-ideas'
 import {drawUnit, planPrototype} from './prototype'
 import {saveJob, saveUnit} from './prototypes'
@@ -68,7 +68,7 @@ export async function startShare(answers: Answers): Promise<Share> {
 async function findPhotos(answers: Answers, searches: string[]): Promise<Photo[]> {
   const {options} = resolveOptions(answers)
   const terms = [...(searches.length ? searches : photoIdeas(answers)), ...goalsOf(options)].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
-  const lists = await Promise.all(terms.map((t) => searchCommons(t).catch(() => [])))
+  const lists = await Promise.all(terms.map((t) => searchPhotos(t).catch(() => [])))
   const found: Photo[] = []
   for (let r = 0; found.length < 11 && lists.some((l) => l[r]); r++)
     lists.forEach((l, i) => {

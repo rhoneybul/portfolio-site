@@ -87,7 +87,7 @@ export const buildInput = z.object({
     .array(z.string().trim().min(2).max(40))
     .max(4)
     .optional()
-    .describe('Up to four Wikimedia Commons searches for the app’s photos: one to three plain words naming something a camera can photograph, best first, e.g. ["kettlebell training", "yoga studio", "park run"].'),
+    .describe('Up to four photo searches for the app’s photos: one to three plain words naming something a camera can photograph, best first, e.g. ["kettlebell training", "yoga studio", "park run"].'),
 })
 
 export type BuildInput = z.infer<typeof buildInput>

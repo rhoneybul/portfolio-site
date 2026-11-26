@@ -3,7 +3,7 @@
 import {useEffect, type CSSProperties} from 'react'
 import {useRouter} from 'next/navigation'
 import {Arrow} from '@/components/arrow'
-import {Mark} from '@/components/app-prototype'
+import {AppIcon} from '@/components/app-icon'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
 import {PrototypeFrame} from '@/components/prototype-frame'
@@ -58,7 +58,7 @@ export function SharedApp({
       <div className="builder building" style={accent}>
         <header className="ready">
           <span className="ready__mark">
-            <Mark size={56} />
+            <AppIcon name={options.name} accent={options.accent} />
           </span>
           <div>
             <span className="label">Claude is designing your app</span>
@@ -69,7 +69,7 @@ export function SharedApp({
         <ol className="building__steps" aria-live="polite">
           {(
             [
-              ['Finding photos', 'Open-licence photos from Wikimedia Commons that fit what you told us', status === 'photos'],
+              ['Finding photos', 'Free-to-use photos that fit what you told us', status === 'photos'],
               ['Planning your app', 'The whole journey, from the landing page to your dashboard', status === 'planning'],
               ['Drawing every screen', parts ? `${drawn} of ${parts} parts done, five at a time` : 'Five at a time, each in the house style', status === 'drawing'],
             ] as const
@@ -119,7 +119,7 @@ export function SharedApp({
     <div className="builder builder--built">
       <header className="ready" style={accent}>
         <span className="ready__mark">
-          <Mark size={56} />
+          <AppIcon name={options.name} accent={options.accent} icon={built?.look.style?.icon} />
         </span>
         <div>
           <span className="label">{built ? 'Your app, designed by Claude' : 'Your app, as a quick sketch'}</span>
