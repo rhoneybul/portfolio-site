@@ -68,6 +68,8 @@ export interface Style {
   icon: {shape: (typeof SHAPES)[number]; letters: string}
   /** What it took from the apps the owner likes, one line each, for the owner and the screens' designers. */
   from: string[]
+  /** The shades of the colour scheme they picked (schemes.ts): its canvas, cards, deep shade and tint. */
+  palette?: {bg: string; surface: string; deep: string; tint: string}
 }
 
 /** The house style as it was before the looks: what an older prototype is drawn in. */
@@ -147,8 +149,19 @@ export function kitCss(accent: string, style: Style = HOUSE) {
   const a = /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#2F6B4F'
   const lifted = liftedAccent(a)
   const faces = TYPE_FACES[style.type]
+  const hex = (v?: string) => (v && /^#[0-9a-fA-F]{6}$/.test(v) ? v : '')
+  const p = style.palette
+  // The scheme's shades over the canvas's; without a scheme, a deep shade and a tint made from the accent.
+  const shades = [
+    hex(p?.bg) && `--bg:${p!.bg}`,
+    hex(p?.surface) && `--surface:${p!.surface}`,
+    `--deep:${hex(p?.deep) || `color-mix(in srgb, ${a} 45%, #0b0b0d)`}`,
+    `--tint:${hex(p?.tint) || (style.canvas === 'dark' ? `color-mix(in srgb, ${a} 18%, #1b1b1f)` : soften(a))}`,
+  ]
+    .filter(Boolean)
+    .join(';')
   return `
-:root{${CANVAS[style.canvas]};${RADII[style.corners]};
+:root{${CANVAS[style.canvas]};${RADII[style.corners]};${shades};
 --accent:${a};--on-accent:${onAccent(a)};--accent-soft:${soften(a)};--dash-accent:${lifted};--on-dash:${onAccent(lifted)};--needs-you:${needsYou(a)};
 --g-bg:#111113;--g-side:#0B0B0D;--g-card:#1C1C20;--g-line:#2A2A30;--g-text:#F2F2F6;--g-mid:#A3A3AD;
 --d:'${faces.display}',system-ui,sans-serif;--t:'${faces.text}',system-ui,sans-serif}
@@ -212,6 +225,11 @@ li{list-style:none}
 ${iconMarkCss('.app-icon::after', style.icon)}
 .app-icon.sm{width:32px;height:32px;font-size:32px;border-radius:calc(var(--r-sm) * .7 + 1px)}
 .app-icon.lg{width:76px;height:76px;font-size:76px;border-radius:calc(var(--r-sm) * 1.5)}
+.deep{background:var(--deep);color:#fff;border-radius:var(--r-card);padding:20px}
+.deep .lead,.deep .mid,.deep .small,.deep .s,.deep .credit{color:rgba(255,255,255,.78)}
+.deep .pill{background:#fff;color:#111113}
+.screen.deep{border-radius:0;padding-left:0;padding-right:0}
+.tint{background:var(--tint);border-radius:var(--r-card);padding:16px}
 .hero-top{position:relative}
 .hero-top>.over{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:52px 20px 32px;color:#fff;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0))}
 .hero-top>.over .link{color:#fff}

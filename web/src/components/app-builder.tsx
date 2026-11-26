@@ -447,18 +447,23 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
                         setError(null)
                       }}
                     >
-                      <span className={`scheme__phone scheme__phone--${s.canvas}`} aria-hidden>
-                        <i className="scheme__card" />
+                      <span className={`scheme__phone scheme__phone--${s.canvas}`} style={{background: s.palette.bg}} aria-hidden>
+                        <i className="scheme__card" style={{background: s.palette.surface}} />
                         <i className="scheme__bar" style={{background: `linear-gradient(90deg, ${s.accent} 62%, transparent 62%)`}} />
-                        <i className="scheme__line" />
-                        <i className="scheme__line scheme__line--short" />
+                        <i className="scheme__deep" style={{background: s.palette.deep}} />
+                        <i className="scheme__tint" style={{background: s.palette.tint}} />
                         <i className="scheme__pill" style={{background: s.accent, color: onAccent(s.accent)}} />
+                      </span>
+                      <span className="scheme__shades" aria-hidden>
+                        {[s.palette.bg, s.palette.surface, s.palette.tint, s.accent, s.palette.deep].map((c, i) => (
+                          <i key={i} style={{background: c}} />
+                        ))}
                       </span>
                       <strong>{s.name}</strong>
                       <span>
                         {s.feel} · {s.canvas}
                       </span>
-                      {s.fits && <em>Suits yours</em>}
+                      {s.likeApp ? <em>Like {s.likeApp}</em> : s.fits && <em>Suits yours</em>}
                     </button>
                   </li>
                 )

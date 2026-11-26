@@ -43,7 +43,7 @@ export function factsOf(o: Options, raw: Answers) {
     ...referencesIn(o.inspiration).map((r) => line(`What ${r.name} looks like, from its screens on Mobbin`, r.takes)),
     line('The people who use it are called', `${o.memberWord}s; the person who runs it is the ${o.ownerWord}`),
     line('The accent colour', o.accent.toUpperCase()),
-    line('The colour scheme they chose', ((s) => s && `${s.name}: a ${s.canvas} canvas with the accent, ${s.feel.toLowerCase()} (the canvas is decided)`)(schemeById(raw.scheme))),
+    line('The colour scheme they chose', ((s) => s && `${s.name}: a ${s.canvas} canvas (${s.palette.bg}) with the accent, a deep shade (${s.palette.deep}) and a tint (${s.palette.tint}), ${s.feel.toLowerCase()}; the canvas and shades are decided`)(schemeById(raw.scheme))),
     line('The audience today', raw.audience),
     line('Success in a year', raw.ambition),
   ]
@@ -215,7 +215,7 @@ export async function planPrototype(o: Options, raw: Answers, photos: Photo[], d
   }
   // A scheme they picked decides the canvas, whatever the plan chose.
   const scheme = schemeById(raw.scheme)
-  if (scheme && plan.style) plan.style = {...plan.style, canvas: scheme.canvas}
+  if (scheme && plan.style) plan.style = {...plan.style, canvas: scheme.canvas, palette: scheme.palette}
   return {id: randomBytes(16).toString('hex'), look: {name: o.name, accent: o.accent.toUpperCase(), style: plan.style}, facts, plan, photos}
 }
 
@@ -246,6 +246,7 @@ Phone screens (390 wide; the top 44px are left clear; long screens scroll):
 - Text: .hero-title (34px display), .title (28), .heading (20), .label (15 display), .lead (18, mid grey), .small (13, faint), .mid, .num (display figures), .big-num (44).
 - Layout: .pad (20px each side), .stack (12px gaps), .stack-sm, .stack-lg (24px), .row-x (a row, 12px gaps), .between, .center, .section (28px above), .grid-2, .grid-3, .scroll-x (a sideways strip of 240px cards; .sm 150px, .lg 300px).
 - A top bar: <div class="bar"><a class="back" data-go="UNIT" aria-label="Back"></a><span class="label">Title</span><span style="width:44px"></span></div>
+- The colour's shades: .deep (a card or band in the accent's deep shade, white words: a goal card, a hero block, the landing page's last call) and .tint (a soft panel in a tint of it). Use each a few times across the app where it lifts a screen, never on every card.
 - Cards and rows: .card; .list holding .row items, each with an optional img.thumb or .avatar, then <div class="grow"><div class="t">Title</div><div class="s">Subtitle</div></div>, then a trailing .num, .chip or <span class="chev"></span>; .note (a tip on raised grey).
 - Photos: .photo-card.tall (a 300px photo); img.hero (full width, 340 tall; add .round for rounded lower corners; put class="screen bleed" on the section when the hero starts at the very top); .hero-top (a hero at the very top with the app's bar laid over it: <div class="hero-top"><img class="hero round" src="URL" alt="…"><div class="over"><span class="row-x"><span class="app-icon sm"></span><span class="label">App name</span></span><a class="link" data-go="UNIT">Sign in</a></div></div>, in a section with class="screen bleed"); a full-screen photo with the words over it: class="screen cover" on the section, the <img src="URL" alt="…"> as its first child, then <div class="over"> for the top (the app's icon and name, or the dots and Skip), then the words in a .pad .stack (a .hero-title, a .lead), the pill in a .pad, and the .credit in a .pad; nothing else. .photo-card (an img, then <div class="in"> with .heading or .t, .s and .credit); img.thumb (56px); .avatar, .avatar.lg; .credit; .player (an img and <span class="play"></span>) for a video.
 - Actions: the primary <a class="pill" data-go="UNIT"><span>Label</span><span class="disc"></span></a>; .quiet (a grey full-width button); .link; .foot (a fixed bottom area for onboarding's pill and Skip).
