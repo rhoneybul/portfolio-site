@@ -2,13 +2,15 @@
  * Submissions from the app builder, kept for Fohm only: every answer, the visitor's email and, when
  * they get in touch, their details, as a private blob in the site's Vercel Blob store (read and
  * written with BLOB_READ_WRITE_TOKEN; never readable by a public link). Each has a random id, and
- * only the Fohm Slack channel is told it: the visitor never sees the id, the page or the brief.
+ * only the Fohm Slack channel is told it: the visitor never sees the id, the page or the brief, and
+ * the pages open only for the owner (owner.ts, src/proxy.ts).
  */
 import {randomBytes} from 'node:crypto'
 import {get, put} from '@vercel/blob'
 import {claudePrompt} from './prompt'
 import {resolveOptions, type Answers} from './options'
 import {siteUrl} from '@/site-url'
+import {keyedUrl} from './owner'
 
 export interface Contact {
   name: string
@@ -72,5 +74,8 @@ export async function readSubmission(id: string): Promise<Submission | null> {
 /** The page of the prototype Claude drew for a submission, when it did. */
 export const prototypeUrlOf = (s: Submission) => (s.prototype ? `${siteUrl}/app-builder/submissions/${s.id}/prototype` : undefined)
 
-/** The brief to give Claude, made from what was saved. */
-export const briefOf = (s: Submission) => claudePrompt(resolveOptions(s.answers).options, s.answers, prototypeUrlOf(s))
+/** The brief to give Claude, made from what was saved: its prototype link opens without the password (owner.ts). */
+export async function briefOf(s: Submission) {
+  const prototype = prototypeUrlOf(s)
+  return claudePrompt(resolveOptions(s.answers).options, s.answers, prototype ? await keyedUrl(prototype) : undefined)
+}

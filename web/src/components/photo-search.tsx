@@ -3,77 +3,25 @@
 import {useEffect, useState} from 'react'
 import type {Answers} from '@/app-builder/options'
 import {ideaAnswers, photoIdeas, tidy} from '@/app-builder/photo-ideas'
+import type {Found} from '@/app-builder/commons'
+
+export type {Found}
 
 /**
- * Finds photos for the visitor's app on Wikimedia Commons, in the browser, from what they've told
- * us about it: a few searches picked from their answers (/api/photo-ideas), a few photos from
- * each to choose from, and their own words or a link to their own if none fit. Only licences the
- * scaffold lets an app show (public domain, CC0, CC BY, CC BY-SA, with a named author where the
- * licence asks for one; never NC or ND), each with its author and licence, which the brief
- * carries as the credit.
+ * Finds photos for the visitor's app on Wikimedia Commons from what they've told us about it: a
+ * few searches picked from their answers (/api/photo-ideas), a few photos from each to choose
+ * from (/api/photos, open licences only: app-builder/commons.ts), and their own words or a link to
+ * their own if none fit.
  */
-
-export interface Found {
-  url: string
-  thumb: string
-  credit: string
-  page: string
-}
-
-const ALLOWED = /^(cc0|public domain|pd|cc by(-sa)?( \d\.\d)?)/i
-const NAMELESS = /^(unknown|anonymous|unknown author)?$/i
-
-const plain = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
-
-// The file's path, without the ?utm_source=… Commons now adds to every imageinfo url.
-const COMMONS = /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/(?:thumb\/)?([0-9a-f]\/[0-9a-f]{2}\/[^/?#]+)/
 
 /**
- * A Commons file at a standard width. Commons refuses hotlinks at any other width (a 429 or a 400:
- * mediawiki.org/wiki/Common_thumbnail_sizes), which is why the grid's 320px thumbnails broke.
+ * Open-licence photos for a search, through this site's server (/api/photos): Commons refuses
+ * searches straight from browsers it can't identify, so the server asks, named, and caches.
  */
-export function atWidth(url: string, width: 330 | 500 | 960 | 1280, original: number) {
-  const m = url.match(COMMONS)
-  if (!m) return url
-  if (original <= width) return `https://upload.wikimedia.org/wikipedia/commons/${m[1]}`
-  return `https://upload.wikimedia.org/wikipedia/commons/thumb/${m[1]}/${width}px-${m[1].split('/').pop()}`
-}
-
-type Info = {url: string; width: number; descriptionurl: string; extmetadata?: Record<string, {value: string}>}
-
-async function query(gsrsearch: string): Promise<Found[]> {
-  const params = new URLSearchParams({
-    action: 'query',
-    format: 'json',
-    origin: '*',
-    generator: 'search',
-    gsrsearch,
-    gsrnamespace: '6',
-    gsrlimit: '30',
-    prop: 'imageinfo',
-    iiprop: 'url|size|extmetadata',
-    iiextmetadatafilter: 'LicenseShortName|Artist',
-  })
-  const res = await fetch(`https://commons.wikimedia.org/w/api.php?${params}`)
-  const pages = Object.values(((await res.json()).query?.pages ?? {}) as Record<string, {index?: number; imageinfo?: Info[]}>)
-  return pages
-    .sort((x, y) => (x.index ?? 0) - (y.index ?? 0))
-    .map((p) => p.imageinfo?.[0])
-    .filter((i): i is Info => Boolean(i?.url))
-    .map((i) => {
-      const licence = plain(i.extmetadata?.LicenseShortName?.value ?? '')
-      const author = plain(i.extmetadata?.Artist?.value ?? '').slice(0, 80)
-      return {licence, author, found: {url: atWidth(i.url, 1280, i.width), thumb: atWidth(i.url, 500, i.width), credit: `${author || 'Unknown author'} · ${licence}`, page: i.descriptionurl}}
-    })
-    .filter(({licence, author}) => ALLOWED.test(licence) && !/\b(nc|nd)\b/i.test(licence) && (/^(cc0|public domain|pd)/i.test(licence) || !NAMELESS.test(author)))
-    .map(({found}) => found)
-    .slice(0, 12)
-}
-
-/** Open-licence photos for a search: big JPEGs (photos, not logos or diagrams) first, any bitmap if there are none. */
 export async function search(q: string): Promise<Found[]> {
-  const photos = await query(`filetype:bitmap filemime:jpeg filew:>1300 ${q}`).catch(() => [])
-  return photos.length ? photos : query(`filetype:bitmap ${q}`)
+  const res = await fetch(`/api/photos?q=${encodeURIComponent(q.trim().slice(0, 80))}`)
+  if (!res.ok) throw new Error(`Photo search: ${res.status}`)
+  return ((await res.json()) as {photos?: Found[]}).photos ?? []
 }
 
 // One browser tab's memory: the photo step and the finished app ask once for the same answers.
