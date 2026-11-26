@@ -1,6 +1,5 @@
 import {NextResponse} from 'next/server'
 import {toSlack} from '@/app-builder/slack'
-import {toEmail} from '@/app-builder/email'
 import {builderLines, embedLines, webhookOn} from '@/booking/booking'
 
 /**
@@ -21,7 +20,6 @@ export async function POST(request: Request) {
   if (Date.now() - (seen.get(key) ?? 0) < 10 * 60_000) return NextResponse.json({ok: true})
   seen.set(key, Date.now())
 
-  const lines = [...embedLines(body), ...(await builderLines(body.ref))]
-  await Promise.all([toSlack(lines), toEmail('App builder: a call booked', lines)])
+  await toSlack([...embedLines(body), ...(await builderLines(body.ref))])
   return NextResponse.json({ok: true})
 }

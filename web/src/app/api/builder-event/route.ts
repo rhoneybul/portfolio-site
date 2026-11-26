@@ -1,7 +1,6 @@
 import {NextResponse} from 'next/server'
 import {QUESTIONS, resolveOptions, type Answers} from '@/app-builder/options'
 import {appLines, esc, toSlack} from '@/app-builder/slack'
-import {toEmail} from '@/app-builder/email'
 import {saveSubmission, submissionsOn} from '@/app-builder/submissions'
 import {isPrototypeId} from '@/app-builder/prototypes'
 import {siteUrl} from '@/site-url'
@@ -65,7 +64,7 @@ export async function POST(request: Request) {
   }
 
   const page = id ? `${siteUrl}/app-builder/submissions/${id}` : ''
-  const lines = [
+  await toSlack([
     EVENTS[event],
     ...(event === 'interest'
       ? [`*${esc(contact.name || 'No name given')}* · ${esc(contact.email)}`, ...(contact.note ? [`> ${esc(contact.note)}`] : [])]
@@ -74,8 +73,6 @@ export async function POST(request: Request) {
         : []),
     ...appLines(options, answers),
     ...(page ? [`<${page}|Open the submission>${prototype ? ` · <${page}/prototype|The prototype Claude drew>` : ' · _the quick sketch: Claude didn’t draw one_'} · <${page}/brief|The brief for Claude>`] : event === 'whatsapp' ? [] : [`_Not saved: ${esc(notSaved)}_`]),
-  ]
-  // Slack hears everything; a note left to build it together is emailed too, with a reply going to them.
-  await Promise.all([toSlack(lines), event === 'interest' ? toEmail(`App builder: ${options.name}, from ${contact.name || contact.email}`, lines, contact.email) : null])
+  ])
   return NextResponse.json({ok: true})
 }
