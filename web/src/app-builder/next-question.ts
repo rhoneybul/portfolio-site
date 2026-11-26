@@ -98,7 +98,7 @@ export function plain(v: unknown, most: number) {
 /** What a visitor's browser may send: known keys only, each a short string. */
 export function cleanRequest(body: unknown): {answers: Answers; done: string[]} {
   const b = (body ?? {}) as {answers?: unknown; done?: unknown}
-  const known = new Set([...QUESTIONS.map((q) => q.key), 'photoCredit'])
+  const known = new Set([...QUESTIONS.map((q) => q.key), 'photoCredit', 'scheme'])
   const raw = (b.answers && typeof b.answers === 'object' ? b.answers : {}) as Record<string, unknown>
   const answers: Answers = {}
   for (const [k, v] of Object.entries(raw)) if (known.has(k) && typeof v === 'string') answers[k] = v.slice(0, k === 'photo' ? 1000 : 600)
