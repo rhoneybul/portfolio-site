@@ -6,7 +6,7 @@
  */
 import {createHash, createHmac, randomBytes, timingSafeEqual} from 'node:crypto'
 import {TEMPLATES, type Answers, type Options} from './options'
-import type {Drawn, Job, Photo, Plan, Unit} from './prototype-doc'
+import {CANVASES, CORNERS, HOMES, HOUSE, SHAPES, TYPES, TYPE_FACES, type Drawn, type Job, type Photo, type Plan, type Style, type Unit} from './prototype-doc'
 import {DRAW_MODEL, PLAN_MODEL, askClaude} from './claude'
 
 export type {Job}
@@ -47,20 +47,21 @@ export function factsOf(o: Options, raw: Answers) {
     .join('\n')
 }
 
+/** What the prototype covers for each kind of app: the parts the owner needs to see. Their order, grouping and layout are the plan's. */
 const JOURNEY: Record<string, string> = {
   coachYes:
-    'the landing page (led by a photo); signing in; onboarding as Naz’s (an opening that asks the app’s key value as a question over a photo, straight questions one to a screen with the dots and Skip, what they’re here for as photo tiles, why it works, a first number, the week they can give, and the end, which lands on their path); Home on the first day; Home three weeks in (the goal as the hero, the next thing to do, the week); the path (the levels and the skills at each, where they are); a session from start to done; a check-in (what they worked on and how it felt); a goal they train for (its photo, what it asks, the courses that prepare for it, saved); sending the coach a video or a question, and the coach’s reply; Pro (what it adds, the price as a placeholder); Account (their photo, their goal, their plan).',
+    'the landing page; signing in; onboarding (for example Naz’s: an opening that asks the app’s key value as a question over a photo, straight questions one to a screen with the dots and Skip, what they’re here for as photo tiles, why it works, a first number, the week they can give, and the end, which lands on their path); Home on the first day; Home three weeks in (the goal as the hero, the next thing to do, the week); the path (the levels and the skills at each, where they are); a session from start to done; a check-in (what they worked on and how it felt); a goal they train for (its photo, what it asks, the courses that prepare for it, saved); sending the coach a video or a question, and the coach’s reply; Pro (what it adds, the price as a placeholder); Account (their photo, their goal, their plan).',
   coachNo:
-    'the landing page (led by a photo); signing in; onboarding as Naz’s (an opening that asks the app’s key value as a question over a photo, straight questions one to a screen with the dots and Skip, what they’re here for as photo tiles, why it works, a first number, the week they can give, and the end, which starts their program from the answers); Home on the first day; Home three weeks in (the goal as the hero, the next session, the week); their program (its weeks and sessions, where they are); a session from start to done; a check-in (what they did and how it felt); a goal they train for (its photo, what it asks, the courses that prepare for it, saved); the library; Pro (what it adds, the price as a placeholder); Account (their photo, their goal, their program).',
-  app: 'the landing page (led by a photo); signing in; onboarding (a few straight questions one to a screen with the dots and Skip, and what they’re here for as photo tiles); Home; the app’s one job from start to done, in two or three units; a list or catalogue of what it holds, with photos; one item in full; Pro (the price as a placeholder); Account.',
-  game: 'the landing page (led by a photo); how to play, in one or two screens; the first round in play; the score at the end of a round; Home, the way back in (where you are, the next challenge, the places to play, with photos); a leaderboard or progress; Account.',
+    'the landing page; signing in; onboarding (for example Naz’s: an opening that asks the app’s key value as a question over a photo, straight questions one to a screen with the dots and Skip, what they’re here for as photo tiles, why it works, a first number, the week they can give, and the end, which starts their program from the answers); Home on the first day; Home three weeks in (the goal as the hero, the next session, the week); their program (its weeks and sessions, where they are); a session from start to done; a check-in (what they did and how it felt); a goal they train for (its photo, what it asks, the courses that prepare for it, saved); the library; Pro (what it adds, the price as a placeholder); Account (their photo, their goal, their program).',
+  app: 'the landing page; signing in; onboarding (a few straight questions one to a screen with the dots and Skip, and what they’re here for as photo tiles); Home; the app’s one job from start to done, in two or three units; a list or catalogue of what it holds, with photos; one item in full; Pro (the price as a placeholder); Account.',
+  game: 'the landing page; how to play, in one or two screens; the first round in play; the score at the end of a round; Home, the way back in (where you are, the next challenge, the places to play, with photos); a leaderboard or progress; Account.',
 }
 
 const journeyOf = (o: Options) => (o.kind === 'game' ? JOURNEY.game : o.kind === 'app' ? JOURNEY.app : o.coach === 'yes' ? JOURNEY.coachYes : JOURNEY.coachNo)
 
 // ---------- The plan ----------
 
-const PLAN_SYSTEM = `You are a senior product designer planning a high-fidelity, clickable prototype of a new app for its owner, before any of it is built. The owner taps through it end to end and decides from it, so it must be their app: their business, their words, their photos, and the journey their members really take, in the house style shared with Naz and Etapa (a quiet, native-feeling list app: a cool grey canvas, white cards, hairline rows, one accent; the owner's dashboard in graphite).
+const PLAN_SYSTEM = `You are a senior product designer planning a high-fidelity, clickable prototype of a new app for its owner, before any of it is built. The owner taps through it end to end and decides from it, so it must be their app: their business, their words, their photos, the journey their members really take, and a look of its own, within the house style's family shared with Naz and Etapa (a quiet, native-feeling app: a canvas, borderless cards, hairline rows, one accent; the owner's dashboard in graphite). No two apps should look or flow alike: the look and the screens' layouts are yours to choose for this one.
 
 You plan the units the prototype is drawn in. Each unit is drawn by another designer who sees only your plan, the facts and the photos, several at the same time, so the plan carries everything the screens share.
 
@@ -69,9 +70,16 @@ Reply with JSON only, in this shape:
   "summary": "Two or three sentences: what the app is and what this prototype shows.",
   "decisions": ["The calls you made that the owner would otherwise be asked, one a line: the navigation (a tab bar and its tabs, or one hub), what the accent marks, the voice of the words."],
   "world": ["What every screen shares, one fact a line, concrete and in the business's words: the member we follow (a first name), their goal and why, where they are in it (week 3 of 8, sessions done), the path or program and its parts, the things onboarding offers, the library's items, the five people on the owner's dashboard (first name and last initial, what each is on, two needing the owner), any price as a [placeholder]."],
+  "look": {"from": ["What you took from each app the owner likes, one line each: Runna: dark, data-led home with the week's plan first."], "canvas": "light|dark", "corners": "round|soft|square", "type": "grotesk|serif|clean|rounded", "home": "photo|list", "icon": {"shape": "monogram|ring|arch|peak|bars|leaf", "letters": "for a monogram"}},
   "tabs": [{"label": "Home", "to": "home"}],
-  "units": [{"id": "landing", "title": "Landing page", "frame": "phone", "steps": 1, "shows": "What it shows top to bottom, the gist of its words, which photo by number, and what each tap leads to.", "links": ["sign-in"]}]
+  "units": [{"id": "landing", "title": "Landing page", "frame": "phone", "steps": 1, "shows": "What it shows top to bottom, the gist of its words, which photo by number, and what each tap leads to.", "layout": "How it is arranged: what leads, what follows, and which patterns (a full-screen photo with the words over it, a hero with cards under it, a sideways strip, a grid of tiles, a big number first, a list).", "links": ["sign-in"]}]
 }
+
+The look:
+- canvas: ${CANVASES.join(' or ')}. corners: ${CORNERS.join(', ')} (round is soft and generous, square is crisp and editorial). home: ${HOMES.join(' or ')} (Home leads with a photo of the goal, or with the list of what's next).
+- type, one of: ${TYPES.map((t) => `${t} (${TYPE_FACES[t].about})`).join('; ')}.
+- icon: the app's own icon, its mark in the accent's square. shape: ${SHAPES.join(', ')}; a monogram gives 1 or 2 letters from the app's name. Choose what suits the name and the business, as a designer would.
+- The apps the owner likes are the strongest guide: recall how each looks and feels (its canvas, type, corners, density, how its home and its sessions are laid out, its signature screens) and carry that into the look and the units' layouts, within the house style's family. Say what you took from each in "from". With none named, choose from the business, its audience and the photos.
 
 Rules:
 - 10 to 15 units. The member's journey on the phone first, in the order they meet it ("frame": "phone"); then 2 to 4 units of the owner's dashboard ("frame": "laptop").
@@ -79,6 +87,7 @@ Rules:
 - Onboarding is one unit of 4 to 7 steps. A session from start to done may be 2 or 3 steps. Every other unit is 1 step.
 - ids are short kebab-case words, unique. links name unit ids only. Every unit is reachable from the landing page, and every phone unit leads somewhere.
 - tabs: 3 to 5, each to a phone unit that shows the tab bar; or [] for an app with one hub screen.
+- The journey given for this kind of app is what to cover, not an order or a set of screens: group, order and name the units as this app needs, and lay each out for what it shows. Vary the layouts across the app: not every screen is a bar and a list.
 - Give every photo slot a photo by its number: the strongest for the landing page and the goal, and each where it fits what it shows.
 - Never invent facts about the business (prices, dates, client numbers): write a [placeholder]. The member we follow and the dashboard's people are illustrative, and may have sample activity.
 - Plain English and sentence case. No emoji.`
@@ -118,6 +127,24 @@ const landingUnit = (next?: string): Unit => ({
   links: next ? [next] : [],
 })
 
+const oneOf = <T extends string>(all: readonly T[], v: unknown, fallback: T): T => (all.includes(v as T) ? (v as T) : fallback)
+
+/** The look Claude chose, each choice one the kit can draw; anything else is the house's. */
+export function parseStyle(v: unknown): Style {
+  const l = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>
+  const icon = (l.icon && typeof l.icon === 'object' ? l.icon : {}) as Record<string, unknown>
+  const letters = String(icon.letters ?? '').replace(/[^A-Za-z0-9&]/g, '').slice(0, 2)
+  const shape = oneOf(SHAPES, icon.shape, HOUSE.icon.shape)
+  return {
+    canvas: oneOf(CANVASES, l.canvas, HOUSE.canvas),
+    corners: oneOf(CORNERS, l.corners, HOUSE.corners),
+    type: oneOf(TYPES, l.type, HOUSE.type),
+    home: oneOf(HOMES, l.home, HOUSE.home),
+    icon: shape === 'monogram' && !letters ? HOUSE.icon : {shape, letters: shape === 'monogram' ? letters : ''},
+    from: lines(l.from, 6, 200),
+  }
+}
+
 /** Claude's plan, checked and trimmed: the ids, links and counts the screens rely on. */
 export function parsePlan(answer: string): Plan {
   const raw = JSON.parse(answer.slice(answer.indexOf('{'), answer.lastIndexOf('}') + 1)) as Record<string, unknown>
@@ -134,6 +161,7 @@ export function parsePlan(answer: string): Plan {
         frame,
         steps: Math.max(1, Math.min(7, Math.round(Number(u?.steps) || 1))),
         shows: text(u?.shows, 900),
+        layout: text(u?.layout, 400) || undefined,
         links: Array.isArray(u?.links) ? (u.links as unknown[]).map(kebab) : [],
       }
     })
@@ -150,6 +178,7 @@ export function parsePlan(answer: string): Plan {
     .filter((t) => t.label && units.some((u) => u.id === t.to && u.frame === 'phone'))
     .slice(0, 5)
   return {
+    style: parseStyle(raw.look),
     summary: text(raw.summary, 600),
     decisions: lines(raw.decisions, 8, 240),
     world: lines(raw.world, 16, 300),
@@ -164,7 +193,7 @@ export async function planPrototype(o: Options, raw: Answers, photos: Photo[], d
     askClaude({
       model: PLAN_MODEL(),
       system: [PLAN_SYSTEM],
-      user: `${facts}\n\nThe journey, for this kind of app: ${journeyOf(o)}\n${DASHBOARD(o)}\n${COACHING(o)}\n\nThe photos, found from these answers:\n${photoList(photos, false)}`,
+      user: `${facts}\n\nWhat the prototype covers, for this kind of app (yours to group, order and lay out): ${journeyOf(o)}\n${DASHBOARD(o)}\n${COACHING(o)}\n\nThe photos, found from these answers:\n${photoList(photos, false)}`,
       // Room for Claude's thinking as well as the plan: thinking counts against it, and 6,000 cut plans off mid-JSON.
       maxTokens: 32_000,
       deadline,
@@ -177,7 +206,7 @@ export async function planPrototype(o: Options, raw: Answers, photos: Photo[], d
     console.warn('[prototype] plan again:', e instanceof Error ? e.message : e)
     plan = parsePlan(await ask())
   }
-  return {id: randomBytes(16).toString('hex'), look: {name: o.name, accent: o.accent.toUpperCase()}, facts, plan, photos}
+  return {id: randomBytes(16).toString('hex'), look: {name: o.name, accent: o.accent.toUpperCase(), style: plan.style}, facts, plan, photos}
 }
 
 // ---------- Drawing a unit ----------
@@ -187,16 +216,17 @@ export const sectionIds = (u: Unit) => (u.steps > 1 ? Array.from({length: u.step
 
 const KIT = `You draw one part of a mobile app's prototype at a time, as HTML on a fixed kit. The other parts are drawn at the same time by other calls from the same plan, so follow the plan, the kit and these rules exactly: that is what makes the screens one app.
 
-THE HOUSE STYLE (fohm-scaffold's, shared with Naz and Etapa)
-A quiet, native-feeling list app: a cool grey canvas, white borderless cards, hairline rows, two faces in sentence case, and one accent. The photos carry the colour; the chrome stays black, white and grey. The owner's dashboard is graphite.
+THE HOUSE STYLE (fohm-scaffold's family, shared with Naz and Etapa)
+A quiet, native-feeling app: a canvas, borderless cards one step off it, hairline rows, two faces in sentence case, and one accent. The photos carry the colour; the chrome stays neutral. Each app has a look of its own within this (light or dark, its corners, its faces, its icon): it is given below and already in the stylesheet, so draw with the classes and it follows. The owner's dashboard is graphite.
+- Lay each screen out as the plan's layout for it says. Vary the layouts across the app, as the apps the owner likes do: full-screen photos with the words over them, a hero with cards under it, sideways strips, grids of tiles, a big number first, lists. Not every screen is a bar and a list.
 - The accent marks only what to press and what is live now: the disc on the primary pill, today's ring, a .live badge. Anything chosen is ink, never the accent.
 - One primary action a screen: the ink pill with its accent disc. Anything else is a .quiet button or a .link.
 - Sentence case everywhere. No uppercase, no letter-spacing, no eyebrow or kicker line over a title. No emoji.
 - No card inside a card. A list is rows on one .list card, never a stack of cards.
 - No stat tile for a long fact: a fact longer than a number or a word is a row.
-- Photos in every slot: a hero on the landing page and onboarding's opening, the goal as the hero on Home, a .thumb on every row of things (sessions, goals, library items), a photo on every hub card, an empty state with a photo and a line. Use only the photo URLs given, as <img src="URL" alt="what it shows">. Where a photo leads a card or a screen, its credit goes in a .credit line inside that card or under the hero.
+- Photos in every slot: a hero on the landing page and onboarding's opening, the goal on Home (as its hero when the look's Home leads with a photo), a .thumb on every row of things (sessions, goals, library items), a photo on every hub card, an empty state with a photo and a line. Use only the photo URLs given, as <img src="URL" alt="what it shows">. Where a photo leads a card or a screen, its credit goes in a .credit line inside that card or under the hero.
 - People have no photos: initials in an avatar, <span class="avatar initials">MO</span>.
-- The app's icon is <span class="app-icon"></span> (.sm 32px, .lg 76px), drawn for you; never draw a logo of your own, and never a photo or letter in its place. It goes, with the app's name beside it, at the top of the landing page (a .hero-top), on onboarding's opening and on signing in (.lg, above the title); the dashboard's .brand shows it too.
+- The app's icon is <span class="app-icon"></span> (.sm 32px, .lg 76px), drawn for you; never draw a logo of your own, and never a photo or letter in its place. It goes, with the app's name beside it, at the top of the landing page (in a .hero-top, a cover's .over or a bar), on onboarding's opening and on signing in (.lg, above the title); the dashboard's .brand shows it too.
 - A screen that is one photo and a line or two (onboarding's opening, a welcome, a goal reached) is a .cover, never a hero over an empty screen.
 - Words: the business's own, in plain English, warm and direct, using the app's words for its people. Never lorem ipsum. A fact not given (a price, a date, a count about the business) is a [placeholder] in square brackets, like [YOUR PRICE]. The plan's world gives the sample member and the dashboard's people: use it.
 - No coach is shown or offered unless the facts say there is a real coach.
@@ -204,10 +234,10 @@ A quiet, native-feeling list app: a cool grey canvas, white borderless cards, ha
 THE KIT: only these classes. The stylesheet is fixed; you cannot add CSS.
 Phone screens (390 wide; the top 44px are left clear; long screens scroll):
 - Text: .hero-title (34px display), .title (28), .heading (20), .label (15 display), .lead (18, mid grey), .small (13, faint), .mid, .num (display figures), .big-num (44).
-- Layout: .pad (20px each side), .stack (12px gaps), .stack-sm, .stack-lg (24px), .row-x (a row, 12px gaps), .between, .section (28px above), .grid-2, .scroll-x (a sideways strip of 240px cards).
+- Layout: .pad (20px each side), .stack (12px gaps), .stack-sm, .stack-lg (24px), .row-x (a row, 12px gaps), .between, .center, .section (28px above), .grid-2, .grid-3, .scroll-x (a sideways strip of 240px cards; .sm 150px, .lg 300px).
 - A top bar: <div class="bar"><a class="back" data-go="UNIT" aria-label="Back"></a><span class="label">Title</span><span style="width:44px"></span></div>
 - Cards and rows: .card; .list holding .row items, each with an optional img.thumb or .avatar, then <div class="grow"><div class="t">Title</div><div class="s">Subtitle</div></div>, then a trailing .num, .chip or <span class="chev"></span>; .note (a tip on raised grey).
-- Photos: img.hero (full width, 340 tall; add .round for rounded lower corners; put class="screen bleed" on the section when the hero starts at the very top); .hero-top (a hero at the very top with the app's bar laid over it: <div class="hero-top"><img class="hero round" src="URL" alt="…"><div class="over"><span class="row-x"><span class="app-icon sm"></span><span class="label">App name</span></span><a class="link" data-go="UNIT">Sign in</a></div></div>, in a section with class="screen bleed"); a full-screen photo with the words over it: class="screen cover" on the section, the <img src="URL" alt="…"> as its first child, then <div class="over"> for the top (the app's icon and name, or the dots and Skip), then the words in a .pad .stack (a .hero-title, a .lead), the pill in a .pad, and the .credit in a .pad; nothing else. .photo-card (an img, then <div class="in"> with .heading or .t, .s and .credit); img.thumb (56px); .avatar, .avatar.lg; .credit; .player (an img and <span class="play"></span>) for a video.
+- Photos: .photo-card.tall (a 300px photo); img.hero (full width, 340 tall; add .round for rounded lower corners; put class="screen bleed" on the section when the hero starts at the very top); .hero-top (a hero at the very top with the app's bar laid over it: <div class="hero-top"><img class="hero round" src="URL" alt="…"><div class="over"><span class="row-x"><span class="app-icon sm"></span><span class="label">App name</span></span><a class="link" data-go="UNIT">Sign in</a></div></div>, in a section with class="screen bleed"); a full-screen photo with the words over it: class="screen cover" on the section, the <img src="URL" alt="…"> as its first child, then <div class="over"> for the top (the app's icon and name, or the dots and Skip), then the words in a .pad .stack (a .hero-title, a .lead), the pill in a .pad, and the .credit in a .pad; nothing else. .photo-card (an img, then <div class="in"> with .heading or .t, .s and .credit); img.thumb (56px); .avatar, .avatar.lg; .credit; .player (an img and <span class="play"></span>) for a video.
 - Actions: the primary <a class="pill" data-go="UNIT"><span>Label</span><span class="disc"></span></a>; .quiet (a grey full-width button); .link; .foot (a fixed bottom area for onboarding's pill and Skip).
 - Picks: .chips of .chip; .choice rows; .tiles of .tile (an img and <span class="t">Label</span>); .on marks the chosen one; wrap a group in data-pick="one" or data-pick="many" and a tap picks.
 - Progress: .dots with an <i></i> a step (.on for this step); <div class="track"><span style="width:40%"></span></div>; .stat (a .big-num or .num, and a .small); .week of seven .day (<span>M</span><b>12</b>; .done, .today); .live (a small accent badge); .seg (a segmented control; .on on the chosen child); .field (<span>Label</span><div class="input">Placeholder</div>); .bubble and .bubble.me (messages).
@@ -223,13 +253,19 @@ Every tappable element leads somewhere: data-go="ID" on an <a>, where ID is a un
 OUTPUT
 Only the unit's screens, each <section class="screen" id="ID" data-title="A few words">…</section>, and nothing before or after: no <html>, <head>, <style>, <script>, comments, explanations or markdown fences. Inside a screen use <div>, never another <section>. Nothing submits: fields are drawn with .field and .input.`
 
+/** The look, for the screens' designers: what's in the stylesheet already, and what it was taken from. */
+function lookOf(job: Job) {
+  const st = job.look.style ?? HOUSE
+  return `THE LOOK (in the stylesheet already)\n- ${st.canvas === 'dark' ? 'A dark canvas: the cards a step lighter, the words light' : 'A light canvas: white cards on grey'}; ${st.corners} corners; ${TYPE_FACES[st.type].about}.\n- Home leads with ${st.home === 'photo' ? 'a photo of the goal' : 'the list of what is next, the photos smaller'}.\n${st.from.map((f) => `- From the apps the owner likes: ${f}`).join('\n')}`.trim()
+}
+
 /** What every part of one app is drawn from: the facts, the plan and the photos (kept in Anthropic's cache for the app's other parts). */
 function context(job: Job) {
   const {plan} = job
   const units = plan.units
-    .map((u) => `- ${u.id} (${u.frame}, sections: ${sectionIds(u).join(', ')}): ${u.title}. ${u.shows} Leads to: ${u.links.join(', ') || 'nowhere new'}.`)
+    .map((u) => `- ${u.id} (${u.frame}, sections: ${sectionIds(u).join(', ')}): ${u.title}. ${u.shows}${u.layout ? ` Layout: ${u.layout}` : ''} Leads to: ${u.links.join(', ') || 'nowhere new'}.`)
     .join('\n')
-  return `THE APP\n${job.facts}\n\nTHE PLAN\n${plan.summary}\n\nDecisions:\n${plan.decisions.map((d) => `- ${d}`).join('\n')}\n\nThe world every screen shares:\n${plan.world.map((w) => `- ${w}`).join('\n')}\n\nTabs: ${plan.tabs.length ? plan.tabs.map((t) => `${t.label} (${t.to})`).join(', ') : 'none: one hub screen'}\n\nThe units:\n${units}\n\nTHE PHOTOS\n${photoList(job.photos, true)}`
+  return `THE APP\n${job.facts}\n\n${lookOf(job)}\n\nTHE PLAN\n${plan.summary}\n\nDecisions:\n${plan.decisions.map((d) => `- ${d}`).join('\n')}\n\nThe world every screen shares:\n${plan.world.map((w) => `- ${w}`).join('\n')}\n\nTabs: ${plan.tabs.length ? plan.tabs.map((t) => `${t.label} (${t.to})`).join(', ') : 'none: one hub screen'}\n\nThe units:\n${units}\n\nTHE PHOTOS\n${photoList(job.photos, true)}`
 }
 
 export async function drawUnit(job: Job, unitId: string, deadline: number): Promise<Drawn> {

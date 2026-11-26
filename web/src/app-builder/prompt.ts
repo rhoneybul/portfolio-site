@@ -141,7 +141,7 @@ ${next.map((l) => `- ${l}`).join('\n')}
 - Write onboarding's steps (\`ONBOARDING\` in src/lib/progression.ts) from my idea, what people are here for and what they work towards, as the template's docs/ONBOARDING.md says.${o.kind === 'coaching' ? `
 - Put my method into src/lib/progression.ts once you have the levels and skills from me.` : ''}
 - Research the catalogue of goals and the courses that prepare for them, with open-licence photos (reference/research.md).
-- Design with the app-design skill, building the approved prototype for real: my references from Mobbin within the house style (Space Grotesk and DM Sans, the grey canvas and white cards, the ink pill with the ${o.accent.toUpperCase()} disc), photos in every slot, and a fresh review against the prototype before I see anything.
+- Design with the app-design skill, building the approved prototype for real: my references from Mobbin within the house style, in the look the prototype settled (its canvas, corners, faces and icon, with the ${o.accent.toUpperCase()} accent), photos in every slot, and a fresh review against the prototype before I see anything.
 - Then launch with the app-launch skill, each integration off until its key is set, and never ask me for a secret in the chat.
 `
 }
