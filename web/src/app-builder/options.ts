@@ -25,14 +25,24 @@ export interface Choice {
   shots?: Shots
 }
 
-/** Phone screens stand upright; a game's lie on their side. */
+/** Phone screens stand upright; a game's lie on their side. Its landing page is always a phone's. */
 export interface Shots {
   srcs: string[]
   wide: boolean
+  /** Its app icon. */
+  icon: string
+  /** Its landing page, at the top, on a phone. */
+  landing: string
 }
 
-/** An example's three screenshots, `public/app-builder/examples/<value>-1.webp` to `-3.webp`. */
-const shotsOf = (value: string, wide = false): Shots => ({srcs: [1, 2, 3].map((n) => `/app-builder/examples/${value}-${n}.webp`), wide})
+/**
+ * An example's pictures under `public/app-builder/examples/`: `<value>-1.webp` to `-3.webp` (the app),
+ * `-landing.webp` (its landing page on a phone) and `-icon.webp`.
+ */
+const shotsOf = (value: string, wide = false): Shots => {
+  const at = (name: string) => `/app-builder/examples/${value}-${name}.webp`
+  return {srcs: [1, 2, 3].map((n) => at(String(n))), wide, icon: at('icon'), landing: at('landing')}
+}
 
 /**
  * The apps already built on fohm-scaffold, as starting points: a visitor picks the one closest to

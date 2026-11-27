@@ -14,6 +14,9 @@ import {REFERENCES} from '@/app-builder/references'
 import {schemeById, schemesFor} from '@/app-builder/schemes'
 import {onAccent} from '@/app-builder/options'
 import {RefPicture} from '@/components/ref-picture'
+import {Gallery, Lightbox, Strip, type Slide} from '@/components/gallery'
+import {useListing} from '@/components/ref-picture'
+import type {Reference} from '@/app-builder/references'
 import {LAST, LISTS, PARTS, fallbackNext, needsClaude, totalQuestions, type Next, type Turn} from '@/app-builder/next-question'
 
 /**
@@ -424,22 +427,26 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
                     type="button"
                     role={q.multi ? 'checkbox' : 'radio'}
                     aria-checked={on}
-                    className={`builder__kind${on ? ' is-active' : ''}`}
+                    className={`builder__kind${on ? ' is-active' : ''}${c.shots ? ' has-icon' : ''}`}
                     onClick={() => (q.multi ? set((on ? chosen.filter((x) => x !== c.value) : [...chosen, c.value]).join(', ')) : answerWith(c.value))}
                   >
+                    {c.shots && <img className="builder__icon" src={c.shots.icon} alt="" width={48} height={48} />}
                     <strong>{c.label}</strong>
                     {c.hint && <span>{c.hint}</span>}
                     {c.description && <span className="builder__about">{c.description}</span>}
-                    {c.shots && <Screenshots shots={c.shots} />}
                   </button>
                 )
-                // A live app to look at sits beside its choice, never inside it: a link in a button is neither.
-                return c.url ? (
-                  <div key={c.value} className="builder__template">
+                // A live app to look at, and its pictures to swipe through, sit beside its choice, never
+                // inside it: a link or a button in a button is neither.
+                return c.url || c.shots ? (
+                  <div key={c.value} className={`builder__template${on ? ' is-active' : ''}`}>
                     {choice}
-                    <a className="builder__see" href={c.url} target="_blank" rel="noreferrer">
-                      See {c.label.replace(/^Like /, '')} <Arrow />
-                    </a>
+                    {c.url && (
+                      <a className="builder__see" href={c.url} target="_blank" rel="noreferrer">
+                        See {c.label.replace(/^Like /, '')} <Arrow />
+                      </a>
+                    )}
+                    {c.shots && <Gallery name={c.label.replace(/^Like /, '')} slides={slidesOf(c.shots)} />}
                   </div>
                 ) : (
                   choice
@@ -459,27 +466,13 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           ) : null}
 
           {q.key === 'inspiration' ? (
-            <ul className="builder__refs" aria-label="Apps to pick from, each with a screen on Mobbin">
+            <Strip className="builder__refs" label="Apps to pick from: swipe for more, and open any to see its screens">
               {REFERENCES.map((r) => {
                 const on = chosen.some((x) => x.toLowerCase() === r.name.toLowerCase())
-                return (
-                  <li key={r.name} className={`builder__ref${on ? ' is-on' : ''}`}>
-                    <button
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => set((on ? chosen.filter((x) => x.toLowerCase() !== r.name.toLowerCase()) : [...chosen, r.name]).join(', '))}
-                    >
-                      <RefPicture name={r.name} />
-                      <strong>{r.name}</strong>
-                      <span>{r.look}</span>
-                    </button>
-                    <a href={r.mobbin} target="_blank" rel="noopener noreferrer" aria-label={`${r.name} on Mobbin (opens in a new tab)`}>
-                      Mobbin <Arrow />
-                    </a>
-                  </li>
-                )
+                const toggle = () => set((on ? chosen.filter((x) => x.toLowerCase() !== r.name.toLowerCase()) : [...chosen, r.name]).join(', '))
+                return <RefCard key={r.name} reference={r} on={on} onToggle={toggle} />
               })}
-            </ul>
+            </Strip>
           ) : suggestions && (
             <div className="builder__picks" role="group" aria-label={several ? 'Pick any of these' : 'Pick one of these'}>
               {suggestions.map((s) => {
@@ -665,18 +658,59 @@ function Said({q, value, scheme, picks}: {q: Question; value: string; scheme?: s
 }
 
 /**
- * An example's screenshots, inside its choice: the description says what they show, so they are
- * decoration to a screen reader, and a tap on one picks the app like the rest of the card.
+ * One app on the look and feel question: a tap picks it (or takes it back); See screens opens its App
+ * Store screens large, with its look in words and a way to pick it there; Mobbin opens it there.
  */
-function Screenshots({shots}: {shots: Shots}) {
+function RefCard({reference: r, on, onToggle}: {reference: Reference; on: boolean; onToggle: () => void}) {
+  const [open, setOpen] = useState(false)
+  const listing = useListing(r.name)
+  const shots = listing?.shots ?? []
   return (
-    <span className={`builder__shots${shots.wide ? ' builder__shots--wide' : ''}`}>
-      {shots.srcs.map((src) => (
-        <img key={src} src={src} alt="" loading="lazy" decoding="async" width={shots.wide ? 960 : 360} height={shots.wide ? 540 : 780} />
-      ))}
-    </span>
+    <li className={`builder__ref${on ? ' is-on' : ''}`}>
+      <button type="button" aria-pressed={on} onClick={onToggle}>
+        <RefPicture name={r.name} />
+        <strong>{r.name}</strong>
+        <span>{r.look}</span>
+      </button>
+      <div className="builder__ref-links">
+        {shots.length > 0 && (
+          <button type="button" onClick={() => setOpen(true)} aria-label={`See ${r.name}'s screens`}>
+            Screens
+          </button>
+        )}
+        <a href={r.mobbin} target="_blank" rel="noopener noreferrer" aria-label={`${r.name} on Mobbin (opens in a new tab)`}>
+          Mobbin <Arrow />
+        </a>
+      </div>
+      {open && (
+        <Lightbox
+          title={r.name}
+          slides={shots.map((src, i) => ({src, label: `App Store screen ${i + 1}`}))}
+          onClose={() => setOpen(false)}
+          aside={
+            <div className="ref-aside">
+              {listing?.icon && <img className="ref-aside__icon" src={listing.icon} alt="" width={56} height={56} />}
+              <strong>{r.name}</strong>
+              <p>{r.look}</p>
+              <button type="button" className={`btn ${on ? 'btn-outline' : 'btn-primary'} ref-aside__pick`} onClick={onToggle} aria-pressed={on}>
+                {on ? 'Picked: tap to take it back' : 'Pick this look'}
+              </button>
+              <a href={r.mobbin} target="_blank" rel="noopener noreferrer">
+                More of it on Mobbin <Arrow />
+              </a>
+            </div>
+          }
+        />
+      )}
+    </li>
   )
 }
+
+/** An example's pictures to swipe through: its landing page first, then the app. */
+const slidesOf = (shots: Shots): Slide[] => [
+  {src: shots.landing, label: 'Landing page'},
+  ...shots.srcs.map((src, i) => ({src, label: shots.wide ? `The game, ${i + 1}` : `The app, ${i + 1}`, wide: shots.wide})),
+]
 
 const KEPT_TURNS = 'fohm-app-builder-turns'
 const KEPT_PICKS = 'fohm-app-builder-photos'
