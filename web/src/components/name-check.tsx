@@ -48,6 +48,14 @@ export function NameCheckPanel({name, onChecked}: {name: string; onChecked?: (su
             {d.domain} {d.taken === null ? 'couldn’t be checked' : d.taken ? 'is taken' : 'is free'}
           </li>
         ))}
+        {check.alternatives.length > 0 && (
+          <li className="is-free">
+            <span className="name-check__mark" aria-hidden>
+              ✓
+            </span>
+            <span>Free close by: {check.alternatives.join(', ')}</span>
+          </li>
+        )}
         {check.apps.length ? (
           check.apps.map((a) => (
             <li key={a.name} className="is-taken">
@@ -74,12 +82,12 @@ export function NameCheckPanel({name, onChecked}: {name: string; onChecked?: (su
         {check.companies !== null &&
           (check.companies.length ? (
             check.companies.map((c) => (
-              <li key={c.name} className="is-taken">
+              <li key={c.name} className="is-flag">
                 <span className="name-check__mark" aria-hidden>
-                  ×
+                  !
                 </span>
-                A UK company: {c.name}
-                {c.status && ` (${c.status})`}
+                A UK company has the name: {c.name}
+                {c.status && ` (${c.status})`}. Worth knowing, not a blocker.
               </li>
             ))
           ) : (
@@ -111,8 +119,9 @@ const summaryOf = (c: NameCheck) =>
   [
     c.verdict,
     `Domains: ${c.domains.map((d) => `${d.domain} ${d.taken === null ? 'unknown' : d.taken ? 'taken' : 'free'}`).join(', ')}.`,
+    c.alternatives.length ? `Free close by: ${c.alternatives.join(', ')}.` : '',
     c.apps.length ? `App Store: ${c.apps.map((a) => a.name).join('; ')}.` : 'No app by that name in the App Store.',
-    c.companies === null ? '' : c.companies.length ? `UK companies: ${c.companies.map((x) => x.name).join('; ')}.` : 'No UK company by that name.',
+    c.companies === null ? '' : c.companies.length ? `UK companies with the name (a flag, not a blocker): ${c.companies.map((x) => x.name).join('; ')}.` : 'No UK company by that name.',
   ]
     .filter(Boolean)
     .join(' ')

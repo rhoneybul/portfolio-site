@@ -6916,3 +6916,7 @@ details.calls[open] > summary::after {
     line-height: 1.2;
   }
 }
+
+.name-check li.is-flag .name-check__mark {
+  color: #b45309;
+}
