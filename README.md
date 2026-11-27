@@ -102,8 +102,12 @@ A call booked from Build it with me opens Cal.com with their email and a note ab
 The same builder from inside Claude, ChatGPT or any MCP client, at `https://www.fohm.io/mcp` (Streamable HTTP, stateless, no sign-in), aimed at people building health, fitness and wellness apps, first in London.
 Plan, launch and listings: [`docs/app-builder-mcp.md`](docs/app-builder-mcp.md).
 
-- `app_builder_questions`: the builder's questions (`QUESTIONS`, the email last, no photo step), plus the sector and the city.
-- `build_app_prototype`: needs the email the person typed, as the website does, and the same limits (3 a day an email, 30 an hour in all). It answers at once with a link, `/app-builder/p/<id>`, and Claude designs the app in the background (`web/src/app-builder/mcp-build.ts`: Commons photos from the chat's searches, Claude's plan, five parts at a time, `maxDuration` 800s), saving how far it has got in `shares/<id>.json` (never the email). The page shows the progress, then the website's deck and Build it with me; the build is then saved as a submission and Slack hears it. Where the client renders MCP Apps, the phone and the form show in the chat (`ui://fohm/prototype.html`, a frame around `?embed=1`).
-- `contact_fohm`: the lead, as the website's form sends it, only when the person asks.
+- `app_builder_questions`: the builder's questions (`QUESTIONS`, without the email or the photo step).
+- `build_app_prototype`: no email; a few designs a day an address (a revision counts), 30 an hour in all. It answers at once with a link, `/app-builder/p/<id>`, and Claude designs the app in the background (`web/src/app-builder/mcp-build.ts`: Commons photos from the chat's searches, Claude's plan, five parts at a time, `maxDuration` 800s), saving how far it has got in `shares/<id>.json`, kept 90 days. A chat's build is never saved as a submission, its page has no Build it with me, and Slack hears only that one was made and what it cost. Where the client renders MCP Apps, the phone shows in the chat (`ui://fohm/prototype.html`).
+- `get_app_prototype`: how far it has got, its screens, and the prototype once it's done (the view polls it too).
+- `revise_app_prototype`: a new version from the last one's answers, the answers that changed and the change in the person's words (`revision`, which the plan's facts put above the rest); the earlier version stays.
+- `get_app_spec`: the design as markdown (`specOf` in `web/src/app-builder/mcp.ts`): the look, the navigation, every screen with what it shows and where it leads, the calls Claude made, and the answers.
+
+No `contact_fohm`, and no email: Anthropic's directory review turned down the version with them as a lead-generation funnel (Nov 2026).
 
 Listed as a Claude Code plugin in this repository's marketplace (`.claude-plugin/marketplace.json`), and in the MCP registry from `server.json`. What the builder keeps is on `/privacy`: change it with what the builder stores.

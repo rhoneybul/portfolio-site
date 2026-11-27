@@ -2,8 +2,9 @@ import {after} from 'next/server'
 import {createMcpHandler} from 'mcp-handler'
 import {registerAppResource, registerAppTool, RESOURCE_MIME_TYPE} from '@modelcontextprotocol/ext-apps/server'
 import {z} from 'zod'
-import {INSTRUCTIONS, SERVER_NAME, SERVER_TITLE, answersOf, buildInput, builtText, contactInput, questionsForChat, resolveOptions} from '@/app-builder/mcp'
-import {expired, readShare, runBuild, shareUrl, startShare, tell} from '@/app-builder/mcp-build'
+import {INSTRUCTIONS, SERVER_NAME, answersOf, buildInput, builtText, idInput, questionsForChat, resolveOptions, reviseInput, revisedAnswers, specOf, type ReviseInput} from '@/app-builder/mcp'
+import {CHAT_LINK_DAYS, expired, readShare, runBuild, shareUrl, startShare, type Share} from '@/app-builder/mcp-build'
+import type {Answers} from '@/app-builder/options'
 import {builderPaused} from '@/app-builder/switch'
 import {readPrototype} from '@/app-builder/prototypes'
 import {iconMarkCss, prototypeDocument} from '@/app-builder/prototype-doc'
@@ -14,9 +15,10 @@ import {siteUrl} from '@/site-url'
 
 /**
  * The app builder as an MCP server, at /mcp: Streamable HTTP, stateless, no sign-in (claude.ai's and
- * ChatGPT's connectors can't send a token). Three tools: the questions; the prototype, which Claude
- * designs in the background (app-builder/mcp-build.ts) while the chat shows its link, drawn inline
- * where the client renders MCP Apps; and the lead to Fohm.
+ * ChatGPT's connectors can't send a token), and no email. Five tools: the questions; the prototype,
+ * which Claude designs in the background (app-builder/mcp-build.ts) while the chat shows its link,
+ * drawn inline where the client renders MCP Apps; how it's going; a new version with a change; and
+ * its spec, to keep or hand to whoever builds it. Nothing goes to Fohm for follow-up.
  */
 
 // The build runs after the answer, in this invocation: plan and draw take 4 to 6 minutes.
@@ -25,11 +27,43 @@ export const maxDuration = 800
 const VIEW = 'ui://fohm/prototype.html'
 const site = new URL(siteUrl).origin
 
-// Claude costs money: each email gets the website's 3 a day, and the whole server a few an hour.
+// Claude costs money: each address gets a few designs a day (a revision is one), and the whole server a few an hour.
 const allowed = limiter()
-const PER_EMAIL = {most: 3, window: 24 * 60 * 60_000}
+const PER_ADDRESS = {most: 6, window: 24 * 60 * 60_000}
 const PER_HOUR = {most: 30, window: 60 * 60_000}
-const leads = limiter()
+
+/** The address a tool call came from, as Vercel passes it on, from the request the handler serves. */
+function callerAddress(ctx: unknown) {
+  const headers = (ctx as {requestInfo?: {headers?: unknown}} | undefined)?.requestInfo?.headers
+  const forwarded = headers instanceof Headers ? headers.get('x-forwarded-for') : (headers as Record<string, string | undefined> | undefined)?.['x-forwarded-for']
+  return String(forwarded ?? '').split(',')[0].trim() || 'unknown'
+}
+
+const fail = (text: string) => ({isError: true, content: [{type: 'text' as const, text}]})
+
+/** Starts a design from the answers, in the background, and says so: the first build and every revision. */
+async function design(answers: Answers, searches: string[], ctx: unknown, revised = false) {
+  const {options, errors} = resolveOptions(answers)
+  if (errors.name) return fail(errors.name)
+  if (!allowed(`address:${callerAddress(ctx)}`, PER_ADDRESS) || !allowed('all', PER_HOUR))
+    return fail(`That's as many designs as the builder draws for now. Try again tomorrow, or design it at ${siteUrl}/app-builder.`)
+  if (await builderPaused()) return fail('The app builder is paused for now. Try again later.')
+  const share = await startShare(answers)
+  after(() => runBuild(share, answers, searches, Date.now() + (maxDuration - 20) * 1000))
+  const link = shareUrl(share.id)
+  return {
+    content: [{type: 'text' as const, text: builtText(options, link, share.status !== 'sketch', revised)}],
+    structuredContent: {prototypeId: share.id, url: link, embedUrl: `${link}?embed=1`, name: options.name, tagline: options.tagline, keptForDays: CHAT_LINK_DAYS},
+  }
+}
+
+/** The share a tool asks about, or why it can't be had. */
+async function shareFor(prototypeId: string): Promise<Share | {error: ReturnType<typeof fail>}> {
+  const share = await readShare(prototypeId)
+  if (!share) return {error: fail('No prototype with that id. Start one with build_app_prototype.')}
+  if (expired(share)) return {error: fail(`That prototype has expired: chat prototypes are kept ${CHAT_LINK_DAYS} days. Design it again with build_app_prototype.`)}
+  return share
+}
 
 const handler = createMcpHandler(
   (server) => {
@@ -54,28 +88,12 @@ const handler = createMcpHandler(
       {
         title: 'Design an app prototype',
         description:
-          'Starts designing a clickable prototype of the user’s app from their answers (landing page, onboarding, home, a session, a goal and the owner’s dashboard, in their name, words and colour). The design takes about 4 to 6 minutes; returns at once with a link to the prototype, which fills in as it is drawn. Needs the email the user typed.',
+          'Starts designing a clickable prototype of the user’s app from their answers (landing page, onboarding, home, a session, a goal and the owner’s dashboard, in their name, words and colour). The design takes about 4 to 6 minutes; returns at once with a prototypeId and a link to the prototype, which fills in as it is drawn. No email or account is needed.',
         inputSchema: buildInput,
         annotations: {readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true},
         _meta: {ui: {resourceUri: VIEW}},
       },
-      async (input: z.infer<typeof buildInput>) => {
-        const answers = answersOf(input)
-        const {options, errors} = resolveOptions(answers)
-        if (errors.name || errors.email) return {isError: true, content: [{type: 'text', text: errors.name || errors.email}]}
-        if (!allowed(`email:${input.email.toLowerCase()}`, PER_EMAIL) || !allowed('all', PER_HOUR))
-          return {isError: true, content: [{type: 'text', text: `That's as many apps as the builder draws for now. Try again later, or design it at ${siteUrl}/app-builder.`}]}
-
-        if (await builderPaused())
-          return {isError: true, content: [{type: 'text', text: `The app builder is paused for now. To design the app with Rob instead, book a call at ${siteUrl}/app-builder.`}]}
-        const share = await startShare(answers)
-        after(() => runBuild(share, answers, input.photoSearches ?? [], Date.now() + (maxDuration - 20) * 1000))
-        const link = shareUrl(share.id)
-        return {
-          content: [{type: 'text', text: builtText(options, link, share.status !== 'sketch', input.sector, input.location)}],
-          structuredContent: {prototypeId: share.id, url: link, embedUrl: `${link}?embed=1`, name: options.name, tagline: options.tagline},
-        }
-      },
+      async (input: z.infer<typeof buildInput>, ctx: unknown) => design(answersOf(input), input.photoSearches ?? [], ctx),
     )
 
     registerAppResource(server, 'App prototype', VIEW, {description: 'The app build_app_prototype designs, to watch and tap through in the chat.'}, async () => ({
@@ -94,20 +112,21 @@ const handler = createMcpHandler(
       'get_app_prototype',
       {
         title: 'Get the app prototype',
-        description: 'Returns how far the design of a prototype started with build_app_prototype has got, and once it is done, the prototype to show. Used by the prototype view.',
-        inputSchema: z.object({prototypeId: z.string().regex(/^[a-f0-9]{32}$/).describe('The id build_app_prototype returned.')}),
+        description:
+          'Returns how far the design of a prototype has got and its link, and once it is done, its summary and screens, and the prototype to show. For when the user asks how their app is coming along, or comes back to it.',
+        inputSchema: idInput,
         annotations: {readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false},
-        _meta: {ui: {resourceUri: VIEW, visibility: ['app']}},
+        _meta: {ui: {resourceUri: VIEW}},
       },
       async ({prototypeId}: {prototypeId: string}) => {
-        const share = await readShare(prototypeId)
-        if (!share) return {isError: true, content: [{type: 'text', text: 'No prototype with that id. Start one with build_app_prototype.'}]}
-        if (expired(share)) return {isError: true, content: [{type: 'text', text: 'That prototype’s link has expired: links last 7 days. Design it again with build_app_prototype.'}]}
+        const share = await shareFor(prototypeId)
+        if ('error' in share) return share.error
         const {options} = resolveOptions(share.answers)
         const saved = share.status === 'done' && share.prototype ? await readPrototype(share.prototype) : null
         const phone = saved ? saved.units.filter((u) => saved.job.plan.units.find((p) => p.id === u.id)?.frame === 'phone') : []
         const status = share.status === 'done' && !phone.length ? 'sketch' : share.status
         const state = {
+          prototypeId: share.id,
           status,
           name: options.name,
           accent: options.accent,
@@ -120,37 +139,50 @@ const handler = createMcpHandler(
           ...(saved && phone.length ? {summary: saved.job.plan.summary, html: prototypeDocument({look: saved.job.look, units: phone, view: 'phone'})} : {}),
         }
         const words = {photos: 'Finding photos', planning: 'Planning the app', drawing: `Drawing: ${state.drawn} of ${state.parts} parts done`, done: 'Done', sketch: 'A quick sketch'}[status]
-        return {content: [{type: 'text', text: `${options.name}: ${words}. ${state.url}`}], structuredContent: state}
+        const screens = saved ? saved.job.plan.units.map((u) => u.title) : []
+        const said = [`${options.name}: ${words}. ${state.url}`, state.summary, screens.length && `Screens: ${screens.join(', ')}.`].filter(Boolean).join('\n\n')
+        return {content: [{type: 'text', text: said}], structuredContent: {...state, screens}}
+      },
+    )
+
+    registerAppTool(
+      server,
+      'revise_app_prototype',
+      {
+        title: 'Change the app prototype',
+        description:
+          'Designs a new version of a prototype with a change the user asks for (its name, words, colour or look, a screen, a feature), from the last version’s answers and every change asked for since. Takes 4 to 6 minutes; returns at once with the new version’s prototypeId and link. The earlier version stays as it was.',
+        inputSchema: reviseInput,
+        annotations: {readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true},
+        _meta: {ui: {resourceUri: VIEW}},
+      },
+      async (input: ReviseInput, ctx: unknown) => {
+        const share = await shareFor(input.prototypeId)
+        if ('error' in share) return share.error
+        return design(revisedAnswers(share.answers, input), input.photoSearches ?? [], ctx, true)
       },
     )
 
     server.registerTool(
-      'contact_fohm',
+      'get_app_spec',
       {
-        title: 'Ask Fohm to build it',
+        title: 'Get the app’s spec',
         description:
-          'Sends the user’s prototype with their name, email and an optional note to Fohm, the app studio behind the builder, when the user asks to be contacted about building it.',
-        inputSchema: contactInput,
-        annotations: {readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true},
+          'Returns the spec of a designed prototype as markdown: what the app is, its look, every screen with what it shows and where it leads, the navigation, the calls made in the design, and the answers it was designed from. For when the user wants to keep the design, build it themselves, or hand it to a developer or a coding assistant.',
+        inputSchema: idInput,
+        annotations: {readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false},
       },
-      async (input: z.infer<typeof contactInput>) => {
-        const share = await readShare(input.prototypeId)
-        if (!share) return {isError: true, content: [{type: 'text', text: 'That prototype wasn’t found. Design it again with build_app_prototype, then send it.'}]}
-        if (leads(`${input.prototypeId}:${input.email.toLowerCase()}`, {most: 1, window: 10 * 60_000}))
-          await tell('interest', {...share.answers, email: input.email}, {prototype: share.prototype, share: share.id, source: 'mcp', contact: {name: input.name, email: input.email, note: input.note ?? ''}})
-        const name = resolveOptions(share.answers).options.name
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Sent. Rob at Fohm has ${name} and ${input.name.split(' ')[0]}'s details, and will be in touch at ${input.email}, usually within a working day. Nothing else is sent to that address. To talk sooner, there's a free call to book on ${shareUrl(share.id)}.`,
-            },
-          ],
-        }
+      async ({prototypeId}: {prototypeId: string}) => {
+        const share = await shareFor(prototypeId)
+        if ('error' in share) return share.error
+        const {options} = resolveOptions(share.answers)
+        const job = share.status === 'done' && share.prototype ? ((await readPrototype(share.prototype))?.job ?? null) : null
+        const spec = specOf(options, share.answers, job, shareUrl(share.id))
+        return {content: [{type: 'text', text: spec}], structuredContent: {prototypeId, name: options.name, status: share.status, markdown: spec}}
       },
     )
   },
-  {serverInfo: {name: SERVER_NAME, version: '1.0.0'}, instructions: INSTRUCTIONS},
+  {serverInfo: {name: SERVER_NAME, version: '2.0.0'}, instructions: INSTRUCTIONS},
 )
 
 export {handler as GET, handler as POST, handler as DELETE}

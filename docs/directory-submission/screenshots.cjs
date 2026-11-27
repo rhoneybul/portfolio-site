@@ -9,7 +9,7 @@ const rpc = async (method, params) => {
   return JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)).result
 }
 const STUB = `export class App {
-  constructor(){} async connect(){ setTimeout(()=>{ this.ontoolinput&&this.ontoolinput({arguments:{email:''}}); this.ontoolresult&&this.ontoolresult({structuredContent:{prototypeId:'${id}',url:'https://www.fohm.io/app-builder/p/${id}',name:''}}) }, 50) }
+  constructor(){} async connect(){ setTimeout(()=>{ this.ontoolresult&&this.ontoolresult({structuredContent:{prototypeId:'${id}',url:'https://www.fohm.io/app-builder/p/${id}',name:''}}) }, 50) }
   async callServerTool(p){ return window.__call(p) } async openLink(){ return {} }
 }`
 ;(async () => {
@@ -44,7 +44,5 @@ const STUB = `export class App {
   if ((await pick(/onboard|welcome|start/i)) >= 0) await shot('2-onboarding', '.wrap')
   if ((await pick(/home|today/i)) >= 0) await shot('3-home', '.wrap')
   if ((await pick(/session|class|program/i)) >= 0) await shot('4-session', '.wrap')
-  await page.locator('#cname').fill('Maya'); await page.locator('#cemail').fill('maya@example.com')
-  await shot('6-contact', '#contact')
   console.log('errors', errs); await b.close()
 })()
