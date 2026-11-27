@@ -5,16 +5,20 @@
  */
 import {searchCommons, type Found} from './commons'
 import {pexelsOn, searchPexels} from './pexels'
-import {searchUnsplash, unsplashOn} from './unsplash'
+import {searchUnsplash, unsplashReady} from './unsplash'
 
 export type {Found}
 
 /** Where the photos come from, for the photo step's note. */
-export const photoSources = () => (unsplashOn() ? ['Unsplash'] : [...(pexelsOn() ? ['Pexels'] : []), 'Wikimedia Commons'])
+export const photoSources = () => (unsplashReady() ? ['Unsplash'] : [...(pexelsOn() ? ['Pexels'] : []), 'Wikimedia Commons'])
 
 export async function searchPhotos(q: string): Promise<Found[]> {
-  // Unsplash alone whenever its key is set: the photos are the best there are, and one source keeps them alike.
-  if (unsplashOn()) return searchUnsplash(q)
+  // Unsplash alone whenever it can be asked: the photos are the best there are, and one source keeps them alike.
+  // Out of searches for the hour, or failing, the others stand in.
+  if (unsplashReady()) {
+    const found = await searchUnsplash(q).catch((e) => (console.warn('[photos] Unsplash', e instanceof Error ? e.message : e), [] as Found[]))
+    if (found.length) return found
+  }
   const [stock, open] = await Promise.all([
     searchPexels(q).catch((e) => (console.warn('[photos] Pexels', e instanceof Error ? e.message : e), [] as Found[])),
     searchCommons(q).catch((e) => (console.warn('[photos] Commons', e instanceof Error ? e.message : e), [] as Found[])),
