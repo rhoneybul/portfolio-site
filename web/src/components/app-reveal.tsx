@@ -1,9 +1,10 @@
 'use client'
 
-import {useEffect, useRef, type CSSProperties, type ReactNode} from 'react'
+import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
 import {Arrow} from '@/components/arrow'
 import {AppIcon} from '@/components/app-icon'
 import {PrototypeFrame} from '@/components/prototype-frame'
+import {nextSlide, type DeckProgress} from '@/components/showcase'
 import {openBuild} from '@/components/build-dialog'
 import type {Built} from '@/components/prototype-build'
 import {onAccent, type Options} from '@/app-builder/options'
@@ -71,8 +72,11 @@ export function AppReveal({
           )}
           {note && <p className="reveal__note reveal__in" style={{'--i': 3} as CSSProperties}>{note}</p>}
           <div className="reveal__actions reveal__in" style={{'--i': 4} as CSSProperties}>
-            <button type="button" className="btn btn-primary reveal__cta" onClick={openBuild}>
-              Build {options.name} with Rob <Arrow />
+            <button type="button" className="btn btn-primary reveal__cta" onClick={nextSlide}>
+              Start the tour: your landing page <Arrow />
+            </button>
+            <button type="button" className="text-btn reveal__change" onClick={openBuild}>
+              Build {options.name} with Rob
             </button>
             {onChange && (
               <button type="button" className="text-btn reveal__change" onClick={onChange}>
@@ -111,6 +115,17 @@ export function AppReveal({
  */
 export function BuildBar({name, accent, children}: {name: string; accent?: string; children?: ReactNode}) {
   const vars = accent ? ({'--x-accent': accent, '--x-on-accent': onAccent(accent)} as CSSProperties) : undefined
+  // It waits for the tour: once every slide is seen it stays, and till then it never covers the deck's own Next.
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    const onProgress = (e: Event) => {
+      const {seen, total} = (e as CustomEvent<DeckProgress>).detail
+      if (seen >= total) setShown(true)
+    }
+    window.addEventListener('fohm:deck-progress', onProgress)
+    return () => window.removeEventListener('fohm:deck-progress', onProgress)
+  }, [])
+  if (!shown) return null
   return (
     <div className="build-bar" role="complementary" aria-label={`Build ${name}`} style={vars}>
       <p>
