@@ -36,13 +36,14 @@ Word it:
 - "ask": the row's question reworded in their world, using their words (their sport, their members, their business). One short question, plain English, no emoji, under 120 characters.
 - "why": one short line on why it's asked or what it becomes, under 160 characters.
 - "suggestions": short example answers tailored to their app (a few words each), only for rows answered by typing that don't have their own suggestions. Make them answers this owner could really give: specific to their sport, members and business, different from one another, and never generic filler ("Track progress", "Stay motivated"). Each is one item with no comma.
+- "example": for a row answered by typing, one realistic example answer in their world, under 80 characters, shown faintly in the empty box. Never the same as a suggestion.
 - "multi": true when people would pick several of the suggestions together (the parts of the app, goals, kinds of content, the apps they like), false when one answers it (who it's for, a price, a name). With multi give four to six suggestions, without it three or four.
 
 Be a sharp product designer, not a form: each question should show you understood what they said, and move their app forward. Ask about what's specific to their app, not about apps in general.
 
 Reply with JSON only:
-{"key": "doing", "ask": "...", "why": "...", "suggestions": ["...", "..."], "multi": false, "prefill": "...", "skip": ["content"]}
-Leave out "prefill", "suggestions", "multi" or "skip" when they don't apply.`
+{"key": "doing", "ask": "...", "why": "...", "example": "...", "suggestions": ["...", "..."], "multi": false, "prefill": "...", "skip": ["content"]}
+Leave out "prefill", "example", "suggestions", "multi" or "skip" when they don't apply.`
 
 // One instance's memory: the same answers never ask twice.
 const known = new Map<string, Next>()

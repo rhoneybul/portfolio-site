@@ -355,6 +355,9 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
   // While Claude chooses the next question, the one just answered joins the conversation.
   const past = turns.slice(0, thinking ? at + 1 : at)
   const typed = !q.choices && q.key !== 'photo'
+  // The box's faint example: Claude's, in their world; else, once Claude has reworded the question, a
+  // neutral line (the row's own example is about surfing, and read oddly under a rowing question).
+  const placeholder = turn.example ? `e.g. ${turn.example}` : turn.ask === q.ask && q.example ? `e.g. ${q.example}` : q.key === 'email' ? 'you@example.com' : 'Type your answer'
 
   /** A single choice, or a pick under a one-line answer, is an answer in itself: it's sent as tapped. */
   const answerWith = (v: string) => {
@@ -562,7 +565,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) next(e)
                   }}
-                  placeholder={`e.g. ${q.example}`}
+                  placeholder={placeholder}
                 />
               ) : (
                 <input
@@ -571,7 +574,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
                   aria-labelledby={`ask-${q.key}`}
                   value={value}
                   onChange={(e) => set(e.target.value)}
-                  placeholder={`e.g. ${q.example}`}
+                  placeholder={placeholder}
                   type={q.key === 'email' ? 'email' : undefined}
                   autoComplete={q.key === 'email' ? 'email' : undefined}
                   autoCapitalize={q.key === 'email' ? 'none' : undefined}

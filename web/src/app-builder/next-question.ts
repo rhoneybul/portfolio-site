@@ -50,6 +50,8 @@ export interface Turn {
   multi?: boolean
   /** An answer their earlier ones already give, shown for them to confirm. */
   prefill?: string
+  /** An example answer in their world, for the typing box's placeholder: the row's own is about surfing. */
+  example?: string
   /** Rows their answers make irrelevant: set to their defaults and not asked. */
   skip?: string[]
   part: 1 | 2 | 3
@@ -131,6 +133,7 @@ export function cleanTurn(raw: unknown, answers: Answers, done: readonly string[
   const items = multi ? picks.flatMap((s) => s.split(',').map((x) => x.trim()).filter(Boolean)) : picks
   const suggestions = items.filter((s, i) => items.findIndex((x) => x.toLowerCase() === s.toLowerCase()) === i).slice(0, multi ? 6 : 4)
   const prefill = cleanPrefill(q, r.prefill)
+  const example = typed && key !== 'email' ? plain(r.example, 90).replace(/^e\.g\.\s*/i, '') : ''
   const skip = Array.isArray(r.skip)
     ? r.skip.filter((k): k is string => typeof k === 'string' && k !== key && rows.includes(k) && !UNSKIPPABLE.has(k) && !questionOf(k).required)
     : []
@@ -141,6 +144,7 @@ export function cleanTurn(raw: unknown, answers: Answers, done: readonly string[
     ...(why ? {why} : {}),
     ...(suggestions.length ? {suggestions, multi} : {}),
     ...(prefill ? {prefill} : {}),
+    ...(example ? {example} : {}),
     ...(skip.length ? {skip} : {}),
   })
 }

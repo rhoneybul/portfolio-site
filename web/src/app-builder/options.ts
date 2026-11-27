@@ -142,7 +142,7 @@ export const QUESTIONS: Question[] = [
     default: 'naz',
     choices: TEMPLATES.map(({value, label, hint, description, shots, url}) => ({value, label, hint, description, shots, url})),
   },
-  {key: 'doing', section: 'The idea', ask: 'What will people do in the app, day to day?', why: 'We write the headline and the landing page from it.', example: 'Following a training plan for bigger waves, a few short sessions a week.', long: true},
+  {key: 'doing', section: 'The idea', ask: 'What will people do in the app, day to day?', why: 'We write the headline and the landing page from it.', example: 'Following a plan of a few short sessions a week, and logging each one.', long: true},
 
   // The name
   {key: 'name', section: 'The name', ask: 'What is the app called?', why: 'A working name is fine: the naming round can find a better one.', example: 'Tidepool', required: true, flag: 'name'},
@@ -158,8 +158,8 @@ export const QUESTIONS: Question[] = [
   },
 
   // Onboarding (Naz's)
-  {key: 'interests', section: 'Onboarding', ask: 'Which parts of it can people choose between? A few words, comma-separated', why: 'Tiles in onboarding: what they pick comes first in the app.', example: 'Strength, Breath-holds, Mobility, Spots', when: notGame},
-  {key: 'goals', section: 'Onboarding', ask: 'What one thing do people work towards: an event, a place or a milestone?', example: 'Big-wave spots: Nazaré, Mavericks, Jaws', when: notGame},
+  {key: 'interests', section: 'Onboarding', ask: 'Which parts of it can people choose between? A few words, comma-separated', why: 'Tiles in onboarding: what they pick comes first in the app.', example: 'Strength, Technique, Mobility, Recovery', when: notGame},
+  {key: 'goals', section: 'Onboarding', ask: 'What one thing do people work towards: an event, a place or a milestone?', example: 'A first race, a test to beat, or a place to get to', when: notGame},
 
   // Connections: the devices and services members already record with, which the app reads from.
   {key: 'connects', section: 'Onboarding', ask: 'Which apps or devices do people already track with?', why: 'The app connects to them, so what they’ve done comes in on its own.', example: 'Concept2 Logbook, Garmin, Apple Health, Strava', when: notGame},
