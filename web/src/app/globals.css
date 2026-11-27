@@ -2929,87 +2929,297 @@ a.proof:hover .proof__arrow {
   color: var(--x-ink);
 }
 
-.store__head {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-
-.store__icon {
+/* The stores slide: each store's listing as a phone shows it, switched by the tabs. Each keeps its store's own type and colours, not the app's. */
+.stores {
   display: grid;
-  place-items: center;
-  flex: none;
-  width: 76px;
-  height: 76px;
-  border-radius: 18px;
-  background: var(--x-ink);
+  gap: 14px;
+  justify-items: center;
 }
 
-.store__head div {
+.stores__tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--x-track, #ececef);
+}
+
+.stores__tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: 600 14px var(--x-d, inherit);
+  color: var(--x-faint, #6b6b73);
+  cursor: pointer;
+}
+
+.stores__tabs button.is-on {
+  background: #fff;
+  color: var(--x-ink, #111113);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.12);
+}
+
+.store-page {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 380px);
+  padding: 14px 16px 20px;
+  border: 8px solid #111113;
+  border-radius: 40px;
+  background: #fff;
+  color: #000;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+}
+
+.store-page--google {
+  font-family: 'Google Sans', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #1f1f1f;
+}
+
+.store-page__nav {
+  font-size: 17px;
+  color: #007aff;
+}
+
+.store-page--google .store-page__nav {
+  font-size: 22px;
+  color: #1f1f1f;
+}
+
+.store-page__head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.store-page--apple .store-page__head .app-icon,
+.store-page--apple .store-page__head > :first-child {
+  border-radius: 22%;
+}
+
+.store-page__head div {
   display: grid;
   gap: 2px;
   min-width: 0;
-  font-size: 13px;
-  color: var(--x-faint);
 }
 
-.store__head strong {
-  font: 600 20px var(--x-d);
-  color: var(--x-ink);
+.store-page__head strong {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
 }
 
-.store__get {
-  justify-self: start;
-  margin-top: 6px;
-  padding: 4px 16px;
-  border-radius: 999px;
-  background: var(--x-accent);
-  color: var(--x-on-accent) !important;
-  font-weight: 600;
+.store-page--apple .store-page__head span {
+  font-size: 14px;
+  line-height: 1.3;
+  color: #8a8a8e;
 }
 
-.store__shots {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.store-page__get {
+  display: flex !important;
+  align-items: center;
   gap: 8px;
+  margin-top: 10px;
 }
 
-.store__shots span {
-  position: relative;
-  aspect-ratio: 9 / 16;
+.store-page__get b {
+  padding: 5px 22px;
+  border-radius: 999px;
+  background: #007aff;
+  font-size: 15px;
+  color: #fff;
+}
+
+.store-page__get small {
+  max-width: 64px;
+  font-size: 9px;
+  line-height: 1.15;
+  color: #8a8a8e;
+}
+
+.store-page__dev {
+  font-size: 14px;
+  font-weight: 500;
+  color: #01875f;
+}
+
+.store-page__meta {
+  font-size: 12px;
+  color: #5f6368;
+}
+
+.store-page__facts {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 10px 0;
+  border-top: 1px solid #e5e5ea;
+  border-bottom: 1px solid #e5e5ea;
+  text-align: center;
+}
+
+.store-page--google .store-page__facts {
+  border: 0;
+  padding: 0;
+}
+
+.store-page__facts div {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  padding: 0 4px;
+}
+
+.store-page__facts div + div {
+  border-left: 1px solid #e5e5ea;
+}
+
+.store-page__facts dt {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8a8a8e;
+}
+
+.store-page__facts dt.sub {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.store-page--google .store-page__facts dt {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+  color: #5f6368;
+}
+
+.store-page--google .store-page__facts div:first-child dd {
+  order: -1;
+}
+
+.store-page__facts dd {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #6e6e73;
+}
+
+.store-page__facts dd.sm {
+  font-size: 12px;
+  line-height: 1.2;
+  padding-top: 4px;
+}
+
+.store-page--google .store-page__facts dd {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f1f1f;
+}
+
+.store-page__rated {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid #1f1f1f;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.store-page__install {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  border-radius: 999px;
+  background: #01875f;
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.store-page__shots {
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px;
+  padding: 0 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* A store screenshot as makers publish them: a caption over the brand's colour, the screen under it. */
+.store-shot {
+  display: grid;
+  flex: none;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  width: 132px;
+  height: 270px;
+  padding: 10px 8px 0;
   border-radius: 14px;
-  overflow: hidden;
   background: var(--x-accent);
+  overflow: hidden;
 }
 
-.store__shots img {
+.store-page--google .store-shot {
+  width: 112px;
+  height: 228px;
+  border-radius: 8px;
+}
+
+.store-shot em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: #fff;
+}
+
+.store-shot__phone {
+  position: relative;
+  display: block;
+  border: 4px solid #111113;
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.store-shot__phone img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.store__shots em {
-  position: absolute;
-  inset: auto 0 0;
-  padding: 24px 8px 8px;
-  background: linear-gradient(transparent, rgba(17, 17, 19, 0.75));
-  font: 600 12px/1.2 var(--x-d);
-  font-style: normal;
-  color: #fff;
+.store-shot__phone .gen-thumb {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
 }
 
-.store__where {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.store-page__h {
+  font-size: 16px;
+  font-weight: 500;
 }
 
-.store__where span {
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--x-ink);
-  color: #fff;
-  font: 600 13px var(--x-d);
+.store-page__about {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #3c3c43;
 }
 
 .interest {
@@ -6239,4 +6449,9 @@ details.calls[open] > summary::after {
     width: 40px;
     height: 40px;
   }
+}
+
+.store-shot__phone .gen-thumb {
+  margin: 0;
+  box-shadow: none;
 }

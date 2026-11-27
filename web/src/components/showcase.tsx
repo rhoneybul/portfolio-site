@@ -7,7 +7,7 @@ import {AppIcon} from '@/components/app-icon'
 import {BrandLogo, type Brand} from '@/components/brand-logos'
 import {openBuild} from '@/components/build-dialog'
 import type {Style} from '@/app-builder/prototype-doc'
-import {PrototypeFrame} from '@/components/prototype-frame'
+import {PrototypeFrame, PrototypeThumb} from '@/components/prototype-frame'
 import type {Built} from '@/components/prototype-build'
 import {whatYouGet} from '@/app-builder/manifest'
 import {liftedAccent, needsYou, onAccent, soften, type Options} from '@/app-builder/options'
@@ -385,33 +385,129 @@ function Stack() {
   )
 }
 
-function Stores({o, pic, icon}: {o: Options; pic: (n: number) => Pic | undefined; icon?: Style['icon']}) {
+type StoreName = 'apple' | 'google'
+
+/** The three screenshots a store listing leads with: the prototype's own phone screens where Claude drew them, else photos. */
+function storeShots(o: Options, pic: (n: number) => Pic | undefined, built?: Built | null) {
+  const captions = ['Start where you are', goalsOf(o)[0] ? `Train for ${goalsOf(o)[0]}` : 'Your goal, step by step', 'Every week, a little further']
+  const phones = built ? built.plan.units.filter((u) => u.frame === 'phone').map((u) => built.units.find((d) => d.id === u.id)).filter((d): d is Built['units'][number] => Boolean(d)) : []
+  // Home and the work itself sell an app better than its sign-in: those first, onboarding's opening last.
+  const rank = (id: string) => (/home|today/.test(id) ? 0 : /session|program|plan|path|goal|week/.test(id) ? 1 : /onboard|sign|welcome|start/.test(id) ? 3 : 2)
+  const best = [...phones].sort((a, b) => rank(a.id) - rank(b.id)).slice(0, 3)
+  return captions.map((caption, i) => ({caption, unit: best[i], photo: pic(i)}))
+}
+
+/**
+ * The app as it will look in each store, a phone's view of its listing: the App Store's (the icon, the
+ * name and subtitle, Get, the facts strip, the screenshots with their captions) and Google Play's (the
+ * icon beside the name and developer, its facts row, Install, the screenshots, About this app).
+ * Nothing invented: a new app has no ratings or downloads yet, so neither store shows any.
+ */
+function Stores({o, pic, icon, built}: {o: Options; pic: (n: number) => Pic | undefined; icon?: Style['icon']; built?: Built | null}) {
+  const [store, setStore] = useState<StoreName>('apple')
+  const shots = storeShots(o, pic, built)
+  const paid = o.charge !== 'free'
+  const category = o.kind === 'game' ? 'Games' : 'Health & Fitness'
+  const developer = o.operator || o.name
+  const about = o.idea || o.tagline
+  const shot = (s: (typeof shots)[number], i: number) => (
+    <span key={i} className="store-shot" style={{'--x-accent': o.accent} as CSSProperties}>
+      <em>{s.caption}</em>
+      <span className="store-shot__phone">
+        {s.unit && built ? (
+          <PrototypeThumb look={built.look} unit={s.unit} view="phone" />
+        ) : s.photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={s.photo.url} alt="" referrerPolicy="no-referrer" />
+        ) : null}
+      </span>
+    </span>
+  )
   return (
-    <div className="panel store">
-      <div className="store__head">
-        <AppIcon name={o.name} accent={o.accent} icon={icon} size={76} />
-        <div>
-          <strong>{o.name}</strong>
-          <span>{o.tagline}</span>
-          <span className="store__get">Get</span>
-        </div>
-      </div>
-      <div className="store__shots">
-        {[0, 1, 2].map((i) => (
-          <span key={i}>
-            {pic(i) ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={pic(i)!.url} alt="" referrerPolicy="no-referrer" />
-            ) : null}
-            <em>{['Start where you are', goalsOf(o)[0] || 'Your goal', 'Every week, a little further'][i]}</em>
-          </span>
+    <div className="panel stores">
+      <div className="stores__tabs" role="tablist" aria-label="Which store">
+        {(
+          [
+            ['apple', 'App Store', 'appstore'],
+            ['google', 'Google Play', 'googleplay'],
+          ] as const
+        ).map(([key, label, brand]) => (
+          <button key={key} type="button" role="tab" aria-selected={store === key} className={store === key ? 'is-on' : undefined} onClick={() => setStore(key)}>
+            <BrandLogo brand={brand} size={16} /> {label}
+          </button>
         ))}
       </div>
-      <div className="store__where">
-        <span>The web</span>
-        <span>App Store</span>
-        <span>Google Play</span>
-      </div>
+
+      {store === 'apple' ? (
+        <div className="store-page store-page--apple" role="tabpanel" aria-label={`${o.name} in the App Store, as it will look`}>
+          <span className="store-page__nav">‹ Search</span>
+          <div className="store-page__head">
+            <AppIcon name={o.name} accent={o.accent} icon={icon} size={96} />
+            <div>
+              <strong>{o.name}</strong>
+              <span>{o.tagline}</span>
+              <span className="store-page__get">
+                <b>Get</b>
+                {paid && <small>In-App Purchases</small>}
+              </span>
+            </div>
+          </div>
+          <dl className="store-page__facts">
+            <div>
+              <dt>Ratings</dt>
+              <dd>New</dd>
+              <dt className="sub">Not enough yet</dt>
+            </div>
+            <div>
+              <dt>Age</dt>
+              <dd>4+</dd>
+              <dt className="sub">Years old</dt>
+            </div>
+            <div>
+              <dt>Category</dt>
+              <dd className="sm">{category}</dd>
+            </div>
+            <div>
+              <dt>Developer</dt>
+              <dd className="sm">{developer}</dd>
+            </div>
+          </dl>
+          <div className="store-page__shots">{shots.map(shot)}</div>
+          <p className="store-page__about">{about}</p>
+        </div>
+      ) : (
+        <div className="store-page store-page--google" role="tabpanel" aria-label={`${o.name} on Google Play, as it will look`}>
+          <span className="store-page__nav">←</span>
+          <div className="store-page__head">
+            <AppIcon name={o.name} accent={o.accent} icon={icon} size={72} />
+            <div>
+              <strong>{o.name}</strong>
+              <span className="store-page__dev">{developer}</span>
+              <span className="store-page__meta">{paid ? 'In-app purchases' : 'Free'}</span>
+            </div>
+          </div>
+          <dl className="store-page__facts">
+            <div>
+              <dd>New</dd>
+              <dt>No reviews yet</dt>
+            </div>
+            <div>
+              <dd>
+                <span className="store-page__rated">3+</span>
+              </dd>
+              <dt>Rated for 3+</dt>
+            </div>
+            <div>
+              <dd className="sm">{category}</dd>
+              <dt>Category</dt>
+            </div>
+          </dl>
+          <span className="store-page__install">Install</span>
+          <div className="store-page__shots">{shots.map(shot)}</div>
+          <strong className="store-page__h">About this app →</strong>
+          <p className="store-page__about">{about}</p>
+        </div>
+      )}
     </div>
   )
 }
@@ -555,7 +651,7 @@ export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]
       name: 'The stores',
       node: (
         <Slide kicker="10 · Launch" title="Wherever your people already are" line="On the web, the App Store and Google Play from one codebase, so everyone gets the same experience, and every step to get there is taken care of." items={[...pick('Tests, deploys and the stores', 3), ...pick('Launch and handover', 2)]}>
-          <Stores o={o} pic={pic} icon={built?.look.style?.icon} />
+          <Stores o={o} pic={pic} icon={built?.look.style?.icon} built={built} />
         </Slide>
       ),
     },
