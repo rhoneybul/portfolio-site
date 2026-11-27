@@ -74,6 +74,7 @@ export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl,
     o.nameSure === 'yes'
       ? `The name is final: ${o.name}.`
       : `The name isn't final: run the naming round first (reference/naming.md), in the direction above, and put **Name not final** on the checklist until I pick one.`,
+    ...(raw.nameCheck?.trim() ? [`The builder checked the name as I gave it: ${raw.nameCheck.trim()}`] : []),
     ...(o.connects?.trim()
       ? [`Connect to what my members already track with (${o.connects.trim()}): find each one's API and its terms, import what they've done with its source, and keep each off until its keys are set.`]
       : []),

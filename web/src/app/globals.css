@@ -6455,3 +6455,83 @@ details.calls[open] > summary::after {
   margin: 0;
   box-shadow: none;
 }
+
+/* The name they gave, checked while they decide whether they're sure of it: its domains, the App Store, UK companies. */
+.name-check {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--muted);
+  background: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.name-check.is-clear {
+  border-left-color: #1f8a4c;
+}
+
+.name-check.is-clash {
+  border-left-color: #c2410c;
+}
+
+.name-check.is-pending {
+  color: var(--muted);
+}
+
+.name-check > strong {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.name-check ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.name-check li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.name-check__mark {
+  flex: none;
+  width: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.name-check li.is-free .name-check__mark {
+  color: #1f8a4c;
+}
+
+.name-check li.is-taken .name-check__mark {
+  color: #c2410c;
+}
+
+.name-check li.is-unknown .name-check__mark {
+  color: var(--muted);
+}
+
+.name-check a {
+  color: var(--ink);
+}
+
+.name-check__marks {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.name-check__marks a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+}

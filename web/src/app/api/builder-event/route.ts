@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   if (body?.contact?.website) return NextResponse.json({ok: true})
 
   // Beside the questions: the photo's credit, and how they heard about Fohm (asked while it builds).
-  const keys = [...QUESTIONS.map((q) => q.key), 'photoCredit', 'heard', 'scheme']
+  const keys = [...QUESTIONS.map((q) => q.key), 'photoCredit', 'heard', 'scheme', 'nameCheck']
   const answers = Object.fromEntries(keys.map((k) => [k, String(body?.answers?.[k] ?? '').trim().slice(0, 600)])) as Answers
   const contact = {
     name: String(body?.contact?.name ?? '').trim().slice(0, 100),
@@ -85,6 +85,7 @@ export async function POST(request: Request) {
         ['Feedback on screens', feedback.length ? `${feedback.slice(0, 3).join(' / ')}${feedback.length > 3 ? ` (+${feedback.length - 3} more in the submission)` : ''}` : ''],
         ...appRows(options, answers),
         ['Heard about Fohm', answers.heard],
+        ['Name check', answers.nameCheck],
         ['Not saved', !page && event !== 'whatsapp' && notSaved],
       ],
       page ? [['Submission', page], ...(prototype ? ([['Prototype', `${page}/prototype`]] as [string, string][]) : []), ['Brief', `${page}/brief`]] : [],
