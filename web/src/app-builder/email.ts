@@ -1,6 +1,6 @@
 /**
  * Email from the app builder, through Resend's API (RESEND_API_KEY, with APP_BUILDER_FROM, a sender
- * on a domain verified in Resend, such as "Rob at Fohm <apps@fohm.io>"). Off until both are set:
+ * on a domain verified in Resend, "Rob at Fohm <apps@send.fohm.io>" (send.fohm.io is verified in Resend)). Off until both are set:
  * nothing is sent and nothing fails. Used for one thing: telling a visitor their app is ready, with
  * its link. Server only.
  */
