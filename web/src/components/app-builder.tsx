@@ -214,7 +214,12 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     void forward(given)
   }
 
-  if (phase === 'intro')
+  if (phase === 'intro') {
+    const start = (
+      <button type="button" className="btn btn-primary intro__start" onClick={() => setPhase('asking')}>
+        {resumable ? 'Carry on' : 'Start designing'} <Arrow />
+      </button>
+    )
     return (
       <div className={`builder builder--intro ${className ?? ''}`} ref={top}>
         <span className="label">● Early access</span>
@@ -224,6 +229,24 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           how it works and how it looks, choosing each from what you’ve already said. Five minutes or so, and you can skip
           anything you’re not sure of.
         </p>
+        {resumable ? (
+          <div className="intro__resume">
+            <p>
+              You started designing <strong>{answers.name?.trim() || 'an app'}</strong> earlier. Carry on where you left off, or start a new one.
+            </p>
+            <div className="intro__resume-actions">
+              {start}
+              <button type="button" className="btn btn-outline" onClick={startNew}>
+                Start a new app
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="intro__actions">
+            {start}
+            <span className="intro__note">Free. About five minutes.</span>
+          </div>
+        )}
         <h3 className="intro__subtitle">What you get</h3>
         <ul className="intro__list">
           <li>
@@ -241,27 +264,10 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
             <strong>A way to build it for real.</strong> Book a free call and I’ll take it from the prototype to the stores.
           </li>
         </ul>
-        {resumable ? (
-          <div className="intro__resume">
-            <p>
-              You started designing <strong>{answers.name?.trim() || 'an app'}</strong> earlier. Carry on where you left off, or start a new one.
-            </p>
-            <div className="intro__resume-actions">
-              <button type="button" className="btn btn-primary" onClick={() => setPhase('asking')}>
-                Carry on <Arrow />
-              </button>
-              <button type="button" className="btn btn-outline" onClick={startNew}>
-                Start a new app
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button type="button" className="btn btn-primary intro__start" onClick={() => setPhase('asking')}>
-            Start <Arrow />
-          </button>
-        )}
+        {start}
       </div>
     )
+  }
 
   if (phase === 'building')
     return (
