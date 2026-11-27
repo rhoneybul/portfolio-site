@@ -13,7 +13,9 @@ export interface NameCheck {
   domains: {domain: string; taken: boolean | null}[]
   /** Apps in the App Store with that name, or starting with it. */
   apps: {name: string; seller: string; url: string}[]
-  /** UK companies with that name, or null when Companies House isn't set up to be asked. */
+  /** Free domains close to the name, when its own .com is taken: getname.com, nameapp.com. */
+  alternatives: string[]
+  /** UK companies with that name, or null when Companies House isn't set up to be asked. A flag, never a reason against it. */
   companies: {name: string; status: string}[] | null
   trademarks: {label: string; url: string}[]
   /** In a line: clear, or worth a naming round, and why. */
@@ -61,18 +63,21 @@ export function sameName(name: string, storeName: string) {
   return Boolean(want) && (has === want || has.replace(/ /g, '') === want.replace(/ /g, ''))
 }
 
-async function appsNamed(name: string): Promise<NameCheck['apps']> {
+/** Apps by that name, or null when the App Store couldn't be asked at all. */
+async function appsNamed(name: string): Promise<NameCheck['apps'] | null> {
   const seen = new Map<string, NameCheck['apps'][number]>()
+  let asked = false
   for (const country of ['gb', 'us']) {
     const url = `https://itunes.apple.com/search?${new URLSearchParams({term: name, entity: 'software', country, limit: '25'})}`
     const res = await fetch(url, {signal: AbortSignal.timeout(6_000)}).catch(() => null)
     if (!res?.ok) continue
+    asked = true
     const results = ((await res.json().catch(() => null)) as {results?: Found[]} | null)?.results ?? []
     for (const r of results)
       if (r.trackName && sameName(name, r.trackName) && !seen.has(r.trackName))
         seen.set(r.trackName, {name: r.trackName, seller: r.sellerName ?? '', url: r.trackViewUrl ?? ''})
   }
-  return [...seen.values()].slice(0, 5)
+  return asked ? [...seen.values()].slice(0, 5) : null
 }
 
 /** A company's name without its ending: "Tidepool Ltd" is tidepool. */
@@ -99,23 +104,42 @@ const trademarkSearches = (): NameCheck['trademarks'] => [
   {label: 'US trade marks', url: 'https://tmsearch.uspto.gov/'},
 ]
 
+/** Close variants of a name's .com, the ways apps get round a taken one, in the order worth trying. */
+export const variants = (label: string) =>
+  [`get${label}`, `${label}app`, `try${label}`, `use${label}`, `join${label}`, `${label}hq`].filter((v) => v.length <= 63).map((v) => `${v}.com`)
+
+/** Which of the variants are free, up to four, asked of the .com registry together. */
+async function freeVariants(label: string): Promise<string[]> {
+  const checked = await Promise.all(variants(label).map(async (domain) => ({domain, taken: await domainTaken(domain, 'com')})))
+  return checked.filter((d) => d.taken === false).map((d) => d.domain).slice(0, 4)
+}
+
 export async function checkName(name: string): Promise<NameCheck> {
   const label = domainLabel(name)
-  const [domains, apps, companies] = await Promise.all([
+  const [domains, found, companies] = await Promise.all([
     label ? Promise.all(Object.keys(RDAP).map(async (tld) => ({domain: `${label}.${tld}`, taken: await domainTaken(`${label}.${tld}`, tld)}))) : Promise.resolve([]),
-    appsNamed(name).catch(() => []),
+    appsNamed(name).catch(() => null),
     companiesNamed(name).catch(() => null),
   ])
+  const apps = found ?? []
+  // Nothing could be asked: say so, rather than call it clear.
+  if (found === null && domains.every((d) => d.taken === null))
+    return {name, domains, alternatives: [], apps, companies, trademarks: trademarkSearches(), verdict: 'Couldn’t check the name just now. The naming round checks it properly.', clear: false}
   const free = domains.filter((d) => d.taken === false).map((d) => d.domain)
   const comFree = domains.find((d) => d.domain.endsWith('.com'))?.taken === false
+  // The .com taken: the close ones that are free, so there's somewhere to go.
+  const alternatives = label && !comFree ? await freeVariants(label).catch(() => []) : []
   const problems = [
     apps.length && (apps.length === 1 ? 'an app in the App Store already uses it' : `${apps.length} apps in the App Store already use it`),
-    companies?.length && `${companies.length === 1 ? 'a UK company has' : `${companies.length} UK companies have`} that name`,
-    !free.length && domains.length && 'none of its domains are free',
+    // Only when the registries said so: a domain they couldn't be asked about is never counted as taken.
+    domains.length && domains.every((d) => d.taken === true) && !alternatives.length && 'none of its domains, or the ones close to it, are free',
   ].filter(Boolean) as string[]
   const clear = !problems.length
+  const domainNote = comFree ? `, and ${label}.com is free` : free.length ? `, and ${free[0]} is free` : alternatives.length ? `: ${label}.com is taken, but ${alternatives[0]} is free` : ''
+  // A company by that name is worth knowing, never a reason against it: names are shared across trades.
+  const companyNote = companies?.length ? ` ${companies.length === 1 ? 'A UK company has' : `${companies.length} UK companies have`} that name: worth a look, but it doesn’t stop you.` : ''
   const verdict = clear
-    ? `Looks clear so far${comFree ? `, and ${label}.com is free` : free.length ? `, and ${free[0]} is free` : ''}. Check trade marks before you settle on it.`
-    : `Worth a naming round: ${problems.join(', and ')}.`
-  return {name, domains, apps, companies, trademarks: trademarkSearches(), verdict, clear}
+    ? `Looks clear so far${domainNote}.${companyNote} Check trade marks before you settle on it.`
+    : `Worth a naming round: ${problems.join(', and ')}.${companyNote}`
+  return {name, domains, alternatives, apps, companies, trademarks: trademarkSearches(), verdict, clear}
 }
