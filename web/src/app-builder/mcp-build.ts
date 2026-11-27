@@ -20,6 +20,7 @@ import {appRows, message, toSlack} from './slack'
 import {drawMarks, type Mark} from './logos'
 import {Meter, addSpend, metered, noSpend, spendLine, type Spend} from './cost'
 import {LINK_DAYS, emailOn, readyEmail, sendEmail} from './email'
+import {addApp, emailKey, signInToken} from './visitor'
 import {cleanMarkPath, type Job, type Photo} from './prototype-doc'
 import {siteUrl} from '@/site-url'
 
@@ -48,6 +49,8 @@ export interface Share {
   marks?: Mark[]
   /** Whether the visitor was emailed its link. */
   emailed?: boolean
+  /** The email it was designed with, hashed (visitor.ts): only that email, or the browser that made it, opens it. A chat's has none. */
+  owner?: string
 }
 
 /** What the visitor chooses while it builds, kept apart from the share so the build's own saves never undo it. */
@@ -103,9 +106,20 @@ export async function saveChoices(id: string, patch: Choices) {
 }
 
 export async function startShare(answers: Answers, source: Share['source'] = 'mcp'): Promise<Share> {
-  const {email: _email, ...drawn} = answers
-  const s: Share = {id: randomBytes(16).toString('hex'), at: new Date().toISOString(), answers: drawn, status: claudeOn() ? 'photos' : 'sketch', photos: [], source}
+  const {email, ...drawn} = answers
+  const web = source === 'web' && Boolean(email?.trim())
+  const s: Share = {
+    id: randomBytes(16).toString('hex'),
+    at: new Date().toISOString(),
+    answers: drawn,
+    status: claudeOn() ? 'photos' : 'sketch',
+    photos: [],
+    source,
+    ...(web ? {owner: emailKey(email)} : {}),
+  }
   await saveShare(s)
+  // The website's apps are listed under the email they were designed with, for its "Your apps".
+  if (web) await addApp(email, {id: s.id, name: resolveOptions(answers).options.name, at: s.at}).catch((e) => console.error('[build] owned', e))
   return s
 }
 
@@ -247,7 +261,9 @@ async function emailLink(s: Share, answers: Answers, bookingUrl?: string | null)
   // Only the website's builds: a chat tells the person its link itself, and says nothing else is sent to them.
   if (s.source !== 'web' || !emailOn() || !to || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return false
   const {options} = resolveOptions(answers)
-  return sendEmail({to, ...readyEmail({name: options.name, url: shareUrl(s.id), drawn: s.status === 'done', bookingUrl})})
+  // The link signs them in as they open it: the app opens only for this email (visitor.ts).
+  const url = `${siteUrl}/app-builder/signin?${new URLSearchParams({t: signInToken(to), next: `/app-builder/p/${s.id}`})}`
+  return sendEmail({to, ...readyEmail({name: options.name, url, drawn: s.status === 'done', bookingUrl})})
 }
 
 export interface Told {

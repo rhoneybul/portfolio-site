@@ -6,6 +6,7 @@ import {addressOf, limiter} from '@/app-builder/rate-limit'
 import {PAUSED, builderPaused} from '@/app-builder/switch'
 import {client} from '@/sanity/client'
 import {emailOn, LINK_DAYS} from '@/app-builder/email'
+import {DEVICE, deviceCookie, privateLinks} from '@/app-builder/visitor'
 
 /**
  * Starts designing a visitor's app on the server (app-builder/mcp-build.ts, runBuild): the logo
@@ -52,5 +53,9 @@ export async function POST(request: Request) {
       bookingUrl,
     }),
   )
-  return NextResponse.json({id: share.id, status: share.status, emailing: emailOn(), days: LINK_DAYS})
+  const res = NextResponse.json({id: share.id, status: share.status, emailing: emailOn(), days: LINK_DAYS, private: privateLinks()})
+  // This browser designed it, so it may always open it (visitor.ts).
+  const here = request.headers.get('cookie')?.match(new RegExp(`(?:^|; )${DEVICE}=([^;]+)`))?.[1]
+  res.cookies.set(DEVICE, deviceCookie(here && decodeURIComponent(here), share.id), {httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 365 * 86_400})
+  return res
 }

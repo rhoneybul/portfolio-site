@@ -259,6 +259,9 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
             <span className="intro__note">Free. About five minutes.</span>
           </div>
         )}
+        <p className="intro__mine">
+          Designed one before? <a href="/app-builder/mine">Your apps</a>
+        </p>
         <h3 className="intro__subtitle">What you get</h3>
         <ul className="intro__list">
           <li>

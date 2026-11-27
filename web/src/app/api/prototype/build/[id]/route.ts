@@ -2,6 +2,14 @@ import {NextResponse} from 'next/server'
 import {expired, readChoices, readShare, saveChoices} from '@/app-builder/mcp-build'
 import {readJob, readUnit} from '@/app-builder/prototypes'
 import {cleanMarkPath} from '@/app-builder/prototype-doc'
+import {DEVICE, SESSION, mayOpen} from '@/app-builder/visitor'
+import {cookies} from 'next/headers'
+
+/** Whether the asking browser may follow this build (visitor.ts). */
+const allowed = async (share: NonNullable<Awaited<ReturnType<typeof readShare>>>) => {
+  const jar = await cookies()
+  return mayOpen(share, {session: jar.get(SESSION)?.value, device: jar.get(DEVICE)?.value})
+}
 
 /**
  * A build under way on the server, for its building page: GET says how far it has got (its status,
@@ -18,6 +26,7 @@ export async function GET(request: Request, {params}: {params: Promise<{id: stri
   const share = await readShare(id)
   if (!share) return NextResponse.json({error: 'No such build.'}, {status: 404})
   if (expired(share)) return NextResponse.json({error: 'This link has expired.'}, {status: 410})
+  if (!(await allowed(share))) return NextResponse.json({error: 'Sign in with the email it was designed with.'}, {status: 403})
   const have = new Set((new URL(request.url).searchParams.get('have') ?? '').split(',').filter(Boolean))
   const [choices, job] = await Promise.all([readChoices(id).catch(() => ({})), share.prototype ? readJob(share.prototype) : Promise.resolve(null)])
   const fresh = (share.drawn ?? []).filter((u) => !have.has(u))
@@ -47,6 +56,7 @@ export async function POST(request: Request, {params}: {params: Promise<{id: str
   const {id} = await params
   const share = await readShare(id)
   if (!share) return NextResponse.json({error: 'No such build.'}, {status: 404})
+  if (!(await allowed(share))) return NextResponse.json({error: 'Sign in with the email it was designed with.'}, {status: 403})
   const body = (await request.json().catch(() => null)) as {mark?: unknown; heard?: unknown} | null
   const mark = body?.mark === undefined ? '' : cleanMarkPath(body.mark)
   if (body?.mark !== undefined && !mark) return NextResponse.json({error: 'Not a logo.'}, {status: 400})
