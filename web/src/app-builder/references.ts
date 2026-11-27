@@ -44,7 +44,7 @@ export const REFERENCES: Reference[] = [
     look: 'Warm and kind: an illustrated character, soft colour, gentle words',
     takes:
       'a white canvas with a soft sky at the top and a friendly illustrated character; a big bold headline for the day and a plain paragraph of advice; a coloured bar for the activity path; recommendations as chips; warm orange cards; a floating rounded tab bar',
-    mobbin: screen('f9bf6004-fa31-4dbe-818a-6acbd51f0cae'),
+    mobbin: screen('06f36f85-e29b-4400-ba7d-90dde3d598b0'),
   },
   {
     name: 'Oura',
