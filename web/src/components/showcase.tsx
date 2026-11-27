@@ -424,7 +424,8 @@ function Stores({o, pic, icon}: {o: Options; pic: (n: number) => Pic | undefined
  */
 export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]; built?: Built | null; intro?: {name: string; node: ReactNode}}) {
   const parts = Object.fromEntries(whatYouGet(o).map((p) => [p.title, p.items]))
-  const photos: Pic[] = [...(o.photo ? [{url: o.photo, credit: o.photoCredit}] : []), ...gallery]
+  const lead = gallery.find((g) => g.url === o.photo)
+  const photos: Pic[] = [...(o.photo ? [{url: o.photo, credit: o.photoCredit, author: lead?.author, profile: lead?.profile}] : []), ...gallery.filter((g) => g.url !== o.photo)]
   const pic = (n: number) => (photos.length ? photos[n % photos.length] : undefined)
   const pick = (title: string, n = 4) => (parts[title] ?? []).slice(0, n)
 

@@ -13,6 +13,9 @@ export interface Found {
   thumb: string
   credit: string
   page: string
+  /** The photographer's name and their profile, for a credit linked as Unsplash asks (components/photo-credit.tsx). */
+  author?: string
+  profile?: string
   /** Unsplash's download address for the photo, told when it's picked, as its API guidelines ask (unsplash.ts). */
   download?: string
 }

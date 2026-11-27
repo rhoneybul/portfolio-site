@@ -121,9 +121,9 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
         return Promise.all(terms.map((t) => search(t).catch(() => [])))
       })
       .then((lists) => {
-        // Their favourites first, then the first of each search, then the second of each, so slots vary.
-        const found = mixed(lists, 16).map((f) => ({url: f.url, credit: f.credit}))
-        if (live) setGallery([...picks.slice(1), ...found.filter((f) => !picks.some((p) => p.url === f.url))])
+        // Their favourites first (the lead too, so its credit keeps its links), then the first of each search, then the second of each, so slots vary.
+        const found = mixed(lists, 16).map((f) => ({url: f.url, credit: f.credit, author: f.author, profile: f.profile}))
+        if (live) setGallery([...picks, ...found.filter((f) => !picks.some((p) => p.url === f.url))])
       })
       .catch(() => {})
     return () => {

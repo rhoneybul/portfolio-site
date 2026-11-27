@@ -4,6 +4,7 @@ import {useEffect, useState} from 'react'
 import type {Answers} from '@/app-builder/options'
 import {ideaAnswers, photoIdeas, tidy} from '@/app-builder/photo-ideas'
 import type {Found} from '@/app-builder/commons'
+import {PhotoCredit} from '@/components/photo-credit'
 
 export type {Found}
 
@@ -63,6 +64,8 @@ export function mixed(lists: Found[][], most = 12) {
 export interface Picked {
   url: string
   credit: string
+  author?: string
+  profile?: string
 }
 
 /** Tells Unsplash a photo was picked, as its API asks (/api/photos/used). Never waits, never fails the pick. */
@@ -177,15 +180,15 @@ export function PhotoSearch({answers, picks, onChange}: {answers: Answers; picks
           {shown.map((f) => {
             const n = picks.findIndex((p) => p.url === f.url)
             return (
+              <div key={f.url} className="photos__tile">
               <button
-                key={f.url}
                 type="button"
                 aria-pressed={n >= 0}
                 className={`photos__pick${n >= 0 ? ' is-on' : ''}`}
                 onClick={() => {
                   if (n >= 0) return onChange(picks.filter((p) => p.url !== f.url))
                   tellUsed(f)
-                  onChange([...picks, {url: f.url, credit: f.credit}])
+                  onChange([...picks, {url: f.url, credit: f.credit, author: f.author, profile: f.profile}])
                 }}
                 title={f.credit}
               >
@@ -193,13 +196,18 @@ export function PhotoSearch({answers, picks, onChange}: {answers: Answers; picks
                 <img src={f.thumb} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken((b) => [...b, f.thumb])} />
                 {n >= 0 && <span className="photos__badge">{n === 0 ? 'Lead' : n + 1}</span>}
               </button>
+              <PhotoCredit p={f} className="photos__by" />
+              </div>
             )
           })}
         </div>
       )}
       <p className="photos__credit">
         {picks.length
-          ? `${picks.length} picked: the first leads the landing page, onboarding and Home, the rest are used through the app.${chosen && !own ? ` Lead: ${chosen.credit}.` : ''}`
+          ? <>
+              {`${picks.length} picked: the first leads the landing page, onboarding and Home, the rest are used through the app.`}
+              {chosen && !own && <> Lead: <PhotoCredit p={chosen} />.</>}
+            </>
           : `Pick as many as you like. Photos from ${sources.join(' and ')}, each credited.`}
       </p>
 

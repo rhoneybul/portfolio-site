@@ -3,6 +3,7 @@
 import {useEffect, useRef, useState, type CSSProperties, type ReactNode} from 'react'
 import {interestsOf, liftedAccent, needsYou, onAccent, soften, type Options} from '@/app-builder/options'
 import {RING_PATH} from '@/app-builder/prototype-doc'
+import {PhotoCredit} from '@/components/photo-credit'
 
 /**
  * The screens fohm-scaffold's template draws, as a clickable prototype in a phone, in the house
@@ -73,6 +74,8 @@ const SAMPLE_PEOPLE = ['Sam Okafor', 'Priya Shah', 'Tom Reilly', 'Ana Costa']
 export interface Pic {
   url: string
   credit?: string
+  author?: string
+  profile?: string
 }
 
 export function AppPrototype({o, gallery = []}: {o: Options; gallery?: Pic[]}) {
@@ -99,7 +102,8 @@ export function AppPrototype({o, gallery = []}: {o: Options; gallery?: Pic[]}) {
   } as CSSProperties
 
   // Slot 0 leads (the landing page, onboarding, the goal): their own photo if they gave one. The rest go round the gallery.
-  const photos: Pic[] = [...(o.photo ? [{url: o.photo, credit: o.photoCredit}] : []), ...gallery.filter((g) => g.url !== o.photo)]
+  const lead = gallery.find((g) => g.url === o.photo)
+  const photos: Pic[] = [...(o.photo ? [{url: o.photo, credit: o.photoCredit, author: lead?.author, profile: lead?.profile}] : []), ...gallery.filter((g) => g.url !== o.photo)]
   const pic = (slot: number): Pic | undefined => (photos.length ? photos[slot % photos.length] : undefined)
   const props: Props = {o, go, done, setDone, pic}
   const tabbed = screen === 'home' || screen === 'path' || screen === 'game'
@@ -172,7 +176,7 @@ function Photo({p, className, children}: {p?: Pic; className?: string; children?
         </span>
       )}
       {children}
-      {p?.credit && <span className="x-photo__credit">{p.credit}</span>}
+      {p?.credit && <PhotoCredit p={p} className="x-photo__credit" />}
     </div>
   )
 }
