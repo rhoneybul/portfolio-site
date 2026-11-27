@@ -142,7 +142,7 @@ export function PrototypeBuild({
   const [picked, setPicked] = useState(0)
   const [drawingMore, setDrawingMore] = useState(false)
   // The build on the server: its id once started, whether it will email them, and how long its link lasts.
-  const [build, setBuild] = useState<{id: string; emailing: boolean; days: number} | null>(null)
+  const [build, setBuild] = useState<{id: string; emailing: boolean; days: number; private?: boolean} | null>(null)
   const pickedRef = useRef(-1)
   // The mark they picked last, as a path: the finished app is handed over with it, even one picked just before the end.
   const pickedMark = useRef('')
@@ -184,7 +184,7 @@ export function PrototypeBuild({
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({answers: a, favourites: liked, spent: before, ref}),
       }).catch(() => null)
-      const started = res?.ok ? ((await res.json().catch(() => null)) as {id: string; emailing: boolean; days: number} | null) : null
+      const started = res?.ok ? ((await res.json().catch(() => null)) as {id: string; emailing: boolean; days: number; private?: boolean} | null) : null
       if (!started?.id) return sketch(((await res?.json().catch(() => null)) as {error?: string} | null)?.error)
       setBuild(started)
 
@@ -346,8 +346,12 @@ export function PrototypeBuild({
             </>
           ) : (
             <>
-              <strong>We’ll email you at {answers.email} when it’s ready.</strong>
-              <span>You can close this tab: it keeps going without you. The link in the email works for {build?.days ?? 7} days.</span>
+              <strong>We’ll email a link to {answers.email} when it’s ready.</strong>
+              <span>
+                You can close this tab: it keeps going without you. The link works for {build?.days ?? 7} days and opens only for{' '}
+                {answers.email}: anyone else is asked to sign in with it. This browser can open it too, and{' '}
+                <a href="/app-builder/mine">Your apps</a> keeps everything you design.
+              </span>
             </>
           )}
           {build && (

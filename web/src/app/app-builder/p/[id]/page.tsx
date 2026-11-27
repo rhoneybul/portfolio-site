@@ -8,6 +8,9 @@ import {SharedApp} from '@/components/shared-app'
 import {expired, readShare} from '@/app-builder/mcp-build'
 import {LINK_DAYS} from '@/app-builder/email'
 import {BookCall} from '@/components/book-call'
+import {AppsSignIn} from '@/components/apps-sign-in'
+import {DEVICE, SESSION, mayOpen} from '@/app-builder/visitor'
+import {cookies} from 'next/headers'
 import {readPrototype} from '@/app-builder/prototypes'
 
 // An app designed from a chat (the MCP server): building, then the deck. Found only from its link.
@@ -40,6 +43,28 @@ export default async function SharedAppPage({params, searchParams}: {params: Pro
                 </a>
                 {settings?.bookingUrl && <BookCall url={settings.bookingUrl} label="Book a free call" variant="outline" from="app-builder-expired" />}
               </div>
+            </div>
+          </section>
+        </main>
+        <SiteFooter settings={settings} />
+      </>
+    )
+  }
+  const jar = await cookies()
+  if (!mayOpen(share, {session: jar.get(SESSION)?.value, device: jar.get(DEVICE)?.value})) {
+    const settings = await getSettings().catch(() => null)
+    return (
+      <>
+        <TopBar settings={settings} active="app-builder" />
+        <main>
+          <section className="blog">
+            <div className="builder link-expired">
+              <span className="label">A private app</span>
+              <h2 className="intro__title">Sign in to open it</h2>
+              <AppsSignIn
+                next={`/app-builder/p/${share.id}`}
+                lead="This app opens only for the email it was designed with. Enter it and we’ll email you a link that signs you in on this device."
+              />
             </div>
           </section>
         </main>

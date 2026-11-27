@@ -6676,3 +6676,92 @@ details.calls[open] > summary::after {
   font-weight: 600;
   color: #1f8a4c;
 }
+
+/* Signing in to see your apps, and the list of them. */
+.apps-sign-in {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+
+.apps-sign-in__form {
+  display: grid;
+  gap: 8px;
+}
+
+.apps-sign-in__form label {
+  font-weight: 600;
+}
+
+.apps-sign-in__form > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+}
+
+.apps-sign-in__form input {
+  flex: 1 1 260px;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 16px;
+}
+
+.apps-sign-in__sent {
+  margin: 0;
+  padding: 16px 18px;
+  border-left: 3px solid #1f8a4c;
+  background: #fff;
+  font-weight: 600;
+}
+
+.your-apps {
+  display: grid;
+  gap: 18px;
+  max-width: 680px;
+  padding: 40px 0;
+}
+
+.your-apps__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.your-apps__list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 1px solid var(--line);
+}
+
+.your-apps__list span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.your-apps__list a {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.intro__mine {
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.intro__mine a {
+  color: var(--ink);
+}
+
+.building__mail span a {
+  color: #fff;
+}
