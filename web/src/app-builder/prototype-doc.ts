@@ -109,11 +109,11 @@ const CANVAS: Record<Style['canvas'], string> = {
   dark: '--bg:#0E0E10;--surface:#1B1B1F;--raised:#24242A;--track:#2E2E35;--line:#2C2C33;--ink:#F2F2F6;--on-ink:#111113;--mid:#B9B9C3;--faint:#9A9AA6;--shadow:rgba(0,0,0,.5)',
 }
 
-/** The corners: cards, tiles, small things (thumbs, fields), the buttons, and a hero's lower edge. */
+/** The corners: cards, tiles, small things (thumbs, fields) and the buttons. */
 const RADII: Record<Style['corners'], string> = {
-  round: '--r-card:28px;--r-tile:24px;--r-sm:16px;--r-field:18px;--r-pill:999px;--r-hero:36px',
-  soft: '--r-card:20px;--r-tile:18px;--r-sm:12px;--r-field:14px;--r-pill:999px;--r-hero:28px',
-  square: '--r-card:6px;--r-tile:6px;--r-sm:4px;--r-field:4px;--r-pill:8px;--r-hero:0px',
+  round: '--r-card:28px;--r-tile:24px;--r-sm:16px;--r-field:18px;--r-pill:999px',
+  soft: '--r-card:20px;--r-tile:18px;--r-sm:12px;--r-field:14px;--r-pill:999px',
+  square: '--r-card:6px;--r-tile:6px;--r-sm:4px;--r-field:4px;--r-pill:8px',
 }
 
 /** The app's mark, a ring (the one the website's deck shows as every app's icon: components/app-prototype.tsx's Mark), on a 640 square from 192. */
@@ -236,7 +236,6 @@ li{list-style:none}
 .chev::after{content:'';display:block;flex:none;width:8px;height:8px;margin-right:4px;border-right:2px solid var(--faint);border-top:2px solid var(--faint);transform:rotate(45deg)}
 .thumb{width:56px;height:56px;border-radius:var(--r-sm);object-fit:cover;background:var(--track);flex:none}
 .hero{width:100%;height:340px;object-fit:cover;background:var(--track)}
-.hero.round{border-radius:0 0 var(--r-hero) var(--r-hero)}
 .photo-card{display:block;background:var(--surface);border-radius:var(--r-card);overflow:hidden}
 .photo-card img{width:100%;height:180px;object-fit:cover;background:var(--track)}
 .photo-card.tall img{height:300px}
