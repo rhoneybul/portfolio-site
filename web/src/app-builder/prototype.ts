@@ -5,7 +5,7 @@
  * for, and never takes the visitor's words straight into a prompt. Server only.
  */
 import {createHash, createHmac, randomBytes, timingSafeEqual} from 'node:crypto'
-import {TEMPLATES, type Answers, type Options} from './options'
+import {TEMPLATES, chargeOf, type Answers, type Options} from './options'
 import {CANVASES, CORNERS, HOMES, HOUSE, SHAPES, TYPES, TYPE_FACES, type Drawn, type Job, type Photo, type Plan, type Style, type Unit} from './prototype-doc'
 import {DRAW_MODEL, PLAN_MODEL, askClaude} from './claude'
 import {referencesIn} from './references'
@@ -45,6 +45,7 @@ export function factsOf(o: Options, raw: Answers) {
     line('The people who use it are called', `${o.memberWord}s; the person who runs it is the ${o.ownerWord}`),
     line('The accent colour', o.accent.toUpperCase()),
     line('The colour scheme they chose', ((s) => s && `${s.name}: a ${s.canvas} canvas (${s.palette.bg}) with the accent, a deep shade (${s.palette.deep}) and a tint (${s.palette.tint}), ${s.feel.toLowerCase()}; the canvas and shades are decided`)(schemeById(raw.scheme))),
+    line('How it charges', chargeOf(raw)?.draws),
     line('The audience today', raw.audience),
     line('Success in a year', raw.ambition),
   ]
@@ -62,7 +63,13 @@ const JOURNEY: Record<string, string> = {
   game: 'the landing page; how to play, in one or two screens; the first round in play; the score at the end of a round; Home, the way back in (where you are, the next challenge, the places to play, with photos); a leaderboard or progress; Account.',
 }
 
-const journeyOf = (o: Options) => (o.kind === 'game' ? JOURNEY.game : o.kind === 'app' ? JOURNEY.app : o.coach === 'yes' ? JOURNEY.coachYes : JOURNEY.coachNo)
+/** The journey for its kind; a free app has no Pro screen, and one sold once has a purchase screen instead. */
+const journeyOf = (o: Options) => {
+  const journey = o.kind === 'game' ? JOURNEY.game : o.kind === 'app' ? JOURNEY.app : o.coach === 'yes' ? JOURNEY.coachYes : JOURNEY.coachNo
+  if (o.charge === 'free') return journey.replace(/;?\s*Pro \([^)]*\)/, '')
+  if (o.charge === 'one-off') return journey.replace(/Pro \([^)]*\)/, 'buying a program or a pass (what is free, what it costs as a [placeholder], bought once and kept)')
+  return journey
+}
 
 // ---------- The plan ----------
 
