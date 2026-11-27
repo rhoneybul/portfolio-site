@@ -18,7 +18,7 @@ const SECTIONS: [string, string[]][] = [
     'What you get',
     [
       'A prototype is a first look, designed by AI from what you told us: it may be wrong or incomplete, and is not advice of any kind (medical, legal, financial or otherwise).',
-      'Your ideas stay yours. You may use your prototype as you like. Photos in it are free-to-use photos from Wikimedia Commons (open licences) and Pexels, credited where they appear, and keep their own licences.',
+      'Your ideas stay yours. You may use your prototype as you like. Photos in it are free-to-use photos from Unsplash (the Unsplash licence) and Wikimedia Commons (open licences), credited where they appear, and keep their own licences.',
       'Building the app for real is a separate agreement with Fohm, if you choose to.',
     ],
   ],

@@ -24,7 +24,7 @@ function heed(res: Response) {
   const left = Number(res.headers.get('x-ratelimit-remaining'))
   if (res.status === 403 || res.status === 429 || (Number.isFinite(left) && left <= KEEP)) {
     restingUntil = Date.now() + 60 * 60_000
-    console.warn('[photos] Unsplash is nearly out of searches this hour: Pexels and Commons until it resets')
+    console.warn('[photos] Unsplash is nearly out of searches this hour: Commons until it resets')
   }
 }
 
