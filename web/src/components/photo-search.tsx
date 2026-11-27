@@ -9,9 +9,9 @@ import {PhotoCredit} from '@/components/photo-credit'
 export type {Found}
 
 /**
- * Finds photos for the visitor's app (Pexels and Wikimedia Commons) from what they've told us about it: a
+ * Finds photos for the visitor's app (Unsplash, else Wikimedia Commons) from what they've told us about it: a
  * few searches picked from their answers (/api/photo-ideas), a few photos from each to choose
- * from (/api/photos, open licences only: app-builder/commons.ts), and their own words or a link to
+ * from (/api/photos: app-builder/photos.ts), and their own words or a link to
  * their own if none fit.
  */
 

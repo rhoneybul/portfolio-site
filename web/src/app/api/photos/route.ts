@@ -3,7 +3,7 @@ import {photoSources, searchPhotos, type Found} from '@/app-builder/photos'
 import {unsplashOn} from '@/app-builder/unsplash'
 
 /**
- * Photos for one search (app-builder/photos.ts: Pexels when its key is set, then Wikimedia Commons), for the app
+ * Photos for one search (app-builder/photos.ts: Unsplash when its key is set, else Wikimedia Commons), for the app
  * builder's photo step and the prototype. Cached at Vercel's edge for a day and in this instance,
  * so a search is asked once; a failed search is never cached.
  */
