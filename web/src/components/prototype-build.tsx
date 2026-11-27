@@ -46,7 +46,7 @@ async function findPhotos(answers: Answers, o: Options, favourites: {url: string
   for (let r = 0; found.length < 11 && lists.some((l) => l[r]); r++)
     lists.forEach((l, i) => {
       const f = l[r]
-      if (f && found.length < 11 && !found.some((x) => x.url === f.url)) found.push({url: f.url, credit: f.credit, about: terms[i]})
+      if (f && found.length < 11 && !found.some((x) => x.url === f.url)) found.push({url: f.url, credit: f.credit, about: f.alt ? `${terms[i]}: ${f.alt}` : terms[i]})
     })
   // Their own or first favourite leads; the rest they picked come next, before anything found for them.
   const own = o.photo ? [{url: o.photo, credit: o.photoCredit || 'The owner’s own photo', about: o.photoCredit ? 'the photo the owner picked to lead' : 'their own photo'}] : []

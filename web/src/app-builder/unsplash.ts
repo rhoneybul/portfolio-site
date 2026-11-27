@@ -32,6 +32,8 @@ const API = 'https://api.unsplash.com'
 const UTM = 'utm_source=fohm_app_builder&utm_medium=referral'
 
 type Photo = {
+  alt_description?: string | null
+  description?: string | null
   urls: {regular: string; small: string}
   user: {name: string; links: {html: string}}
   links: {html: string; download_location: string}
@@ -59,6 +61,7 @@ export async function searchUnsplash(q: string): Promise<Found[]> {
         author,
         profile: p.user.links.html?.startsWith('https://unsplash.com/') ? `${p.user.links.html}?${UTM}` : undefined,
         download: p.links.download_location,
+        alt: (p.alt_description || p.description || '').replace(/[<>"]/g, '').replace(/\s+/g, ' ').trim().slice(0, 140) || undefined,
       }
     })
 }
