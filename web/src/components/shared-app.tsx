@@ -19,7 +19,8 @@ import type {ShareStatus} from '@/app-builder/mcp-build'
  * An app designed from a chat (the MCP server), as the website's builder ends: while Claude draws it,
  * how far it has got (the page looks again every few seconds); then the deck with the prototype
  * Claude drew, or the quick sketch if it couldn't, and Build it with me. Embedded in the chat
- * (`embed`), just the phone and the form.
+ * (`embed`), just the phone. One made in a chat (`chat`) is the person's own design: no Build it
+ * with me, no booking and no form, and its words point back to the chat.
  */
 export function SharedApp({
   id,
@@ -30,6 +31,7 @@ export function SharedApp({
   photos,
   built,
   embed,
+  chat,
   whatsapp,
   bookingUrl,
 }: {
@@ -41,6 +43,7 @@ export function SharedApp({
   photos: {url: string; credit: string}[]
   built: Built | null
   embed?: boolean
+  chat?: boolean
   whatsapp?: string | null
   bookingUrl?: string | null
 }) {
@@ -66,7 +69,7 @@ export function SharedApp({
           <div>
             <span className="label">Claude is designing your app</span>
             <h2 className="ready__name">{options.name}</h2>
-            <p className="ready__line">Every screen, from your answers. Usually 4 to 6 minutes. You can leave and come back: this link keeps it for a week.</p>
+            <p className="ready__line">Every screen, from your answers. Usually 4 to 6 minutes. {chat ? 'You can leave and come back: this link keeps it.' : 'You can leave and come back: this link keeps it for a week.'}</p>
           </div>
         </header>
         <ol className="building__steps" aria-live="polite">
@@ -110,17 +113,33 @@ export function SharedApp({
     </section>
   )
 
+  const phone = built ? (
+    <PrototypeFrame look={built.look} units={built.units.filter((u) => built.plan.units.find((p) => p.id === u.id)?.frame === 'phone')} view="phone" title={options.name} />
+  ) : (
+    <Showcase o={options} gallery={photos} built={null} />
+  )
+
   if (embed)
     return (
       <div className="builder builder--built shared--embed" style={accent}>
-        {built ? <PrototypeFrame look={built.look} units={built.units.filter((u) => built.plan.units.find((p) => p.id === u.id)?.frame === 'phone')} view="phone" title={options.name} /> : <Showcase o={options} gallery={photos} built={null} />}
-        {interest}
+        {phone}
+        {!chat && interest}
+      </div>
+    )
+
+  const showcase = <Showcase o={options} gallery={photos} built={built} intro={{name: 'Your app', node: <AppReveal options={options} app={built} sketch={<AppPrototype o={options} gallery={photos} />} />}} />
+
+  if (chat)
+    return (
+      <div className="builder builder--built">
+        {showcase}
+        <p className="intro__lead">Designed in a chat with Fohm App Builder. To change it, or to get its spec, ask in the chat it came from.</p>
       </div>
     )
 
   return (
     <div className="builder builder--built">
-      <Showcase o={options} gallery={photos} built={built} intro={{name: 'Your app', node: <AppReveal options={options} app={built} sketch={<AppPrototype o={options} gallery={photos} />} />}} />
+      {showcase}
       {interest}
       <BuildDialog answers={answers} prototype={built?.id} name={options.name} accent={options.accent} icon={built?.look.style?.icon} tagline={options.tagline} bookingUrl={bookingUrl} builderRef={id} from="app-builder-mcp" />
       <BuildBar name={options.name} accent={options.accent} />

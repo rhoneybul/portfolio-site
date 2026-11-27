@@ -16,7 +16,7 @@ const SECTIONS: [string, string[]][] = [
     'What it does',
     [
       'Tell Claude or ChatGPT about the app you want: a coaching or training app, a studio, gym or clinic app, a wellbeing or habit app. It asks a few questions, then Claude designs every screen (the landing page, onboarding, home, a session, a goal and your dashboard) in your name, words and colour, in about 4 to 6 minutes.',
-      'You tap through the prototype right in the chat, and it has a page of its own to keep and share. If you want it built, send it to Fohm from the chat or that page.',
+      'You tap through the prototype right in the chat, and it has a page of its own to keep and share for 90 days. Ask for a change (the words, the colour, a screen, a feature) and Claude designs a new version. When it’s right, ask for its spec: every screen, what it shows and where it leads, to keep or hand to whoever builds it.',
     ],
   ],
   [
@@ -41,13 +41,14 @@ const SECTIONS: [string, string[]][] = [
     'The tools',
     [
       'app_builder_questions (read only): the questions to ask before designing.',
-      'build_app_prototype: starts the design from your answers and your email, and returns the prototype’s link.',
-      'get_app_prototype (read only, used by the prototype view): how far the design has got, and the prototype once it’s done.',
-      'contact_fohm: sends your prototype, name, email and note to Fohm, when you ask.',
+      'build_app_prototype: starts the design from your answers, and returns the prototype’s link.',
+      'get_app_prototype (read only): how far the design has got, its screens, and the prototype once it’s done.',
+      'revise_app_prototype: designs a new version with the change you ask for; the earlier one stays.',
+      'get_app_spec (read only): the design as markdown: every screen, the navigation, the look and your answers.',
     ],
   ],
-  ['Limits', ['Three prototypes a day for each email. A prototype is a first look designed by AI, not a finished app or advice of any kind.']],
-  ['Your data', ['What the builder keeps and why is on the privacy page (/privacy), and the terms are at /terms. It never reads your conversation beyond what you tell it.']],
+  ['Limits', ['A few designs a day (a new version counts as one). No account or email is needed. A prototype is a first look designed by AI, not a finished app or advice of any kind.']],
+  ['Your data', ['It asks for no contact details and sends nothing to anyone. What the builder keeps and why is on the privacy page (/privacy), and the terms are at /terms. It never reads your conversation beyond what you tell it.']],
   ['Support', ['Email rob@fohm.io. Fohm is Rob Honeybul’s app studio in London.']],
 ]
 

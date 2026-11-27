@@ -1,27 +1,32 @@
 # The app builder as an MCP: plan and launch
 
-A marketing tool: people planning a health, fitness or wellness app design it in the chat they already use, tap through it as a prototype, and send it to Fohm.
+A design tool people come back to: someone planning a health, fitness or wellness app designs it in the chat they already use, taps through it as a prototype, changes it until it's right, and takes away its spec.
 The target for the first months is London: personal trainers, run and HYROX coaches, reformer, yoga and Pilates studios, physios, nutritionists, wellbeing practitioners and health-tech founders.
+
+Anthropic's directory review turned down the first version (Nov 27 2026) as a lead-generation funnel: `build_app_prototype` needed an email and sent the prototype to Fohm for follow-up, `contact_fohm` forwarded the person's details, and there was no tool to return to.
+This version fixes all three: no email, nothing passed to Fohm, and tools to come back with.
 
 ## What it does
 
 1. Someone asks Claude or ChatGPT to help plan a fitness, health or wellness app.
 2. The assistant finds Fohm App Builder (by its tool descriptions, which name those sectors) and asks the builder's questions in conversation.
-3. Last, the email, as on the website. `build_app_prototype` answers at once with a link to `www.fohm.io/app-builder/p/<id>`, and Claude designs the app in the background (4 to 6 minutes); the page fills in, then shows the website's deck with Build it with me under it, inline in the chat too where MCP Apps render.
-4. They send it to Fohm, from the page's form or by asking the assistant (`contact_fohm`).
-5. Slack hears every build and every lead, tagged as from the MCP, with the sector and city (London is pinned).
+3. `build_app_prototype` answers at once with a link to `www.fohm.io/app-builder/p/<id>`, and Claude designs the app in the background (4 to 6 minutes); the page fills in, inline in the chat too where MCP Apps render.
+4. They come back to it: `get_app_prototype` says how it's going and lists its screens, and `revise_app_prototype` designs a new version with the change they ask for.
+5. `get_app_spec` gives them the design as markdown, to keep or hand to whoever builds it.
+6. Slack hears only that a prototype was made from a chat, and what Claude cost: no answers, no contact details.
 
-The client's model does the talking and picks the photo searches; Claude's design costs what the website's does, under the same limits (3 a day an email, and 30 an hour in all).
+The client's model does the talking and picks the photo searches; Claude's design costs what the website's does, under a limit by address (6 a day, a revision counting as one) and 30 an hour in all.
 
 ## Decisions taken
 
-1. The MCP lives in the site (`/mcp`, Vercel), not a separate server: one deploy, and the questions, prototype and Slack summary stay the website's own code.
+1. The MCP lives in the site (`/mcp`, Vercel), not a separate server: one deploy, and the questions and prototype stay the website's own code.
 2. Stateless and open, no sign-in: claude.ai's and ChatGPT's connectors can't send a token, and nothing it serves is private.
-3. The email is asked before the prototype, as on the website (Robert, Nov 26 2026), typed by the person, never guessed by the assistant.
-4. The shared prototype has its own random id, separate from the submission's, so a link passed on never opens the submission page or the brief.
-5. `contact_fohm` only runs when the person asks and types their own name and email; the tool says so to the model.
-6. The build runs on the server, after the tool answers, so a chat never waits minutes for a reply and the link keeps the result. The in-chat view is a frame around the hosted page, so the prototype has one implementation.
-7. Sector and city are two new optional answers, asked only in the chat, so the website's builder is unchanged.
+3. No email and no contact tool in the chat (after the directory review, Nov 27 2026): the limit is by the caller's address instead of the email.
+4. The shared prototype has its own random id, so a link passed on never opens anything else; a chat's is kept 90 days (`CHAT_LINK_DAYS`), since the person comes back to it, against the website's 7.
+5. A chat's build is the person's own: it isn't saved as a submission, and its page has no Build it with me, booking or form.
+6. A revision is a new version from the last one's answers plus the change in the person's words (`revision`, which the plan's facts put above everything else); the earlier version stays, so nothing is overwritten.
+7. The spec is built from the saved plan (`specOf`), with no Claude call, so it's free and instant.
+8. The build runs on the server, after the tool answers, so a chat never waits minutes for a reply and the link keeps the result. The in-chat view draws the prototype from `get_app_prototype`, so the prototype has one implementation.
 
 ## Listings
 
@@ -42,6 +47,6 @@ The client's model does the talking and picks the photo searches; Claude's desig
 
 ## How it's measured
 
-Slack is the first dashboard: builds and leads from the MCP, by sector, with London pinned.
-Watch three numbers a week: prototypes built, the share of them sent to Fohm, and calls booked from them.
-If prototypes come but leads don't, the deck under the prototype is the thing to change; if nothing comes, it's discovery: the listings and the landing page.
+Slack is the first dashboard: prototypes and revisions made from the MCP, with what they cost.
+Watch two numbers a week: prototypes built, and the share revised at least once (people coming back).
+The chat sends no leads; people who want it built find Fohm from the website, as anyone else does.

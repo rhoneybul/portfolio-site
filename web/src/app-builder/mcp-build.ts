@@ -4,8 +4,9 @@
  * back: the logo round (the website's), photos, Claude's plan, then each part drawn five at a time,
  * each saved as it's done. The share (below) says how far it has got: the website's building page
  * follows it, and its page (/app-builder/p/<id>) shows it for LINK_DAYS days. Every Claude call is
- * metered (cost.ts). At the end the build is saved as a submission, Slack hears it with what it cost,
- * and the visitor is emailed its link. Server only.
+ * metered (cost.ts). At the end a website build is saved as a submission, Slack hears it with what it
+ * cost, and the visitor is emailed its link; a chat's is kept only as its share, and Slack hears only
+ * that one was made. Server only.
  */
 import {randomBytes} from 'node:crypto'
 import {get, put} from '@vercel/blob'
@@ -80,8 +81,14 @@ export async function readShare(id: string): Promise<Share | null> {
   return found?.stream ? (JSON.parse(await new Response(found.stream).text()) as Share) : null
 }
 
-/** Whether a share's link has run out: it works for LINK_DAYS days. */
-export const expired = (s: Share) => Date.now() - Date.parse(s.at) > LINK_DAYS * 86_400_000
+/** How long a chat's prototype stays: the person comes back to it, and revises it, from the chat. */
+export const CHAT_LINK_DAYS = 90
+
+/** How many days a share's link works: the website's LINK_DAYS, a chat's CHAT_LINK_DAYS. */
+export const linkDays = (s: Share) => (s.source === 'web' ? LINK_DAYS : CHAT_LINK_DAYS)
+
+/** Whether a share's link has run out. */
+export const expired = (s: Share) => Date.now() - Date.parse(s.at) > linkDays(s) * 86_400_000
 
 /** Each choice is a file of its own, so a logo picked and an answer given at the same moment never undo each other. */
 const choicePath = (id: string, key: keyof Choices) => `shares/${id}-${key}.json`
@@ -246,6 +253,10 @@ async function build(share: Share, answers: Answers, searches: string[], deadlin
     console.warn('[build] build', e instanceof Error ? e.message : e)
     await update({status: 'sketch'})
   }
+
+  const spentHere = addSpend(opts.spentBefore ?? noSpend(), meter.spent)
+  // A chat's build is the person's own: never saved as a submission, and Slack hears only that one was made and what it cost.
+  if (s.source !== 'web') return void (await toSlack(message(':hammer_and_wrench: A prototype was designed from a chat (MCP)', [['Result', s.status === 'done' ? 'drawn' : 'a quick sketch'], ['Revision', answers.revision ? 'yes' : 'no'], ['Claude cost', spentHere.calls > 0 && spendLine(spentHere)]])))
 
   const choices = await readChoices(s.id).catch(() => ({}) as Choices)
   const said = {...answers, ...(choices.heard ? {heard: choices.heard} : {})}

@@ -1,7 +1,7 @@
 {
   "name": "fohm-app-builder",
   "version": "1.0.0",
-  "description": "Design a health, fitness or wellness app in a chat: Claude draws every screen as a prototype to tap through, then build it with Fohm.",
+  "description": "Design a health, fitness or wellness app in a chat: Claude draws every screen as a prototype to tap through, change it until it's right, and take away its spec.",
   "author": {"name": "Fohm", "url": "https://www.fohm.io"},
   "homepage": "https://www.fohm.io/app-builder",
   "keywords": ["app", "prototype", "fitness", "health", "wellness", "design"]

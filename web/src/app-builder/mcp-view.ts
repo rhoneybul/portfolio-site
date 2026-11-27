@@ -2,8 +2,8 @@
  * The MCP App view (`ui://fohm/prototype.html`): the app Claude designs, shown in the chat. It
  * frames no website (Claude blocks that for directory listings that aren't Verified): it asks the
  * server for the prototype with an app-only tool (get_app_prototype), every few seconds while it's
- * drawn, and plays it in a sandboxed frame of its own, with the screens to tap and a form that
- * sends it to Fohm (contact_fohm). The host bridge is served from the site, not a CDN.
+ * drawn, and plays it in a sandboxed frame of its own, with the screens to tap. It asks for nothing
+ * and sends nothing. The host bridge is served from the site, not a CDN.
  */
 
 import {HOUSE, iconMarkCss} from './prototype-doc'
@@ -32,11 +32,7 @@ export function viewHtml(site: string) {
 .phone iframe{position:absolute;top:0;left:0;width:390px;height:844px;border:0;transform-origin:0 0}
 .screens{display:flex;flex-wrap:wrap;gap:6px}.screens button,.btn{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer;min-height:36px}
 .screens button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
-form{display:grid;gap:10px}label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
-input,textarea{font:inherit;color:var(--ink);background:var(--canvas);border:1px solid var(--line);border-radius:10px;padding:10px;width:100%}
-.note{color:var(--muted);font-size:13px;margin:0}.err{color:#b3261e;font-size:13px;margin:0}[hidden]{display:none!important}
-h2{font-size:16px;margin:0 0 4px}
+.note{color:var(--muted);font-size:13px;margin:0}[hidden]{display:none!important}
 </style><style id="iconcss">${iconMarkCss('.icon::after', HOUSE.icon)}</style></head><body>
 <div class="wrap">
   <div class="head"><span class="icon" aria-hidden="true"></span><div><h1 id="name">Your app</h1><p id="line">Starting…</p></div></div>
@@ -49,24 +45,12 @@ h2{font-size:16px;margin:0 0 4px}
   <div id="done" hidden class="stage">
     <div class="phone" id="phone"><iframe id="proto" sandbox="allow-scripts" title="Prototype"></iframe></div>
     <div style="display:grid;gap:12px;align-content:start">
-      <p class="note">Tap through it as a member would, or pick a screen.</p>
+      <p class="note">Tap through it as a member would, or pick a screen. To change anything, just ask.</p>
       <div class="screens" id="screens"></div>
     </div>
   </div>
   <div class="card" id="sketch" hidden><p class="note">Claude couldn’t draw the full prototype this time. The page below has a quick sketch of it.</p></div>
   <div><button class="btn" id="open" type="button" hidden>Open the full page</button></div>
-  <div class="card" id="contact" hidden>
-    <h2>Build it with Fohm</h2>
-    <p class="note">Rob at Fohm, a London app studio, takes it from this prototype to the web, the App Store and Google Play. Send it and he’ll be in touch.</p>
-    <form id="form" style="margin-top:12px">
-      <label>Your name<input id="cname" autocomplete="name" maxlength="100" required></label>
-      <label>Your email<input id="cemail" type="email" autocomplete="email" maxlength="200" required></label>
-      <label>Anything else? (optional)<textarea id="cnote" rows="2" maxlength="1000"></textarea></label>
-      <p class="err" id="cerr" hidden></p>
-      <div><button class="btn primary" type="submit" id="csend">Send it to Fohm</button></div>
-    </form>
-    <p class="note" id="sent" hidden></p>
-  </div>
 </div>
 <script type="module">
 import {App} from '${site}${BRIDGE_PATH}'
@@ -102,7 +86,7 @@ async function look() {
   document.documentElement.style.setProperty('--on-accent', s.onAccent || '#fff')
   if (typeof s.iconCss === 'string') $('iconcss').textContent = s.iconCss
   $('name').textContent = s.name || 'Your app'
-  url = s.url || url; show('open', Boolean(url)); show('contact', true)
+  url = s.url || url; show('open', Boolean(url))
   if (s.status === 'done' && s.html) {
     $('line').textContent = s.summary || 'Designed by Claude, every screen.'
     show('building', false); show('done', true)
@@ -120,7 +104,6 @@ async function look() {
   timer = setTimeout(look, 6000)
 }
 
-app.ontoolinput = ({arguments: a}) => { if (a && a.email && !$('cemail').value) $('cemail').value = String(a.email) }
 app.ontoolresult = ({structuredContent: s}) => {
   if (!s || !s.prototypeId) return
   id = s.prototypeId; url = s.url || ''
@@ -128,17 +111,6 @@ app.ontoolresult = ({structuredContent: s}) => {
   look()
 }
 $('open').onclick = () => url && app.openLink({url})
-$('form').onsubmit = async (e) => {
-  e.preventDefault()
-  const name = $('cname').value.trim(), email = $('cemail').value.trim(), note = $('cnote').value.trim()
-  if (!name || !/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email)) { $('cerr').textContent = 'Your name and an email address, please.'; show('cerr', true); return }
-  show('cerr', false); $('csend').disabled = true; $('csend').textContent = 'Sending…'
-  try {
-    const r = await app.callServerTool({name: 'contact_fohm', arguments: {prototypeId: id, name, email, ...(note ? {note} : {})}})
-    if (r && r.isError) throw new Error()
-    show('form', false); $('sent').textContent = 'Sent. Rob will be in touch at ' + email + '.'; show('sent', true)
-  } catch { $('cerr').textContent = 'That didn’t send. Try again, or use the full page.'; show('cerr', true); $('csend').disabled = false; $('csend').textContent = 'Send it to Fohm' }
-}
 await app.connect()
 </script></body></html>`
 }

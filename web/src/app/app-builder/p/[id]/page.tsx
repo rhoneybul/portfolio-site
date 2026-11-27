@@ -5,15 +5,14 @@ import {getSettings} from '@/sanity/settings'
 import {TopBar} from '@/components/top-bar'
 import {SiteFooter} from '@/components/site-footer'
 import {SharedApp} from '@/components/shared-app'
-import {expired, readShare} from '@/app-builder/mcp-build'
-import {LINK_DAYS} from '@/app-builder/email'
+import {expired, linkDays, readShare} from '@/app-builder/mcp-build'
 import {BookCall} from '@/components/book-call'
 import {AppsSignIn} from '@/components/apps-sign-in'
 import {DEVICE, SESSION, mayOpen} from '@/app-builder/visitor'
 import {cookies} from 'next/headers'
 import {readPrototype} from '@/app-builder/prototypes'
 
-// An app designed from a chat (the MCP server): building, then the deck. Found only from its link.
+// An app designed from a chat (the MCP server) or the website: building, then the deck (a chat's without Build it with me). Found only from its link.
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {title: 'Your app', robots: {index: false, follow: false}}
 
@@ -33,15 +32,17 @@ export default async function SharedAppPage({params, searchParams}: {params: Pro
           <section className="blog">
             <div className="builder link-expired">
               <span className="label">This link has expired</span>
-              <h2 className="intro__title">Links to a designed app last {LINK_DAYS} days</h2>
+              <h2 className="intro__title">Links to a designed app last {linkDays(share)} days</h2>
               <p className="intro__lead">
-                This one has run out. Design it again in a few minutes, or book a free call and I’ll take you through it, and how to build it for real.
+                {share.source === 'web'
+                  ? 'This one has run out. Design it again in a few minutes, or book a free call and I’ll take you through it, and how to build it for real.'
+                  : 'This one has run out. Design it again in a few minutes, here or in the chat.'}
               </p>
               <div className="interest__actions">
                 <a className="btn btn-primary" href="/app-builder">
                   Design it again
                 </a>
-                {settings?.bookingUrl && <BookCall url={settings.bookingUrl} label="Book a free call" variant="outline" from="app-builder-expired" />}
+                {share.source === 'web' && settings?.bookingUrl && <BookCall url={settings.bookingUrl} label="Book a free call" variant="outline" from="app-builder-expired" />}
               </div>
             </div>
           </section>
@@ -84,6 +85,7 @@ export default async function SharedAppPage({params, searchParams}: {params: Pro
       photos={share.photos.map(({url, credit}) => ({url, credit}))}
       built={saved ? {id: saved.job.id, look: saved.job.look, plan: saved.job.plan, units: saved.units} : null}
       embed={Boolean(embed)}
+      chat={share.source !== 'web'}
       whatsapp={settings?.whatsapp}
       bookingUrl={settings?.bookingUrl}
     />

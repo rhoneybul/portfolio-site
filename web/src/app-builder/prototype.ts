@@ -49,6 +49,8 @@ export function factsOf(o: Options, raw: Answers) {
     line('How it charges', chargeOf(raw)?.draws),
     line('The audience today', raw.audience),
     line('Success in a year', raw.ambition),
+    // A chat's revise_app_prototype: what the owner asked to change since the last version, which outranks the rest.
+    raw.revision?.trim() && `Changes the owner asked for since the last version, which win over anything above: ${raw.revision.trim().replace(/\s+/g, ' ').slice(0, 1500)}`,
   ]
     .filter(Boolean)
     .join('\n')

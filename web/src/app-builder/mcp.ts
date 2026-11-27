@@ -2,39 +2,34 @@ import {z} from 'zod'
 import {QUESTIONS, TEMPLATES, asked, resolveOptions, type Answers, type Options} from './options'
 import {REFERENCES} from './references'
 import {SCHEMES} from './schemes'
+import type {Job} from './prototype-doc'
 
 /**
- * The app builder as an MCP server (app/mcp/route.ts): the same questions, the same prototype and
- * the same "Build it with me", from inside Claude, ChatGPT or any MCP client. The client's own
- * model asks the questions and picks the photo searches, so a build costs Fohm nothing but a blob.
- * Aimed at people building health, fitness and wellness apps, first in London.
+ * The app builder as an MCP server (app/mcp/route.ts): the website's questions and prototype, from
+ * inside Claude, ChatGPT or any MCP client, as a design tool the person comes back to: design a
+ * prototype, change it, and take its spec away. It asks for no email and passes nothing to Fohm for
+ * follow-up (Anthropic's directory review, Nov 2026, turned down the version that did).
  */
 
 export const SERVER_NAME = 'fohm-app-builder'
 export const SERVER_TITLE = 'Fohm App Builder'
 
-/** What kind of app it is, for who's asking: Fohm's focus is the first three. */
-export const SECTORS = ['fitness', 'health', 'wellness', 'other'] as const
-export type Sector = (typeof SECTORS)[number]
-
-export const INSTRUCTIONS = `Fohm App Builder designs a first look at a health, fitness or wellness app (a coaching app, a training program, a studio's or a clinic's app, a wellbeing or habit app) and draws it as a prototype the person can tap through: its landing page, onboarding, home, program and the owner's dashboard, in their name, words and colour.
-
-Fohm is Rob Honeybul's app studio in London. Its apps include Etapa (an AI cycling coach in the App Store and Google Play) and Naz (training and breathwork for big-wave surfers). The prototype is built on the same foundations.
+export const INSTRUCTIONS = `Fohm App Builder designs a first look at an app (a coaching or training app, a studio's, gym's or clinic's app, a wellbeing or habit app) and draws it as a prototype the person can tap through: its landing page, onboarding, home, a session, a goal and the owner's dashboard, in their name, words and colour. Then they change it until it's right, and take away its spec.
 
 How to use it:
 1. Call app_builder_questions, then ask the person its questions in your own words, one or two at a time. Fill in what they have already told you; never make up their business. When you ask for their colour, offer its colour schemes by name, with how each feels, leading with those like the apps they said they like, and put the one they pick in scheme and its accent in accent. When you ask which apps they like the look of, show its references: each app's name as a link to its Mobbin screen, and its look in a few words, so they can open them and pick, or name their own.
-2. Ask for their email last (they type it; never guess one), then call build_app_prototype with their answers. Claude designs every screen in about five minutes: show them the link straight away; the page fills in as it's drawn, and stays there to come back to.
-3. If they want it built, offer to pass it to Fohm with contact_fohm. Call it only once they have asked for that. Never invent or guess an email.
+2. Call build_app_prototype with their answers. Claude designs every screen in about five minutes: show them the link straight away; the page fills in as it's drawn. Keep the prototypeId: the other tools take it.
+3. When they ask how it's going, or come back to it, call get_app_prototype.
+4. When they want something changed (the name, the words, the colour, a screen, a feature), call revise_app_prototype with the change in their words and any answers that change. It designs a new version from the last one, with a new link; the old one stays.
+5. When they want to build it, or share the design with someone who will, call get_app_spec: every screen, what it shows and where it leads, the look and the answers, as markdown to keep or hand to any developer or coding assistant.
 
-Be plain about what this is: a free prototype from Fohm, a studio that builds apps for a fee.`
+No account or email is needed, and nothing is sent to anyone. The builder is made by Fohm, an app studio; mention that only if asked.`
 
-/** The questions, as the assistant should ask them: the website's, the email last, without the photo step (the chat picks searches). */
+/** The questions, as the assistant should ask them: the website's, without the email (a chat needs none) or the photo step (the chat picks searches). */
 export function questionsForChat() {
   const qs = asked({}).filter((q) => q.key !== 'photo' && q.key !== 'email')
-  const email = QUESTIONS.find((q) => q.key === 'email')!
   return {
-    intro:
-      'Ask these in your own words, one or two at a time, skipping any the person has already answered. `name` and `email` are required (ask for the email last, and use only one the person types); everything else has a sensible default.',
+    intro: 'Ask these in your own words, one or two at a time, skipping any the person has already answered. Only `name` is required; everything else has a sensible default.',
     questions: [
       ...qs.map((q) => ({
         key: q.key,
@@ -48,9 +43,6 @@ export function questionsForChat() {
         ...(q.key === 'inspiration' ? {references: REFERENCES.map(({name, look, mobbin}) => ({name, look, mobbin}))} : {}),
         ...(q.required ? {required: true} : {}),
       })),
-      {key: 'sector', section: 'The idea', ask: 'Is it a fitness, health or wellness app?', choices: SECTORS.map((value) => ({value, label: value}))},
-      {key: 'location', section: 'About you', ask: 'Where are you based?', why: 'Fohm is in London, and can meet in person there.', example: 'London'},
-      {key: 'email', section: 'About you', ask: email.ask, why: `${email.why} Needed before the prototype is drawn: the person types it themselves.`, example: email.example, required: true},
     ],
     examples: TEMPLATES.filter((t) => t.kind === 'coaching').map((t) => ({value: t.value, app: t.label.replace(/^Like /, ''), what: t.hint, url: t.url})),
   }
@@ -61,7 +53,6 @@ const text = (max: number) => z.string().trim().max(max).optional()
 /** build_app_prototype's input: the builder's answers by their keys, plus what the chat adds. */
 export const buildInput = z.object({
   name: z.string().trim().min(1).max(60).describe('What the app is called. A working name is fine.'),
-  email: z.string().trim().email().max(200).describe('The person’s email, as they typed it in this conversation: never guessed or taken from elsewhere. Fohm uses it only to get in touch about this app.'),
   idea: text(600).describe('In a sentence, what it does, and for whom.'),
   business: text(600).describe('What they do today: their business, coaching or content. Empty if the app is a new idea.'),
   template: z
@@ -88,8 +79,6 @@ export const buildInput = z.object({
   logo: z.enum(['yes', 'no']).optional().describe('Whether they have a logo already.'),
   audience: text(300).describe('How big their audience is today.'),
   ambition: text(600).describe('What success would look like in a year.'),
-  sector: z.enum(SECTORS).optional().describe('Fitness, health or wellness (or other).'),
-  location: text(100).describe('Where they are based: a city.'),
   photoSearches: z
     .array(z.string().trim().min(2).max(40))
     .max(4)
@@ -100,43 +89,74 @@ export const buildInput = z.object({
 export type BuildInput = z.infer<typeof buildInput>
 
 /** The answers the builder keeps, from the chat's input: the same keys the website saves. */
-export function answersOf(input: BuildInput): Answers {
-  const keys = new Set([...QUESTIONS.map((q) => q.key), 'sector', 'location', 'scheme'])
+export function answersOf(input: Partial<BuildInput>): Answers {
+  const keys = new Set([...QUESTIONS.map((q) => q.key), 'scheme'])
+  keys.delete('email')
   const answers: Answers = {}
   for (const [k, v] of Object.entries(input)) if (keys.has(k) && typeof v === 'string' && v.trim()) answers[k] = v.trim()
   return answers
 }
 
-export const contactInput = z.object({
-  prototypeId: z.string().regex(/^[a-f0-9]{32}$/).describe('The id build_app_prototype returned.'),
-  name: z.string().trim().min(1).max(100).describe('Their name, as they typed it.'),
-  email: z.string().trim().email().max(200).describe('The email they gave for the prototype, or another they typed. Never guessed.'),
-  note: z.string().trim().max(1000).optional().describe('Anything else they want Rob to know: timing, budget, what matters most.'),
+const prototypeId = z.string().regex(/^[a-f0-9]{32}$/).describe('The prototypeId build_app_prototype (or revise_app_prototype) returned.')
+
+/** get_app_prototype's and get_app_spec's input. */
+export const idInput = z.object({prototypeId})
+
+/** revise_app_prototype's input: the change in the person's words, and any answers it changes. */
+export const reviseInput = buildInput.partial().extend({
+  prototypeId,
+  change: z
+    .string()
+    .trim()
+    .min(3)
+    .max(800)
+    .describe('What to change, in the person’s words: e.g. "make Home lead with this week’s classes", "a dark canvas", "add a screen for booking a class".'),
 })
 
-export type ContactInput = z.infer<typeof contactInput>
+export type ReviseInput = z.infer<typeof reviseInput>
 
-export const isLondon = (location?: string) => /\blondon\b/i.test(location ?? '')
-
-/** Words for the health side, where it applies: what Fohm already does that a health app needs. */
-function sectorLine(sector?: string) {
-  if (sector === 'health')
-    return 'Health data is special-category data under UK GDPR: Fohm builds in the consent, age checks and data rules a health app needs from day one, as it did for Naz.'
-  if (sector === 'fitness' || sector === 'wellness')
-    return 'It comes with what a fitness or wellness app needs to sell: subscriptions in the App Store and Google Play, analytics, and a dashboard for the coach.'
-  return ''
+/** The answers a revision designs from: the last version's, with what changed, and every change asked for so far. */
+export function revisedAnswers(previous: Answers, input: ReviseInput): Answers {
+  const {prototypeId: _id, change, photoSearches: _p, ...changed} = input
+  const asked = [previous.revision, change].filter(Boolean).join(' Then: ')
+  return {...previous, ...answersOf(changed), revision: asked.slice(-1500)}
 }
 
-/** What the tool says back: the link, what happens next, and the way to build it. */
-export function builtText(o: Options, link: string, drawing: boolean, sector?: string, location?: string) {
+/** What the tool says back: the link, and what the person can do next. */
+export function builtText(o: Options, link: string, drawing: boolean, revised = false) {
   return [
     drawing
-      ? `Claude is designing ${o.name} now, every screen from these answers: about 4 to 6 minutes. Here's the link, which fills in as each part is drawn and stays to come back to: ${link}`
+      ? `Claude is designing ${revised ? `a new version of ${o.name}` : o.name} now, every screen: about 4 to 6 minutes. Here's the link, which fills in as each part is drawn and stays there to come back to: ${link}`
       : `Here's ${o.name}, as a quick sketch to tap through (Claude couldn't draw the full prototype this time): ${link}`,
     `"${o.tagline}"`,
-    drawing && 'When it’s done they tap through it as a member would (the landing page, onboarding, home, a session, their goal) and see the owner’s dashboard and what it takes to launch.',
-    sectorLine(sector),
-    `To build it for real (the web, the App Store and Google Play), they can book a free call or leave their details on that page, or ask you to send it to Fohm with contact_fohm${isLondon(location) ? ': Fohm is in London and can meet in person' : ''}.`,
+    drawing && 'When it’s done, they tap through it as a member would (the landing page, onboarding, home, a session, their goal) and see the owner’s dashboard.',
+    'To change anything, use revise_app_prototype with their words. For the full spec of every screen, to keep or hand to whoever builds it, use get_app_spec.',
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+}
+
+/** The prototype's spec as markdown: what it is, its look, every screen and where it leads, the calls Claude made, and the answers. */
+export function specOf(o: Options, answers: Answers, job: Job | null, link: string) {
+  const answered = QUESTIONS.filter((q) => q.key !== 'email' && q.key !== 'photo' && answers[q.key]?.trim()).map((q) => `- **${q.ask}** ${answers[q.key].trim()}`)
+  const plan = job?.plan
+  const title = (id: string) => plan?.units.find((u) => u.id === id)?.title ?? id
+  return [
+    `# ${o.name}`,
+    `> ${o.tagline}`,
+    plan?.summary ?? o.idea,
+    `Prototype: ${link}`,
+    `## Look\n\n- Accent: ${o.accent.toUpperCase()}${job?.look.style ? `\n- Canvas: ${job.look.style.canvas}\n- Corners: ${job.look.style.corners}\n- Type: ${job.look.style.type}` : ''}${o.inspiration ? `\n- Like: ${o.inspiration}` : ''}`,
+    plan?.tabs.length && `## Navigation\n\n${plan.tabs.map((t) => `- ${t.label} → ${title(t.to)}`).join('\n')}`,
+    plan?.units.length &&
+      `## Screens\n\n${plan.units
+        .map((u) => `### ${u.title} (${u.frame === 'phone' ? 'member app' : 'owner dashboard'}${u.steps > 1 ? `, ${u.steps} steps` : ''})\n\n${u.shows}${u.layout ? `\n\nLayout: ${u.layout}` : ''}${u.links.length ? `\n\nLeads to: ${u.links.map(title).join(', ')}` : ''}`)
+        .join('\n\n')}`,
+    plan?.world.length && `## What every screen shares\n\n${plan.world.map((w) => `- ${w}`).join('\n')}`,
+    plan?.decisions.length && `## Calls made in the design\n\n${plan.decisions.map((d) => `- ${d}`).join('\n')}`,
+    answers.revision && `## Changes asked for\n\n${answers.revision}`,
+    answered.length && `## The answers it was designed from\n\n${answered.join('\n')}`,
+    !plan && '_The full design isn’t drawn yet (or only a quick sketch was), so this spec has the answers alone._',
   ]
     .filter(Boolean)
     .join('\n\n')
