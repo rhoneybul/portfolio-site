@@ -13,18 +13,24 @@ const dir = (id: string) => `prototypes/${id}`
 const memory: Map<string, string> = ((globalThis as {fohmPrototypes?: Map<string, string>}).fohmPrototypes ??= new Map())
 export const isPrototypeId = (id: string) => /^[a-f0-9]{32}$/.test(id)
 
-async function keep(path: string, body: string, contentType: string) {
-  if (!submissionsOn()) return void memory.set(path, body)
+/** Saves one file; false when the save failed (it's logged, and never throws). */
+async function keep(path: string, body: string, contentType: string): Promise<boolean> {
+  if (!submissionsOn()) return void memory.set(path, body), true
   try {
     await put(path, body, {access: 'private', contentType, addRandomSuffix: false, allowOverwrite: true})
+    return true
   } catch (error) {
     console.error('[prototype] save', path, error)
+    return false
   }
 }
 
 export const saveJob = (job: Job) => keep(`${dir(job.id)}/plan.json`, JSON.stringify({at: new Date().toISOString(), ...job}), 'application/json')
 
-export const saveUnit = (id: string, unit: Drawn) => keep(`${dir(id)}/${unit.id}.html`, unit.html, 'text/html')
+/** A drawn part, saved; throws when it couldn't be, so a build never counts a part nobody can open. */
+export async function saveUnit(id: string, unit: Drawn) {
+  if (!(await keep(`${dir(id)}/${unit.id}.html`, unit.html, 'text/html'))) throw new Error(`Couldn’t save ${unit.id}`)
+}
 
 async function read(path: string) {
   if (!submissionsOn()) return memory.get(path) ?? null

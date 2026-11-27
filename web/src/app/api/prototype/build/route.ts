@@ -44,7 +44,8 @@ export async function POST(request: Request) {
     .catch(() => null)
   const share = await startShare(answers, 'web')
   after(() =>
-    runBuild(share, answers, [], Date.now() + (maxDuration - 20) * 1000, {
+    // A minute kept back for the end: the email, the submission and Slack.
+    runBuild(share, answers, [], Date.now() + (maxDuration - 60) * 1000, {
       favourites: cleanFavourites(body?.favourites),
       ref: /^[a-f0-9]{32}$/.test(ref) ? ref : undefined,
       spentBefore: cleanSpend(body?.spent),

@@ -48,6 +48,8 @@ interface Progress {
   mark: string | null
   job: {id: string; look: Look; plan: Plan} | null
   units: Drawn[]
+  /** Parts said to be drawn that can't be read: the page stops waiting for them. */
+  missing?: string[]
 }
 
 const iconOf = (d: string): Style['icon'] => ({shape: 'svg', letters: '', d})
@@ -142,6 +144,8 @@ export function PrototypeBuild({
   // The build on the server: its id once started, whether it will email them, and how long its link lasts.
   const [build, setBuild] = useState<{id: string; emailing: boolean; days: number} | null>(null)
   const pickedRef = useRef(-1)
+  // The mark they picked last, as a path: the finished app is handed over with it, even one picked just before the end.
+  const pickedMark = useRef('')
   const started = useRef(false)
   // The props of the first render: the build runs once, from the answers it started with.
   const first = useRef({answers, options, favourites, onBuilt, onSketch, onGallery, spent, builderRef})
@@ -220,11 +224,12 @@ export function PrototypeBuild({
             setDrawn({...got})
             setTook((t) => ({...t, ...Object.fromEntries(Object.keys(got).filter((id) => !t[id]).map((id) => [id, Math.max(1_000, seenAt[id] - (shown.drawing || now))]))}))
           }
-          const allIn = p.drawn.every((id) => got[id])
+          const allIn = p.drawn.every((id) => got[id] || p.missing?.includes(id))
           if (p.status === 'sketch') return sketch('Claude couldn’t finish it this time.')
           if (p.status === 'done' && p.job && allIn) {
             const units = p.job.plan.units.map((u) => got[u.id]).filter((u): u is Drawn => Boolean(u))
-            return built({id: p.job.id, look: p.job.look, plan: p.job.plan, units})
+            const look = pickedMark.current ? withLogo({...p.job, facts: '', photos: []} as Job, pickedMark.current).look : p.job.look
+            return built({id: p.job.id, look, plan: p.job.plan, units})
           }
         }
         timer.current = setTimeout(follow, EVERY)
@@ -240,6 +245,7 @@ export function PrototypeBuild({
     setPicked(i)
     pickedRef.current = i
     const d = marks[i].d
+    pickedMark.current = d
     setJob((j) => (j ? withLogo(j, d) : j))
     if (build) void fetch(`/api/prototype/build/${build.id}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mark: d})}).catch(() => {})
   }

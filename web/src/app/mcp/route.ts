@@ -3,7 +3,7 @@ import {createMcpHandler} from 'mcp-handler'
 import {registerAppResource, registerAppTool, RESOURCE_MIME_TYPE} from '@modelcontextprotocol/ext-apps/server'
 import {z} from 'zod'
 import {INSTRUCTIONS, SERVER_NAME, SERVER_TITLE, answersOf, buildInput, builtText, contactInput, questionsForChat, resolveOptions} from '@/app-builder/mcp'
-import {readShare, runBuild, shareUrl, startShare, tell} from '@/app-builder/mcp-build'
+import {expired, readShare, runBuild, shareUrl, startShare, tell} from '@/app-builder/mcp-build'
 import {builderPaused} from '@/app-builder/switch'
 import {readPrototype} from '@/app-builder/prototypes'
 import {iconMarkCss, prototypeDocument} from '@/app-builder/prototype-doc'
@@ -102,6 +102,7 @@ const handler = createMcpHandler(
       async ({prototypeId}: {prototypeId: string}) => {
         const share = await readShare(prototypeId)
         if (!share) return {isError: true, content: [{type: 'text', text: 'No prototype with that id. Start one with build_app_prototype.'}]}
+        if (expired(share)) return {isError: true, content: [{type: 'text', text: 'That prototype’s link has expired: links last 7 days. Design it again with build_app_prototype.'}]}
         const {options} = resolveOptions(share.answers)
         const saved = share.status === 'done' && share.prototype ? await readPrototype(share.prototype) : null
         const phone = saved ? saved.units.filter((u) => saved.job.plan.units.find((p) => p.id === u.id)?.frame === 'phone') : []
