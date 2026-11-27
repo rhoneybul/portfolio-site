@@ -35,6 +35,7 @@ export async function askClaude({
   user,
   maxTokens,
   deadline,
+  schema,
 }: {
   model: string
   system: string[]
@@ -42,6 +43,8 @@ export async function askClaude({
   maxTokens: number
   /** Epoch ms by which an answer is needed. */
   deadline: number
+  /** A JSON schema the answer must follow (structured outputs): the answer is then always valid JSON. */
+  schema?: Record<string, unknown>
 }): Promise<string> {
   const key = process.env.ANTHROPIC_API_KEY
   if (!key) throw new ClaudeError('ANTHROPIC_API_KEY is not set')
@@ -50,6 +53,7 @@ export async function askClaude({
     max_tokens: maxTokens,
     system: system.map((text) => ({type: 'text', text, cache_control: {type: 'ephemeral'}})),
     messages: [{role: 'user', content: user}],
+    ...(schema ? {output_config: {format: {type: 'json_schema', schema}}} : {}),
   })
 
   for (let attempt = 0; ; attempt++) {

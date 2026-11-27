@@ -5,7 +5,7 @@
  * path on a 100 square, filled in one colour on the accent's square, as an app icon is.
  * Server only.
  */
-import {askClaude, DRAW_MODEL} from './claude'
+import {askClaude, ClaudeError, DRAW_MODEL} from './claude'
 import {cleanMarkPath} from './prototype-doc'
 import type {Answers, Options} from './options'
 
@@ -26,8 +26,25 @@ Draw four different concepts. Each is a symbol only (no words, no letters unless
 - Four genuinely different ideas: say, one from what members do, one from the goal or the place, one abstract, one a monogram from the name's first letter drawn as shapes.
 - Never a cliché clip-art icon (a dumbbell, a generic heart, a lightbulb) and never another brand's mark.
 
-Reply with JSON only:
-{"marks": [{"name": "Rising swell", "idea": "A wave building under a horizon line: the step up to bigger surf.", "d": "M 12 70 C ... Z"}]}`
+Reply with the four marks as JSON: {"marks": [{"name": "Rising swell", "idea": "A wave building under a horizon line: the step up to bigger surf.", "d": "M 12 70 C ... Z"}]}`
+
+/** The answer's shape, held by the API (structured outputs): a stray quote in an idea once broke the whole round. */
+const MARKS_SCHEMA = {
+  type: 'object',
+  properties: {
+    marks: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {name: {type: 'string'}, idea: {type: 'string'}, d: {type: 'string'}},
+        required: ['name', 'idea', 'd'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['marks'],
+  additionalProperties: false,
+}
 
 const plainText = (v: unknown, most: number) => (typeof v === 'string' ? v.replace(/[<>"]/g, '').replace(/\s+/g, ' ').trim().slice(0, most) : '')
 
@@ -53,6 +70,16 @@ export async function drawMarks(o: Options, answers: Answers, deadline: number):
   ]
     .filter(Boolean)
     .join('\n')
-  const answer = await askClaude({model: DRAW_MODEL(), system: [SYSTEM], user: about, maxTokens: 4_000, deadline})
-  return parseMarks(answer)
+  // Asked twice at most: an answer with no usable path is drawn again rather than left empty, and
+  // if the API turns the schema down (a 400), the second time goes without it.
+  let schema: Record<string, unknown> | undefined = MARKS_SCHEMA
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return parseMarks(await askClaude({model: DRAW_MODEL(), system: [SYSTEM], user: about, maxTokens: 6_000, deadline, schema}))
+    } catch (e) {
+      if (attempt >= 1 || deadline - Date.now() < 30_000) throw e
+      if (e instanceof ClaudeError && e.status === 400) schema = undefined
+      console.warn('[logos] again:', e instanceof Error ? e.message : e)
+    }
+  }
 }
