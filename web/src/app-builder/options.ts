@@ -133,6 +133,17 @@ export interface Question {
 
 const notGame = (a: Answers) => kindOf(a) !== 'game'
 
+/** The ways to charge, for the charging question, with what each means for the prototype. */
+export const CHARGES = [
+  {value: 'subscription', label: 'A subscription', hint: 'Monthly or yearly, often with a free trial: how most coaching apps charge', draws: 'a subscription, monthly and yearly with a free trial: a Pro screen (the paywall) and the price on the landing page'},
+  {value: 'one-off', label: 'One-off purchases', hint: 'A program, a course or a pass, bought once and kept', draws: 'one-off purchases (a program, a course or a pass, bought once): what is free and what is bought, and a purchase screen, instead of a subscription'},
+  {value: 'freemium', label: 'Free, with paid extras', hint: 'The basics free for everyone; Pro unlocks the rest', draws: 'free, with paid extras: most of it free, and a Pro screen for what it unlocks'},
+  {value: 'free', label: 'Free', hint: 'It brings people to what you already sell', draws: 'free: no paywall and no Pro screen; the landing page says it’s free'},
+  {value: 'unsure', label: 'Not sure yet', hint: 'We’ll work it out together on a call', draws: 'not decided: a Pro screen with the price as a [placeholder]'},
+] as const
+
+export const chargeOf = (a: Answers) => CHARGES.find((c) => c.value === a.charge)
+
 export const SECTIONS = ['The idea', 'The name', 'Onboarding', 'The method', 'Look and feel', 'About you'] as const
 
 /**
@@ -200,6 +211,16 @@ export const QUESTIONS: Question[] = [
     ],
   },
   {key: 'photo', section: 'Look and feel', ask: 'A photo for the app', why: 'The landing page, onboarding and Home lead with it. Here are a few found from what you’ve told us: pick one, search your own words, or paste a link to your own.', example: 'surfing big waves'},
+
+  // Charging: how it pays for itself, which shapes the Pro screen, the landing page's price and the store listing.
+  {
+    key: 'charge',
+    section: 'About you',
+    ask: 'Would you charge for it, and how?',
+    why: 'It shapes the paywall, the landing page’s price and the store listing.',
+    default: 'unsure',
+    choices: CHARGES.map(({value, label, hint}) => ({value, label, hint})),
+  },
 
   // About you: what the research needs first
   {key: 'audience', section: 'About you', ask: 'How big is your audience today?', why: 'Followers, a mailing list, clients: the app sells to them first.', example: '12k on Instagram, 2,000 on the mailing list'},

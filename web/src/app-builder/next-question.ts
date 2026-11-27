@@ -25,6 +25,7 @@ const ORDER: {key: string; part: 1 | 2 | 3}[] = [
   {key: 'photo', part: 3},
   {key: 'name', part: 3},
   {key: 'nameSure', part: 3},
+  {key: 'charge', part: 3},
   {key: 'audience', part: 3},
   {key: 'ambition', part: 3},
   {key: 'email', part: 3},
