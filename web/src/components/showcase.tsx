@@ -512,6 +512,15 @@ function Stores({o, pic, icon, built}: {o: Options; pic: (n: number) => Pic | un
   )
 }
 
+/** Moves the deck on a slide, from anywhere on the page (the reveal's "See your landing page"). */
+export const nextSlide = () => window.dispatchEvent(new Event('fohm:deck-next'))
+
+/** How much of the deck they've seen, told to the page as it changes (BuildBar waits for the whole tour). */
+export interface DeckProgress {
+  seen: number
+  total: number
+}
+
 /** With `built`, the app and the dashboard are the prototype Claude drew; without it, the quick sketch. */
 /**
  * The deck, with `intro` (the app's reveal: its icon, name, look and the phone to tap through) as
@@ -666,12 +675,30 @@ export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]
   )
 
   const [at, setAt] = useState(0)
+  // The slides they've opened: ticked in the steps, and counted, so nothing is easy to miss.
+  const [seen, setSeen] = useState<Set<number>>(() => new Set([0]))
   const deck = useRef<HTMLElement>(null)
   const moved = useRef(false)
   const go = (n: number) => {
     moved.current = true
-    setAt((n + slides.length) % slides.length)
+    const next = (n + slides.length) % slides.length
+    setAt(next)
+    setSeen((had) => new Set(had).add(next))
   }
+  const goRef = useRef(go)
+  goRef.current = go
+  const atRef = useRef(at)
+  atRef.current = at
+
+  useEffect(() => {
+    const onNext = () => goRef.current(atRef.current + 1)
+    window.addEventListener('fohm:deck-next', onNext)
+    return () => window.removeEventListener('fohm:deck-next', onNext)
+  }, [])
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent<DeckProgress>('fohm:deck-progress', {detail: {seen: seen.size, total: slides.length}}))
+  }, [seen, slides.length])
 
   // On a phone, a new slide starts in view: its tab scrolled into the row, and the deck's top on screen if it had scrolled away.
   useEffect(() => {
@@ -702,10 +729,20 @@ export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]
         if (e.key === 'ArrowLeft') go(at - 1)
       }}
     >
-      <nav className="deck__dots" aria-label="Slides">
+      <nav className="deck__dots" aria-label={`The tour: ${seen.size} of ${slides.length} seen`}>
         {slides.map((s, i) => (
-          <button key={s.name} type="button" className={i === at ? 'is-on' : undefined} aria-current={i === at} onClick={() => go(i)}>
+          <button
+            key={s.name}
+            type="button"
+            className={`${i === at ? 'is-on' : ''}${seen.has(i) ? ' is-seen' : ' is-new'}`}
+            aria-current={i === at ? 'step' : undefined}
+            onClick={() => go(i)}
+          >
+            <span className="deck__step" aria-hidden>
+              {seen.has(i) && i !== at ? '✓' : i + 1}
+            </span>
             {s.name}
+            {!seen.has(i) && <span className="sr-only"> (not seen yet)</span>}
           </button>
         ))}
       </nav>
@@ -713,14 +750,17 @@ export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]
         {slides[at].node}
       </div>
       <div className="deck__nav">
-        <button type="button" className="text-btn" onClick={() => go(at - 1)}>
-          Back
+        <button type="button" className="deck__back" onClick={() => go(at - 1)} disabled={at === 0}>
+          ← Back
         </button>
         <span className="deck__count">
-          {String(at + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
+          <span className="deck__progress" aria-hidden>
+            <i style={{width: `${(seen.size / slides.length) * 100}%`}} />
+          </span>
+          {seen.size === slides.length ? 'All seen' : `${seen.size} of ${slides.length} seen`}
         </span>
-        <button type="button" className="btn btn-primary" onClick={() => (at === slides.length - 1 ? openBuild() : go(at + 1))}>
-          {at === slides.length - 1 ? 'Build it with me' : 'Next'} <Arrow />
+        <button type="button" className="deck__next" onClick={() => (at === slides.length - 1 ? openBuild() : go(at + 1))}>
+          {at === slides.length - 1 ? 'Build it with me' : <>Next: {slides[at + 1].name}</>} <Arrow />
         </button>
       </div>
     </section>
