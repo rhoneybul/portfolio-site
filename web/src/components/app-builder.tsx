@@ -16,6 +16,7 @@ import {onAccent} from '@/app-builder/options'
 import {RefPicture} from '@/components/ref-picture'
 import {Gallery, Lightbox, Strip, type Slide} from '@/components/gallery'
 import {NameCheckPanel} from '@/components/name-check'
+import {addSpent, spentSoFar} from '@/components/spent'
 import {useListing} from '@/components/ref-picture'
 import type {Reference} from '@/app-builder/references'
 import {LAST, LISTS, PARTS, fallbackNext, needsClaude, totalQuestions, type Next, type Turn} from '@/app-builder/next-question'
@@ -35,10 +36,12 @@ type Phase = 'intro' | 'asking' | 'building' | 'built'
 
 const KEPT = 'fohm-app-builder'
 
-export function AppBuilder({whatsapp, bookingUrl, className}: {
+export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
   whatsapp?: string | null
   bookingUrl?: string | null
   className?: string
+  /** Set while the builder is switched off (app-builder/switch.ts): what the page says instead of Start. */
+  paused?: string | null
 }) {
   const [answers, setAnswers] = useState<Answers>(emptyAnswers)
   // This visit's reference: sent with what they build and with a call they book, so Slack can join the two.
@@ -136,14 +139,11 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
 
-  // Once their app is drawn, the channel hears about it.
-  useEffect(() => {
-    if (phase === 'built') tell('used')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase])
-
-  /** Tells the Fohm Slack channel what happened (/api/builder-event). Never waits, never fails the page. */
-  const tell = (event: 'used' | 'whatsapp') => {
+  /**
+   * Tells the Fohm Slack channel what happened (/api/builder-event). Never waits, never fails the page.
+   * A build tells it itself, from the server, with what it cost (app-builder/mcp-build.ts).
+   */
+  const tell = (event: 'whatsapp') => {
     try {
       const body = JSON.stringify({event, answers: {...answers, heard}, prototype: app?.id, ref})
       if (!navigator.sendBeacon?.('/api/builder-event', new Blob([body], {type: 'application/json'})))
@@ -233,7 +233,14 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           how it works and how it looks, choosing each from what you’ve already said. Five minutes or so, and you can skip
           anything you’re not sure of.
         </p>
-        {resumable ? (
+        {paused ? (
+          <div className="intro__paused" role="status">
+            <p>
+              <strong>{paused}</strong> I can still design your app with you on a free call.
+            </p>
+            {bookingUrl && <BookCall url={bookingUrl} label="Book a free call" from="app-builder-paused" builderRef={ref} />}
+          </div>
+        ) : resumable ? (
           <div className="intro__resume">
             <p>
               You started designing <strong>{answers.name?.trim() || 'an app'}</strong> earlier. Carry on where you left off, or start a new one.
@@ -268,7 +275,7 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
             <strong>A way to build it for real.</strong> Book a free call and I’ll take it from the prototype to the stores.
           </li>
         </ul>
-        {start}
+        {!paused && start}
       </div>
     )
   }
@@ -283,6 +290,9 @@ export function AppBuilder({whatsapp, bookingUrl, className}: {
           onGallery={setGallery}
           heard={heard}
           onHeard={setHeard}
+          spent={spentSoFar()}
+          builderRef={ref}
+          bookingUrl={bookingUrl}
           onBuilt={(b) => {
             setBuilt({for: key, app: b})
             setNote(null)
@@ -743,7 +753,8 @@ async function nextTurn(answers: Answers, done: string[]): Promise<Next> {
       body: JSON.stringify({answers, done}),
       signal: stop.signal,
     })
-    const next = res.ok ? ((await res.json()) as Next) : null
+    const next = res.ok ? ((await res.json()) as Next & {spent?: unknown}) : null
+    addSpent(next?.spent)
     if (!next) return fallback
     // Only a question still to ask: anything else is the fixed order's.
     return next.done || (typeof next.key === 'string' && !done.includes(next.key) && QUESTIONS.some((q) => q.key === next.key)) ? next : fallback

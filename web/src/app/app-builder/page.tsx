@@ -5,6 +5,7 @@ import {TopBar} from '@/components/top-bar'
 import {SiteFooter} from '@/components/site-footer'
 import {ContactSection} from '@/components/contact-section'
 import {AppBuilder} from '@/components/app-builder'
+import {builderSwitch} from '@/app-builder/switch'
 
 export const metadata: Metadata = {
   title: 'App builder',
@@ -16,7 +17,7 @@ const display = Space_Grotesk({subsets: ['latin'], weight: ['500', '600'], varia
 const text = DM_Sans({subsets: ['latin'], weight: ['400', '500', '600'], variable: '--x-text'})
 
 export default async function AppBuilderPage() {
-  const settings = await getSettings()
+  const [settings, power] = await Promise.all([getSettings(), builderSwitch()])
 
   return (
     <>
@@ -27,6 +28,7 @@ export default async function AppBuilderPage() {
           <AppBuilder
             whatsapp={settings?.whatsapp}
             bookingUrl={settings?.bookingUrl}
+            paused={power.paused ? power.message || 'The app builder is paused for now.' : null}
             className={`${display.variable} ${text.variable}`}
           />
         </section>

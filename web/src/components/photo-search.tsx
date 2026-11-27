@@ -1,5 +1,6 @@
 'use client'
 
+import {addSpent} from '@/components/spent'
 import {useEffect, useState} from 'react'
 import type {Answers} from '@/app-builder/options'
 import {ideaAnswers, photoIdeas, tidy} from '@/app-builder/photo-ideas'
@@ -43,6 +44,7 @@ export function ideasFor(answers: Answers): Promise<string[]> {
       fetch('/api/photo-ideas', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({answers: a})})
         .then((r) => (r.ok ? r.json() : null))
         .then((j) => {
+          addSpent(j?.spent)
           const terms = tidy(j?.terms)
           return terms.length ? terms : photoIdeas(a)
         })

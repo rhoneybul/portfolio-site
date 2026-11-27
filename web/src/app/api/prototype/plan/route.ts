@@ -1,6 +1,7 @@
 import {NextResponse, after} from 'next/server'
 import {QUESTIONS, resolveOptions, type Answers} from '@/app-builder/options'
 import {claudeOn} from '@/app-builder/claude'
+import {PAUSED, builderPaused} from '@/app-builder/switch'
 import {cleanPhotos, planPrototype, signJob, withMark} from '@/app-builder/prototype'
 import {cleanMarkPath} from '@/app-builder/prototype-doc'
 import {saveJob} from '@/app-builder/prototypes'
@@ -22,6 +23,7 @@ const allowed = limiter()
 
 export async function POST(request: Request) {
   if (!claudeOn()) return NextResponse.json({off: true}, {status: 503})
+  if (await builderPaused()) return NextResponse.json(PAUSED, {status: 503})
   const body = (await request.json().catch(() => null)) as {answers?: Answers; photos?: unknown; logo?: unknown} | null
   const keys = [...QUESTIONS.map((q) => q.key), 'photoCredit', 'scheme']
   const answers = Object.fromEntries(keys.map((k) => [k, String(body?.answers?.[k] ?? '').trim().slice(0, 600)])) as Answers

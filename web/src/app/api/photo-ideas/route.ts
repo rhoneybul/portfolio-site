@@ -1,5 +1,7 @@
 import {NextResponse} from 'next/server'
 import {askClaude, claudeOn} from '@/app-builder/claude'
+import {Meter, metered} from '@/app-builder/cost'
+import {builderPaused} from '@/app-builder/switch'
 import {ideaAnswers, photoIdeas, templateHint, tidy} from '@/app-builder/photo-ideas'
 import type {Answers} from '@/app-builder/options'
 
@@ -38,23 +40,24 @@ export async function POST(request: Request) {
     a.interests && `What people are there for: ${a.interests}`,
     a.goals && `What people work towards: ${a.goals}`,
   ].filter(Boolean)
-  if (!claudeOn() || !told.length) return NextResponse.json({terms: fallback, from: 'answers'})
+  if (!claudeOn() || !told.length || (await builderPaused())) return NextResponse.json({terms: fallback, from: 'answers'})
 
+  const meter = new Meter()
   try {
-    const text = await askClaude({
+    const text = await metered(meter, () => askClaude({
       model: MODEL,
       system: [ASK],
       user: told.join('\n'),
       maxTokens: 2_000,
       deadline: Date.now() + 15_000,
-    })
+    }))
     const terms = tidy(JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}').terms)
     if (!terms.length) throw new Error('No terms')
     if (known.size > 500) known.clear()
     known.set(key, terms)
-    return NextResponse.json({terms, from: 'claude'})
+    return NextResponse.json({terms, from: 'claude', spent: meter.spent})
   } catch (e) {
     console.warn('photo-ideas: from the answers instead of Claude', e instanceof Error ? e.message : e)
-    return NextResponse.json({terms: fallback, from: 'answers'})
+    return NextResponse.json({terms: fallback, from: 'answers', spent: meter.spent})
   }
 }

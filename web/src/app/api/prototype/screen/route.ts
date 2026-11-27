@@ -1,5 +1,6 @@
 import {NextResponse, after} from 'next/server'
 import {claudeOn} from '@/app-builder/claude'
+import {PAUSED, builderPaused} from '@/app-builder/switch'
 import {drawUnit, verifyJob, type Job} from '@/app-builder/prototype'
 import {saveUnit} from '@/app-builder/prototypes'
 
@@ -16,6 +17,7 @@ const draws = new Map<string, number>()
 
 export async function POST(request: Request) {
   if (!claudeOn()) return NextResponse.json({off: true}, {status: 503})
+  if (await builderPaused()) return NextResponse.json(PAUSED, {status: 503})
   const body = (await request.json().catch(() => null)) as {job?: Job; token?: string; unit?: string} | null
   const job = body?.job
   if (!job || typeof job !== 'object' || !/^[a-f0-9]{32}$/.test(String(job.id)) || !verifyJob(job, String(body?.token ?? '')))

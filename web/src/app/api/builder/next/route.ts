@@ -1,5 +1,7 @@
 import {NextResponse} from 'next/server'
 import {askClaude, claudeOn} from '@/app-builder/claude'
+import {Meter, metered} from '@/app-builder/cost'
+import {builderPaused} from '@/app-builder/switch'
 import {addressOf, limiter} from '@/app-builder/rate-limit'
 import {cleanRequest, cleanTurn, fallbackNext, needsClaude, rowsFor, saidSoFar, type Next} from '@/app-builder/next-question'
 
@@ -51,27 +53,28 @@ const known = new Map<string, Next>()
 export async function POST(request: Request) {
   const {answers, done} = cleanRequest(await request.json().catch(() => null))
   const fallback = fallbackNext(answers, done)
-  if (!claudeOn() || !needsClaude(answers, done)) return NextResponse.json({...fallback, from: 'order'})
+  if (!claudeOn() || !needsClaude(answers, done) || (await builderPaused())) return NextResponse.json({...fallback, from: 'order'})
 
   const cacheKey = JSON.stringify([answers, done])
   const cached = known.get(cacheKey)
   if (cached) return NextResponse.json({...cached, from: 'claude'})
   if (!allowed(`address:${addressOf(request)}`, PER_ADDRESS)) return NextResponse.json({...fallback, from: 'order'})
 
+  const meter = new Meter()
   try {
-    const text = await askClaude({
+    const text = await metered(meter, () => askClaude({
       model: MODEL,
       system: [SYSTEM],
       user: `What they've said so far:\n${saidSoFar(answers, done) || '- Nothing yet'}\n\nThe rows still to ask:\n${rowsFor(answers, done)}`,
       maxTokens: 1_200,
       deadline: Date.now() + THINKING_MS,
-    })
+    }))
     const turn = cleanTurn(JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}'), answers, done)
     if (known.size > 500) known.clear()
     known.set(cacheKey, turn)
-    return NextResponse.json({...turn, from: 'claude'})
+    return NextResponse.json({...turn, from: 'claude', spent: meter.spent})
   } catch (e) {
     console.warn('builder/next: the fixed order instead of Claude', e instanceof Error ? e.message : e)
-    return NextResponse.json({...fallback, from: 'order'})
+    return NextResponse.json({...fallback, from: 'order', spent: meter.spent})
   }
 }

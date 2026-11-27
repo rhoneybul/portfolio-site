@@ -13,6 +13,7 @@ export const siteSettings = defineType({
     {name: 'pricing', title: 'Pricing'},
     {name: 'contact', title: 'Contact'},
     {name: 'seo', title: 'SEO'},
+    {name: 'appBuilder', title: 'App builder'},
   ],
   fields: [
     defineField({name: 'name', type: 'string', group: 'hero', validation: (rule) => rule.required()}),
@@ -288,6 +289,23 @@ export const siteSettings = defineType({
         defineField({name: 'title', type: 'string'}),
         defineField({name: 'description', type: 'text', rows: 3}),
       ],
+    }),
+    defineField({
+      name: 'appBuilderPaused',
+      title: 'Pause the app builder',
+      description:
+        'Switches the app builder off within a minute, with no deploy: the page offers a call instead of Start, and nothing more is asked of Claude. Builds already running finish.',
+      type: 'boolean',
+      group: 'appBuilder',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'appBuilderPausedMessage',
+      title: 'What the page says while it’s paused',
+      description: 'Optional. Leave blank for “The app builder is paused for now.”',
+      type: 'string',
+      group: 'appBuilder',
+      hidden: ({document}) => !document?.appBuilderPaused,
     }),
   ],
   preview: {prepare: () => ({title: 'Site settings'})},
