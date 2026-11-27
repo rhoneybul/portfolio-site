@@ -1851,6 +1851,29 @@ a.proof:hover .proof__arrow {
   color: var(--muted);
 }
 
+.photos__tile {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.photos__by {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.photos__by a,
+.photos__credit a,
+.x-photo__credit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .photos__own {
   display: grid;
   gap: 6px;

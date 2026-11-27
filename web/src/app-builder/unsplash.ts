@@ -49,13 +49,18 @@ export async function searchUnsplash(q: string): Promise<Found[]> {
   const photos = ((await res.json()) as {results?: Photo[]}).results ?? []
   return photos
     .filter((p) => p.urls?.regular?.startsWith('https://images.unsplash.com/') && p.links?.download_location?.startsWith(`${API}/`))
-    .map((p) => ({
-      url: p.urls.regular,
-      thumb: p.urls.small,
-      credit: `${p.user.name.replace(/[<>"]/g, '').slice(0, 80) || 'A photographer'} on Unsplash`,
-      page: `${p.links.html}?${UTM}`,
-      download: p.links.download_location,
-    }))
+    .map((p) => {
+      const author = p.user.name.replace(/[<>"]/g, '').slice(0, 80) || 'A photographer'
+      return {
+        url: p.urls.regular,
+        thumb: p.urls.small,
+        credit: `Photo by ${author} on Unsplash`,
+        page: `${p.links.html}?${UTM}`,
+        author,
+        profile: p.user.links.html?.startsWith('https://unsplash.com/') ? `${p.user.links.html}?${UTM}` : undefined,
+        download: p.links.download_location,
+      }
+    })
 }
 
 /** Tells Unsplash a photo was picked: its API asks for this each time one is used. Only its own addresses. */
