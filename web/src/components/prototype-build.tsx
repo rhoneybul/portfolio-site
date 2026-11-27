@@ -127,7 +127,8 @@ export function PrototypeBuild({
   const [elapsed, setElapsed] = useState(0)
   // The logo round, for an owner without a logo: the marks Claude drew, and the one picked (the first until they tap).
   const wantsLogo = answers.logo !== 'yes'
-  const [marks, setMarks] = useState<Mark[] | 'drawing' | 'none'>(wantsLogo ? 'drawing' : 'none')
+  // 'none' is no logo wanted; 'failed' is a round that came back empty, which can be drawn again.
+  const [marks, setMarks] = useState<Mark[] | 'drawing' | 'none' | 'failed'>(wantsLogo ? 'drawing' : 'none')
   const [picked, setPicked] = useState(0)
   const [drawingMore, setDrawingMore] = useState(false)
   const pickedRef = useRef(0)
@@ -162,7 +163,7 @@ export function PrototypeBuild({
             .then((r) => (r.ok ? r.json() : null))
             .then((b: {marks?: Mark[]} | null) => b?.marks ?? [])
             .catch(() => [])
-    void logos.then((m) => setMarks(m.length ? m : 'none'))
+    void logos.then((m) => setMarks(m.length ? m : a.logo === 'yes' ? 'none' : 'failed'))
 
     void (async () => {
       const photos = await findPhotos(a, o, liked)
@@ -216,7 +217,7 @@ export function PrototypeBuild({
 
   /** Another of the logo round's marks: shown at once, then set on the plan and saved once there is one. */
   const pick = (i: number) => {
-    if (marks === 'drawing' || marks === 'none' || !marks[i]) return
+    if (!Array.isArray(marks) || !marks[i]) return
     setPicked(i)
     pickedRef.current = i
     const d = marks[i].d
@@ -241,10 +242,14 @@ export function PrototypeBuild({
     setDrawingMore(true)
     const res = await fetch('/api/prototype/logos', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({answers})}).catch(() => null)
     const more = res?.ok ? (((await res.json().catch(() => null)) as {marks?: Mark[]} | null)?.marks ?? []) : []
-    setMarks((had) => (had === 'drawing' || had === 'none' ? had : [...had, ...more.filter((m) => !had.some((h) => h.d === m.d))]))
+    setMarks((had) => {
+      const kept = Array.isArray(had) ? had : []
+      const all = [...kept, ...more.filter((m) => !kept.some((h) => h.d === m.d))]
+      return all.length ? all : 'failed'
+    })
     setDrawingMore(false)
   }
-  const pickedIcon = marks !== 'drawing' && marks !== 'none' && marks[picked] ? iconOf(marks[picked].d) : undefined
+  const pickedIcon = Array.isArray(marks) && marks[picked] ? iconOf(marks[picked].d) : undefined
 
   const units = job?.plan.units ?? []
   const count = units.filter((u) => states[u.id] === 'done').length
@@ -267,7 +272,11 @@ export function PrototypeBuild({
       ? [
           [
             'Drawing logo ideas',
-            marks === 'drawing' ? 'Claude draws four marks for your app, judged at the size of a home-screen icon' : marks === 'none' ? 'No logo ideas this time: your app keeps the icon its plan chooses' : `${marks.length} ideas: tap one to use it, on every screen`,
+            marks === 'drawing'
+              ? 'Claude draws four marks for your app, judged at the size of a home-screen icon'
+              : !Array.isArray(marks)
+                ? 'The logo ideas didn’t come through: try again below, or your app keeps a lettered icon'
+                : `${marks.length} ideas: tap one to use it, on every screen`,
             marks !== 'drawing',
             marks === 'drawing',
           ] as [string, string, boolean, boolean],
@@ -326,8 +335,15 @@ export function PrototypeBuild({
         <section className="building__logos" aria-labelledby="logo-ideas">
           <div className="building__logos-head">
             <strong id="logo-ideas">Your logo</strong>
-            <span>{marks === 'drawing' ? 'Drawing a few ideas first…' : 'Pick the one you like: it’s used on every screen. You can change it while the rest is drawn.'}</span>
+            <span>
+              {marks === 'drawing'
+                ? 'Drawing a few ideas first…'
+                : marks === 'failed'
+                  ? 'Your app has a lettered icon for now.'
+                  : 'Pick the one you like: it’s used on every screen. You can change it while the rest is drawn.'}
+            </span>
           </div>
+          {marks === 'failed' && !drawingMore && <p className="building__logos-failed">They didn’t come through this time.</p>}
           <ul className={marks === 'drawing' ? 'is-pending' : undefined}>
             {marks === 'drawing'
               ? Array.from({length: 4}, (_, i) => (
@@ -335,7 +351,7 @@ export function PrototypeBuild({
                     <span className="building__logo-blank" />
                   </li>
                 ))
-              : marks.map((m, i) => (
+              : (Array.isArray(marks) ? marks : []).map((m, i) => (
                   <li key={m.d}>
                     <button type="button" aria-pressed={i === picked} className={i === picked ? 'is-on' : undefined} onClick={() => pick(i)}>
                       <AppIcon name={options.name} accent={options.accent} icon={iconOf(m.d)} size={64} />
@@ -353,7 +369,7 @@ export function PrototypeBuild({
           </ul>
           {marks !== 'drawing' && (
             <button type="button" className="text-btn building__more" onClick={moreMarks} disabled={drawingMore}>
-              {drawingMore ? 'Drawing more ideas…' : 'Draw more ideas'}
+              {drawingMore ? 'Drawing more ideas…' : marks === 'failed' ? 'Try drawing logos again' : 'Draw more ideas'}
             </button>
           )}
         </section>

@@ -5732,3 +5732,10 @@ details.calls[open] > summary::after {
   display: block;
   flex-basis: 0;
 }
+
+/* A logo round that came back empty: said once, with a way to draw again under it. */
+.building__logos-failed {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
