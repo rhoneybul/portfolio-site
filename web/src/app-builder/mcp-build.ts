@@ -73,7 +73,7 @@ async function findPhotos(answers: Answers, searches: string[]): Promise<Photo[]
   for (let r = 0; found.length < 11 && lists.some((l) => l[r]); r++)
     lists.forEach((l, i) => {
       const f = l[r]
-      if (f && found.length < 11 && !found.some((x) => x.url === f.url)) found.push({url: f.url, credit: f.credit, about: terms[i]})
+      if (f && found.length < 11 && !found.some((x) => x.url === f.url)) found.push({url: f.url, credit: f.credit, about: f.alt ? `${terms[i]}: ${f.alt}` : terms[i]})
     })
   return found
 }

@@ -18,6 +18,8 @@ export interface Found {
   profile?: string
   /** Unsplash's download address for the photo, told when it's picked, as its API guidelines ask (unsplash.ts). */
   download?: string
+  /** What the photo shows, in its source's words ("a rowing eight on a river at dawn"), so it's picked for its slot by what's in it. */
+  alt?: string
 }
 
 const ALLOWED = /^(cc0|public domain|pd|cc by(-sa)?( \d\.\d)?)/i

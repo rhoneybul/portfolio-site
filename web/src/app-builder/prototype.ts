@@ -9,6 +9,7 @@ import {TEMPLATES, chargeOf, type Answers, type Options} from './options'
 import {CANVASES, CORNERS, HOMES, HOUSE, SHAPES, TYPES, TYPE_FACES, type Drawn, type Job, type Photo, type Plan, type Style, type Unit} from './prototype-doc'
 import {DRAW_MODEL, PLAN_MODEL, askClaude} from './claude'
 import {referencesIn} from './references'
+import {MARK_SLUGS} from './brand-marks'
 import {schemeById} from './schemes'
 
 export type {Job}
@@ -117,7 +118,7 @@ const COACHING = (o: Options) =>
 
 const photoList = (photos: Photo[], urls: boolean) =>
   photos.length
-    ? photos.map((p, i) => `Photo ${i + 1}${p.about ? ` (${p.about})` : ''}${urls ? `: ${p.url}` : ''}. Credit: ${p.credit || 'none given'}`).join('\n')
+    ? photos.map((p, i) => `Photo ${i + 1}${p.about ? ` (searched for, and what it shows: ${p.about})` : ''}${urls ? `: ${p.url}` : ''}. Credit: ${p.credit || 'none given'}`).join('\n')
     : 'No photos: draw photo slots as an empty .thumb, .hero or .photo-card img box with alt text saying what goes there.'
 
 const kebab = (s: unknown) =>
@@ -245,6 +246,10 @@ A quiet, native-feeling app: a canvas, borderless cards one step off it, hairlin
 - No stat tile for a long fact: a fact longer than a number or a word is a row.
 - Photos in every slot: a hero on the landing page and onboarding's opening, the goal on Home (as its hero when the look's Home leads with a photo), a .thumb on every row of things (sessions, goals, library items), a photo on every hub card, an empty state with a photo and a line. Use only the photo URLs given, as <img src="URL" alt="what it shows">. Where a photo leads a card or a screen, its credit goes in a .credit line inside that card or under the hero.
 - People have no photos: initials in an avatar, <span class="avatar initials">MO</span>.
+- A photo shows what its slot is about: the activity itself, done the way the facts describe it (the same sport, boat, kit and setting). Read each photo's "about" and pick by it; never a photo of something else that looks a bit like it. Where no photo fits a slot, use a .tint panel or a .deep card instead: no photo is better than a wrong one.
+- Other companies are never photos: a service, device or way to sign in is drawn with its mark (below), never a picture of the thing.
+- Signing in is always the real buttons with their marks, Apple first on a phone: <a class="sso apple" data-go="UNIT"><i class="mark mark-apple"></i>Continue with Apple</a>, <a class="sso" data-go="UNIT"><i class="mark mark-google"></i>Continue with Google</a>, and <a class="sso" data-go="UNIT"><i class="mark mark-email"></i>Continue with email</a>.
+- A connection to another app or device (Strava, Garmin, Apple Health) is a .row led by its mark: <i class="mark mark-strava"></i>. Marks there are: ${MARK_SLUGS.join(', ')}. A service without one gets a lettered tile, <i class="mark" data-l="C2"></i>, with its initials.
 - The app's icon is <span class="app-icon"></span> (.sm 32px, .lg 76px), drawn for you; never draw a logo of your own, and never a photo or letter in its place. It goes, with the app's name beside it, at the top of the landing page (in its .site-nav), on onboarding's opening and on signing in (.lg, above the title); the dashboard's .brand shows it too.
 - A screen that is one photo and a line or two (onboarding's opening, a welcome, a goal reached) is a .cover, never a hero over an empty screen.
 - Words: the business's own, in plain English, warm and direct, using the app's words for its people. Never lorem ipsum. A fact not given (a price, a date, a count about the business) is a [placeholder] in square brackets, like [YOUR PRICE]. The plan's world gives the sample member and the dashboard's people: use it.
@@ -259,6 +264,7 @@ Phone screens (390 wide; the top 44px are left clear; long screens scroll):
 - Cards and rows: .card; .list holding .row items, each with an optional img.thumb or .avatar, then <div class="grow"><div class="t">Title</div><div class="s">Subtitle</div></div>, then a trailing .num, .chip or <span class="chev"></span>; .note (a tip on raised grey).
 - Photos: .photo-card.tall (a 300px photo); img.hero (full width, 340 tall; add .round for rounded lower corners; put class="screen bleed" on the section when the hero starts at the very top); .hero-top (a hero at the very top with the app's bar laid over it: <div class="hero-top"><img class="hero round" src="URL" alt="…"><div class="over"><span class="row-x"><span class="app-icon sm"></span><span class="label">App name</span></span><a class="link" data-go="UNIT">Sign in</a></div></div>, in a section with class="screen bleed"); a full-screen photo with the words over it: class="screen cover" on the section, the <img src="URL" alt="…"> as its first child, then <div class="over"> for the top (the app's icon and name, or the dots and Skip), then the words in a .pad .stack (a .hero-title, a .lead), the pill in a .pad, and the .credit in a .pad; nothing else. .photo-card (an img, then <div class="in"> with .heading or .t, .s and .credit); img.thumb (56px); .avatar, .avatar.lg; .credit; .player (an img and <span class="play"></span>) for a video.
 - Actions: the primary <a class="pill" data-go="UNIT"><span>Label</span><span class="disc"></span></a>; .quiet (a grey full-width button); .link; .foot (a fixed bottom area for onboarding's pill and Skip).
+- Marks of other services: <i class="mark mark-SLUG"></i> (a 40px tile; .sm 28, .lg 56), or <i class="mark" data-l="AB"></i>; .sso (a full-width "Continue with" button: .apple for Apple's black one).
 - Picks: .chips of .chip; .choice rows; .tiles of .tile (an img and <span class="t">Label</span>); .on marks the chosen one; wrap a group in data-pick="one" or data-pick="many" and a tap picks.
 - Progress: .dots with an <i></i> a step (.on for this step); <div class="track"><span style="width:40%"></span></div>; .stat (a .big-num or .num, and a .small); .week of seven .day (<span>M</span><b>12</b>; .done, .today); .live (a small accent badge); .seg (a segmented control; .on on the chosen child); .field (<span>Label</span><div class="input">Placeholder</div>); .bubble and .bubble.me (messages).
 - The tab bar: on a screen that shows the app's tabs, put exactly <nav class="tabbar" data-tab="TAB"></nav> as the section's last child, where TAB is the unit of the tab it belongs to. It is filled in for you.

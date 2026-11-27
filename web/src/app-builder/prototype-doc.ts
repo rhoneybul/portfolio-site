@@ -6,6 +6,7 @@
  * only ever shown in a sandboxed frame (no same origin), so nothing in it can reach the site.
  * Plain: used in the browser and on the server.
  */
+import {marksCss} from './brand-marks'
 import {liftedAccent, needsYou, onAccent, soften} from './options'
 
 /** Where a unit is shown: the member's phone, the owner's dashboard on a laptop, or the website (the landing page) in a browser. */
@@ -357,6 +358,17 @@ ${iconMarkCss('.brand i::after', style.icon)}
 .screen[data-frame=laptop] .s,.screen[data-frame=laptop] .small,.screen[data-frame=laptop] .credit{color:var(--g-mid)}
 .screen[data-frame=laptop] .note{background:var(--g-card);color:#C9CCD1}
 .screen[data-frame=laptop] .initials{background:var(--g-line);color:#fff;font-size:13px}
+${marksCss()}
+/* Nothing is wider than its screen: a sideways strip in a grid once pushed a whole screen past the phone's edge. */
+.screen[data-frame=phone]{overflow-x:clip}
+.stack>*,.stack-sm>*,.stack-lg>*,.grid-2>*,.grid-3>*,.card>*,.deep>*,.tint>*,.list>*{min-width:0}
+.scroll-x{max-width:100%}
+.row>.num,.row>.chip,.row>.mark,.row>.thumb,.row>.avatar{flex:none}
+.t,.s,.title,.heading,.hero-title,.lead,.label{overflow-wrap:anywhere}
+/* Surfaces on a deep card or over a photo take its white words: a .stat there was white on white. */
+.deep .stat,.deep .card,.deep .list,.deep .note,.cover .stat,.cover .card{background:rgba(255,255,255,.12);color:#fff}
+.deep .list>.row+.row{border-top-color:rgba(255,255,255,.16)}
+.deep .chip,.cover .chip{background:rgba(255,255,255,.16);color:#fff}
 `
 }
 
