@@ -15,6 +15,7 @@ const EVENTS = {
   used: ':hammer_and_wrench: Someone built an app in the app builder',
   whatsapp: ':speech_balloon: Someone tapped WhatsApp from the app builder',
   interest: ':raised_hand: Someone wants to build their app with Fohm',
+  message: ':speech_balloon: A message after booking a call',
 } as const
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
@@ -31,6 +32,8 @@ export async function POST(request: Request) {
     prototype?: string
     /** The build window sent again: details added or changed after the first message. */
     again?: boolean
+    /** A message's call: when it's booked for. */
+    when?: string
   } | null
   const event = body?.event as keyof typeof EVENTS
   if (!event || !(event in EVENTS)) return NextResponse.json({error: 'Unknown event.'}, {status: 400})
@@ -48,6 +51,7 @@ export async function POST(request: Request) {
   }
   if (event === 'used' && !EMAIL.test(answers.email ?? '')) return NextResponse.json({error: 'An email address, please.'}, {status: 400})
   if (event === 'interest' && !EMAIL.test(contact.email)) return NextResponse.json({error: 'An email address, so I can get back to you.'}, {status: 400})
+  if (event === 'message' && !contact.note) return NextResponse.json({error: 'A message, please.'}, {status: 400})
 
   // The same message twice in a minute is a loop; adding a name, a note or notes is a new one.
   const key = `${event}:${answers.name}:${answers.email}:${contact.email}:${contact.name}:${contact.note.length}:${contact.notes.length}`
@@ -74,13 +78,15 @@ export async function POST(request: Request) {
     used: `:hammer_and_wrench: ${answers.email || 'Someone'} built ${options.name} in the app builder`,
     whatsapp: `:speech_balloon: Someone tapped WhatsApp about ${options.name}`,
     interest: body?.again ? `:pencil2: ${who} updated their details for ${options.name}` : `:raised_hand: ${who} wants to build ${options.name}`,
+    message: `:speech_balloon: ${contact.email || 'Someone'} sent a message after booking a call${answers.name ? ` about ${answers.name}` : ''}`,
   }[event]
   const feedback = contact.notes.split('\n').filter(Boolean)
   await toSlack(
     message(
       title,
       [
-        ['Email', event === 'interest' ? contact.email : answers.email],
+        ['Email', event === 'interest' || event === 'message' ? contact.email : answers.email],
+        ['Call', event === 'message' && body?.when ? String(body.when).slice(0, 40) : ''],
         ['Their note', contact.note],
         ['Feedback on screens', feedback.length ? `${feedback.slice(0, 3).join(' / ')}${feedback.length > 3 ? ` (+${feedback.length - 3} more in the submission)` : ''}` : ''],
         ...appRows(options, answers),

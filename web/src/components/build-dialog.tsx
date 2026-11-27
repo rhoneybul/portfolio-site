@@ -185,7 +185,7 @@ export function BuildDialog({answers, prototype, name, accent, icon, tagline, bo
           )}
         </section>
       </div>
-      {booked && <Booked at={booked.at} name={name} onDone={close} />}
+      {booked && <Booked at={booked.at} name={name} email={answers.email} builderRef={builderRef} onDone={close} />}
     </dialog>
   )
 }
