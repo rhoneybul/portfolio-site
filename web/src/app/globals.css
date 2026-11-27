@@ -5187,8 +5187,66 @@ details.calls[open] > summary::after {
   gap: 12px;
 }
 
-.intro__start {
+/* Start is the one filled button on the site: it's what the page is for, so it sits under the lead and again at the foot. */
+.intro__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  margin-top: 6px;
+}
+
+.intro__note {
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.builder .intro__start {
+  min-height: 56px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 17px;
+  transition: background 0.2s;
+}
+
+.builder .intro__start:hover {
+  background: var(--ink);
+  color: #fff;
+}
+
+.builder .intro__start:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.builder--intro > .intro__start {
   margin-top: 12px;
+}
+
+.intro__resume-actions {
+  align-items: center;
+  gap: 12px 22px;
+}
+
+@media (max-width: 520px) {
+  .intro__actions {
+    display: grid;
+    justify-items: stretch;
+    width: 100%;
+  }
+
+  .intro__actions .intro__start,
+  .builder--intro > .intro__start {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .intro__note {
+    text-align: center;
+  }
 }
 
 .chat {
