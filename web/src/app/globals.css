@@ -6643,3 +6643,36 @@ details.calls[open] > summary::after {
   max-width: 680px;
   padding: 40px 0;
 }
+
+/* After booking: a message to Rob before the call. */
+.booked__message {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 520px);
+  text-align: left;
+}
+
+.booked__message label {
+  font-weight: 600;
+}
+
+.booked__message textarea,
+.booked__message input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 16px;
+}
+
+.booked__message .btn {
+  justify-self: start;
+}
+
+.booked__sent {
+  margin: 0;
+  font-weight: 600;
+  color: #1f8a4c;
+}

@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useId, useRef, useState} from 'react'
+import {type FormEvent, useEffect, useId, useRef, useState} from 'react'
 import {Arrow} from '@/components/arrow'
 
 /**
@@ -175,7 +175,7 @@ export function BookCall({url, label = 'Book a call', variant = 'primary', from,
           </div>
         </div>
         <div id={elementId} className="booking-dialog__cal" />
-        {booked && <Booked at={booked.at} onDone={() => dialog.current?.close()} />}
+        {booked && <Booked at={booked.at} email={prefill?.email} builderRef={builderRef} onDone={() => dialog.current?.close()} />}
       </dialog>
     </>
   )
@@ -192,10 +192,25 @@ export function callTime(iso?: string) {
 
 /**
  * Over the booking window once a call is booked: a big, plain thank-you, so nobody is left reading
- * Cal.com's small print to find out whether it worked.
+ * Cal.com's small print to find out whether it worked, and a box to send Rob a message before the
+ * call (/api/builder-event, 'message': to Slack, with the booking's reference).
  */
-export function Booked({at, name, onDone}: {at?: string; name?: string; onDone: () => void}) {
+export function Booked({at, name, onDone, email = '', builderRef}: {at?: string; name?: string; onDone: () => void; email?: string; builderRef?: string}) {
   const when = callTime(at)
+  const [note, setNote] = useState('')
+  const [from, setFrom] = useState(email)
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
+  const send = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!note.trim()) return
+    setState('sending')
+    const res = await fetch('/api/builder-event', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({event: 'message', answers: {name: name ?? ''}, contact: {email: from.trim(), note: note.trim()}, ref: builderRef, when: at}),
+    }).catch(() => null)
+    setState(res?.ok ? 'sent' : 'failed')
+  }
   return (
     <div className="booked" role="status" aria-live="polite">
       <span className="booked__tick" aria-hidden>
@@ -210,10 +225,32 @@ export function Booked({at, name, onDone}: {at?: string; name?: string; onDone: 
         ) : (
           'Your call with Rob is booked.'
         )}{' '}
-        The invite and the link are in your email, and Rob will be in touch before then{name ? ` about ${name}` : ''}.
+        The invite and the link are in your email{name ? `, and Rob will look at ${name} before then` : ''}.
       </p>
-      <button type="button" className="btn btn-primary booked__done" onClick={onDone}>
-        Done
+      {state === 'sent' ? (
+        <p className="booked__sent">Sent. Rob will read it before your call.</p>
+      ) : (
+        <form className="booked__message" onSubmit={send}>
+          <label htmlFor="booked-note">Anything Rob should know before the call?</label>
+          <textarea
+            id="booked-note"
+            rows={3}
+            maxLength={1000}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="What you most want to get out of it, who else is involved, a link to look at…"
+          />
+          {!email && (
+            <input type="email" autoComplete="email" inputMode="email" maxLength={200} value={from} onChange={(e) => setFrom(e.target.value)} placeholder="Your email, so Rob can reply" aria-label="Your email" />
+          )}
+          {state === 'failed' && <p className="builder__error">That didn’t send. Try again, or reply to the invite.</p>}
+          <button type="submit" className="btn btn-primary" disabled={state === 'sending' || !note.trim()}>
+            {state === 'sending' ? 'Sending…' : 'Send to Rob'} <Arrow />
+          </button>
+        </form>
+      )}
+      <button type="button" className="btn btn-outline booked__done" onClick={onDone}>
+        {state === 'sent' ? 'Done' : 'Close'}
       </button>
     </div>
   )
