@@ -61,7 +61,6 @@ export interface Choices {
 // On globalThis: without the Blob store (development), each route is its own module and both must see one map.
 const memory: Map<string, Share> = ((globalThis as {fohmShares?: Map<string, Share>}).fohmShares ??= new Map())
 const sharePath = (id: string) => `shares/${id}.json`
-const choicesPath = (id: string) => `shares/${id}-choices.json`
 const choicesMemory: Map<string, Choices> = ((globalThis as {fohmChoices?: Map<string, Choices>}).fohmChoices ??= new Map())
 export const isShareId = (id: string) => /^[a-f0-9]{32}$/.test(id)
 export const shareUrl = (id: string) => `${siteUrl}/app-builder/p/${id}`
@@ -81,16 +80,26 @@ export async function readShare(id: string): Promise<Share | null> {
 /** Whether a share's link has run out: it works for LINK_DAYS days. */
 export const expired = (s: Share) => Date.now() - Date.parse(s.at) > LINK_DAYS * 86_400_000
 
+/** Each choice is a file of its own, so a logo picked and an answer given at the same moment never undo each other. */
+const choicePath = (id: string, key: keyof Choices) => `shares/${id}-${key}.json`
+
 export async function readChoices(id: string): Promise<Choices> {
   if (!submissionsOn()) return choicesMemory.get(id) ?? {}
-  const found = await get(choicesPath(id), {access: 'private', useCache: false}).catch(() => null)
-  return found?.stream ? ((JSON.parse(await new Response(found.stream).text()) as Choices) ?? {}) : {}
+  const one = async (key: keyof Choices) => {
+    const found = await get(choicePath(id, key), {access: 'private', useCache: false}).catch(() => null)
+    return found?.stream ? (JSON.parse(await new Response(found.stream).text()) as string) : undefined
+  }
+  const [mark, heard] = await Promise.all([one('mark'), one('heard')])
+  return {...(mark ? {mark} : {}), ...(heard ? {heard} : {})}
 }
 
 export async function saveChoices(id: string, patch: Choices) {
-  const next = {...(await readChoices(id)), ...patch}
-  if (!submissionsOn()) return void choicesMemory.set(id, next)
-  await put(choicesPath(id), JSON.stringify(next), {access: 'private', contentType: 'application/json', addRandomSuffix: false, allowOverwrite: true})
+  if (!submissionsOn()) return void choicesMemory.set(id, {...(choicesMemory.get(id) ?? {}), ...patch})
+  await Promise.all(
+    (Object.entries(patch) as [keyof Choices, string][]).map(([key, value]) =>
+      put(choicePath(id, key), JSON.stringify(value), {access: 'private', contentType: 'application/json', addRandomSuffix: false, allowOverwrite: true}),
+    ),
+  )
 }
 
 export async function startShare(answers: Answers, source: Share['source'] = 'mcp'): Promise<Share> {
@@ -181,13 +190,16 @@ async function build(share: Share, answers: Answers, searches: string[], deadlin
       // The mark they've picked (the round's first until they tap one) is the icon on every screen; a later pick applies from the next part drawn.
       let picked = ''
       let job: Job = planned
+      // Saves of the plan go one after another, so an older pick never lands after a newer one.
+      let saving: Promise<unknown> = Promise.resolve()
+      const save = () => (saving = saving.then(() => saveJob(job)))
       const withPick = async () => {
         const chosen = cleanMarkPath((await readChoices(s.id).catch(() => ({}) as Choices)).mark)
         const want = chosen || (s.marks?.length ? s.marks : marks)[0]?.d || ''
         if (!want || want === picked) return
         picked = want
         job = withMark(job, want)
-        await saveJob(job)
+        await save()
       }
       await withPick()
       await saveJob(job)
@@ -210,6 +222,8 @@ async function build(share: Share, answers: Answers, searches: string[], deadlin
       }
       await Promise.all(Array.from({length: AT_ONCE}, worker))
       await withPick()
+      // The plan as it ends, saved last whatever happened before: the pick the finished app shows.
+      await save()
       const phones = job.plan.units.filter((u) => u.frame === 'phone')
       const enough = phones.filter((u) => drawn.includes(u.id)).length >= Math.ceil(phones.length / 2)
       await update({status: enough ? 'done' : 'sketch'})
@@ -230,7 +244,8 @@ async function build(share: Share, answers: Answers, searches: string[], deadlin
 /** The visitor's link to their app, by email, once it's ready: off until the email service is set. */
 async function emailLink(s: Share, answers: Answers, bookingUrl?: string | null) {
   const to = answers.email?.trim()
-  if (!emailOn() || !to || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return false
+  // Only the website's builds: a chat tells the person its link itself, and says nothing else is sent to them.
+  if (s.source !== 'web' || !emailOn() || !to || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return false
   const {options} = resolveOptions(answers)
   return sendEmail({to, ...readyEmail({name: options.name, url: shareUrl(s.id), drawn: s.status === 'done', bookingUrl})})
 }
@@ -276,7 +291,7 @@ export async function tell(event: 'used' | 'interest', answers: Answers, t: Told
         ['Heard about Fohm', answers.heard],
         ['Name check', answers.nameCheck],
         ['Claude cost', t.spent && t.spent.calls > 0 && spendLine(t.spent)],
-        ['Emailed their link', event === 'used' && (t.emailed ? 'yes' : emailOn() ? 'no: the send failed' : 'no: RESEND_API_KEY and APP_BUILDER_FROM aren’t set')],
+        ['Emailed their link', event === 'used' && !chat && (t.emailed ? 'yes' : emailOn() ? 'no: the send failed' : 'no: RESEND_API_KEY and APP_BUILDER_FROM aren’t set')],
         ['Not saved', !page && 'BLOB_READ_WRITE_TOKEN isn’t set'],
       ],
       [

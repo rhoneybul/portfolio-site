@@ -1,5 +1,5 @@
 import {NextResponse} from 'next/server'
-import {readChoices, readShare, saveChoices} from '@/app-builder/mcp-build'
+import {expired, readChoices, readShare, saveChoices} from '@/app-builder/mcp-build'
 import {readJob, readUnit} from '@/app-builder/prototypes'
 import {cleanMarkPath} from '@/app-builder/prototype-doc'
 
@@ -17,10 +17,14 @@ export async function GET(request: Request, {params}: {params: Promise<{id: stri
   const {id} = await params
   const share = await readShare(id)
   if (!share) return NextResponse.json({error: 'No such build.'}, {status: 404})
+  if (expired(share)) return NextResponse.json({error: 'This link has expired.'}, {status: 410})
   const have = new Set((new URL(request.url).searchParams.get('have') ?? '').split(',').filter(Boolean))
   const [choices, job] = await Promise.all([readChoices(id).catch(() => ({})), share.prototype ? readJob(share.prototype) : Promise.resolve(null)])
   const fresh = (share.drawn ?? []).filter((u) => !have.has(u))
-  const units = share.prototype ? (await Promise.all(fresh.slice(0, 8).map((u) => readUnit(share.prototype!, u)))).filter(Boolean) : []
+  // A part that can't be read is left out and said to be missing, so the page never waits on it.
+  const read = share.prototype ? await Promise.all(fresh.map((u) => readUnit(share.prototype!, u))) : []
+  const units = read.filter(Boolean)
+  const missing = fresh.filter((_, i) => !read[i])
   return NextResponse.json(
     {
       status: share.status,
@@ -31,6 +35,7 @@ export async function GET(request: Request, {params}: {params: Promise<{id: stri
       mark: (choices as {mark?: string}).mark ?? null,
       job: job ? {id: job.id, look: job.look, plan: job.plan} : null,
       units,
+      missing,
       emailed: share.emailed ?? null,
       finished: Boolean(share.submission) || share.emailed !== undefined,
     },

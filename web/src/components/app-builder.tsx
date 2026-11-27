@@ -16,7 +16,7 @@ import {onAccent} from '@/app-builder/options'
 import {RefPicture} from '@/components/ref-picture'
 import {Gallery, Lightbox, Strip, type Slide} from '@/components/gallery'
 import {NameCheckPanel} from '@/components/name-check'
-import {addSpent, spentSoFar} from '@/components/spent'
+import {addSpent, resetSpent, spentSoFar} from '@/components/spent'
 import {useListing} from '@/components/ref-picture'
 import type {Reference} from '@/app-builder/references'
 import {LAST, LISTS, PARTS, fallbackNext, needsClaude, totalQuestions, type Next, type Turn} from '@/app-builder/next-question'
@@ -162,6 +162,7 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
     } catch {
       // No storage: nothing to forget.
     }
+    resetSpent()
     setAnswers(emptyAnswers())
     setTurns(firstTurns())
     setAt(0)
