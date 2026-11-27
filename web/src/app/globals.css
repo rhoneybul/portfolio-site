@@ -1546,14 +1546,31 @@ a.proof:hover .proof__arrow {
 @media (max-width: 600px) {
   .builder__template .builder__kind {
     padding-right: 18px;
-    padding-bottom: 44px;
   }
 
+  /* On a phone the link to the live app sits under its pictures, in the same card. */
+  /* Relative, not static: its enlarged tap area (::after) must stay around the link, not cover the card. */
   .builder__see {
+    position: relative;
     top: auto;
     right: auto;
-    bottom: 10px;
-    left: 18px;
+    order: 3;
+    padding: 0 18px 8px;
+    border: 1px solid var(--line);
+    border-top: 0;
+    margin-top: -1px;
+  }
+
+  .builder__template.is-active > .builder__see {
+    border-color: var(--accent);
+  }
+
+  .builder__template > .gallery {
+    order: 2;
+  }
+
+  .builder__template:has(> .builder__see) > .gallery {
+    padding-bottom: 0;
   }
 }
 
@@ -1612,7 +1629,7 @@ a.proof:hover .proof__arrow {
   background: var(--accent-soft);
 }
 
-.builder__ref button {
+.builder__ref > button {
   display: grid;
   gap: 4px;
   align-content: start;
@@ -1635,22 +1652,42 @@ a.proof:hover .proof__arrow {
   font-size: 15px;
 }
 
-.builder__ref button > span:last-child {
+.builder__ref > button > span:last-child {
   font-size: 12.5px;
   line-height: 1.35;
   color: var(--muted, #5b5b66);
 }
 
-.builder__ref a {
+.builder__ref-links {
   display: flex;
+  border-top: 1px solid var(--line);
+}
+
+.builder__ref-links a,
+.builder__ref-links button {
+  display: flex;
+  flex: 1;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 12px;
-  border-top: 1px solid var(--line);
+  border: 0;
+  background: none;
+  font: inherit;
   font-size: 13px;
   color: var(--ink);
   text-decoration: none;
+  cursor: pointer;
+}
+
+.builder__ref-links button {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.builder__ref-links button + a {
+  flex: none;
+  border-left: 1px solid var(--line);
 }
 
 /* A reference app's sketch: a tiny phone in its colours and the shape of its home screen. */
@@ -5738,4 +5775,468 @@ details.calls[open] > summary::after {
   margin: 0;
   font-size: 14px;
   color: var(--muted);
+}
+
+
+/* ---------- Strips to swipe: the example apps' pictures and the look and feel references ---------- */
+
+/* A sideways strip that snaps an item at a time, with arrows either side and a fade where more is hidden. */
+.strip {
+  position: relative;
+  min-width: 0;
+}
+
+.strip__track {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 2px 2px 10px;
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.strip__track > * {
+  flex: none;
+  scroll-snap-align: start;
+}
+
+/* The fade on the side that still hides something. */
+.strip::before,
+.strip::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 10px;
+  z-index: 1;
+  width: 36px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.strip::before {
+  left: 0;
+  background: linear-gradient(to right, var(--bg), transparent);
+}
+
+.strip::after {
+  right: 0;
+  background: linear-gradient(to left, var(--bg), transparent);
+}
+
+.strip.has-start::before,
+.strip.has-end::after {
+  opacity: 1;
+}
+
+.strip__arrow {
+  position: absolute;
+  top: calc(50% - 27px);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+  font-size: 26px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.strip__arrow span {
+  margin-top: -3px;
+}
+
+.strip__arrow--prev {
+  left: -6px;
+}
+
+.strip__arrow--next {
+  right: -6px;
+}
+
+.strip__arrow:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.strip__count {
+  position: absolute;
+  right: 8px;
+  bottom: 18px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgb(22 22 22 / 0.72);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  pointer-events: none;
+}
+
+.strip__hint {
+  display: block;
+  margin-top: -2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* An example app's pictures: its landing page, then the app, each opening large. */
+.gallery {
+  margin-top: 10px;
+}
+
+.gallery__track {
+  gap: 8px;
+}
+
+.gallery__slide {
+  position: relative;
+  display: block;
+  width: 128px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.gallery__slide.is-wide {
+  width: 272px;
+}
+
+.gallery__slide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 360 / 715;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--line);
+}
+
+.gallery__slide.is-wide img {
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+}
+
+.gallery__label {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.92);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* The example's choice: its icon beside the name. */
+.builder__kind.has-icon {
+  grid-template-columns: 48px minmax(0, 1fr);
+  column-gap: 14px;
+}
+
+.builder__kind.has-icon > * {
+  grid-column: 2;
+}
+
+.builder__kind.has-icon > .builder__icon {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  width: 48px;
+  height: 48px;
+  border-radius: 11px;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+
+.builder__template {
+  padding-bottom: 4px;
+}
+
+.builder__template.is-active {
+  background: var(--accent-soft);
+}
+
+.builder__template > .gallery {
+  padding: 0 18px 8px;
+}
+
+.builder__template > .gallery .strip__arrow--prev {
+  left: 10px;
+}
+
+.builder__template > .gallery .strip__arrow--next {
+  right: 10px;
+}
+
+.builder__template.is-active > .gallery {
+  border: 1px solid var(--accent);
+  border-top: 0;
+  margin-top: -1px;
+  padding-top: 10px;
+}
+
+.builder__template:not(.is-active) > .gallery {
+  border: 1px solid var(--line);
+  border-top: 0;
+  margin-top: -1px;
+  padding-top: 10px;
+}
+
+/* ---------- Lightbox: pictures large, over the page ---------- */
+
+.lightbox {
+  width: min(1040px, calc(100vw - 24px));
+  max-width: none;
+  height: min(860px, calc(100dvh - 24px));
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: #121214;
+  color: #fff;
+  overflow: hidden;
+}
+
+.lightbox[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.lightbox::backdrop {
+  background: rgb(10 10 12 / 0.72);
+}
+
+.lightbox__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 20px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.lightbox__bar span {
+  flex: 1;
+  font-size: 14px;
+  color: rgb(255 255 255 / 0.66);
+}
+
+.lightbox__close {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  font-size: 26px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+}
+
+.lightbox__body {
+  display: grid;
+  min-height: 0;
+}
+
+.lightbox__body.has-aside {
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.lightbox__stage {
+  position: relative;
+  min-height: 0;
+}
+
+.lightbox__track {
+  display: flex;
+  height: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.lightbox__track::-webkit-scrollbar {
+  display: none;
+}
+
+.lightbox__slide {
+  display: flex;
+  flex: 0 0 100%;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  padding: 20px 64px 40px;
+  scroll-snap-align: center;
+}
+
+.lightbox__slide img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 22px;
+  object-fit: contain;
+}
+
+.lightbox__slide.is-wide img {
+  border-radius: 10px;
+}
+
+.lightbox__arrow {
+  position: absolute;
+  top: calc(50% - 26px);
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.14);
+  font-size: 30px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+}
+
+.lightbox__arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.lightbox__arrow--prev {
+  left: 12px;
+}
+
+.lightbox__arrow--next {
+  right: 12px;
+}
+
+.lightbox__dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.lightbox__dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.3);
+}
+
+.lightbox__dots i.is-on {
+  background: #fff;
+}
+
+.lightbox__aside {
+  padding: 24px 22px;
+  border-left: 1px solid rgb(255 255 255 / 0.1);
+  overflow-y: auto;
+}
+
+/* A reference's look, beside its screens. */
+.ref-aside {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.ref-aside__icon {
+  border-radius: 13px;
+}
+
+.ref-aside strong {
+  font-size: 22px;
+}
+
+.ref-aside p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.75);
+}
+
+.ref-aside a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 14px;
+  color: #fff;
+}
+
+.lightbox .ref-aside__pick {
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid rgb(255 255 255 / 0.4);
+  border-radius: 999px;
+}
+
+.lightbox .ref-aside__pick.btn-primary {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.lightbox .ref-aside__pick.btn-outline {
+  color: #fff;
+}
+
+@media (max-width: 720px) {
+  .lightbox {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .lightbox__body.has-aside {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .lightbox__aside {
+    border-left: 0;
+    border-top: 1px solid rgb(255 255 255 / 0.1);
+    padding: 14px 18px 18px;
+  }
+
+  .lightbox__aside .ref-aside p,
+  .lightbox__aside .ref-aside__icon {
+    display: none;
+  }
+
+  .lightbox__slide {
+    padding: 12px 12px 34px;
+  }
+
+  .lightbox__arrow {
+    display: none;
+  }
+
+  .strip__arrow {
+    width: 40px;
+    height: 40px;
+  }
 }

@@ -9,12 +9,27 @@ import {RefSketch} from '@/components/ref-sketch'
  * has none, its sketch. Decoration: the name and the line under it say what it is.
  */
 
-let asked: Promise<Record<string, string[]>> | null = null
-const shotsByName = () =>
+type Listings = {shots: Record<string, string[]>; icons: Record<string, string>}
+let asked: Promise<Listings> | null = null
+const listings = () =>
   (asked ??= fetch('/api/builder/shots')
-    .then((r) => (r.ok ? r.json() : {shots: {}}))
-    .then((b: {shots?: Record<string, string[]>}) => b.shots ?? {})
-    .catch((): Record<string, string[]> => ({})))
+    .then((r) => (r.ok ? r.json() : {}))
+    .then((b: Partial<Listings>) => ({shots: b.shots ?? {}, icons: b.icons ?? {}}))
+    .catch((): Listings => ({shots: {}, icons: {}})))
+const shotsByName = () => listings().then((l) => l.shots)
+
+/** One reference's App Store screenshots and icon, once they've come: for its See screens. */
+export function useListing(name: string) {
+  const [listing, setListing] = useState<{shots: string[]; icon: string} | null>(null)
+  useEffect(() => {
+    let on = true
+    void listings().then((l) => on && setListing({shots: l.shots[name] ?? [], icon: l.icons[name] ?? ''}))
+    return () => {
+      on = false
+    }
+  }, [name])
+  return listing
+}
 
 export function RefPicture({name}: {name: string}) {
   const [shots, setShots] = useState<string[] | null>(null)
