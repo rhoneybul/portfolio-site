@@ -3,6 +3,8 @@ import {QUESTIONS, resolveOptions, type Answers} from '@/app-builder/options'
 import {claudeOn} from '@/app-builder/claude'
 import {drawMarks} from '@/app-builder/logos'
 import {addressOf, limiter} from '@/app-builder/rate-limit'
+import {Meter, metered} from '@/app-builder/cost'
+import {PAUSED, builderPaused} from '@/app-builder/switch'
 
 /**
  * The logo round, while the app is designed: Claude draws a few marks for an owner without a logo
@@ -17,6 +19,7 @@ const allowed = limiter()
 
 export async function POST(request: Request) {
   if (!claudeOn()) return NextResponse.json({off: true}, {status: 503})
+  if (await builderPaused()) return NextResponse.json(PAUSED, {status: 503})
   const body = (await request.json().catch(() => null)) as {answers?: Answers} | null
   const keys = [...QUESTIONS.map((q) => q.key), 'photoCredit', 'scheme']
   const answers = Object.fromEntries(keys.map((k) => [k, String(body?.answers?.[k] ?? '').trim().slice(0, 600)])) as Answers
@@ -24,8 +27,10 @@ export async function POST(request: Request) {
   if (errors.name) return NextResponse.json({error: errors.name}, {status: 400})
   if (!allowed(`address:${addressOf(request)}`, PER_ADDRESS)) return NextResponse.json({error: 'Drawn enough logos for now.'}, {status: 429})
 
+  const meter = new Meter()
   try {
-    return NextResponse.json({marks: await drawMarks(options, answers, Date.now() + (maxDuration - 15) * 1000)})
+    const marks = await metered(meter, () => drawMarks(options, answers, Date.now() + (maxDuration - 15) * 1000))
+    return NextResponse.json({marks, spent: meter.spent})
   } catch (e) {
     console.warn('[prototype] logos', e instanceof Error ? e.message : e)
     return NextResponse.json({error: 'Claude couldn’t draw logos this time.'}, {status: 502})

@@ -5,7 +5,9 @@ import {getSettings} from '@/sanity/settings'
 import {TopBar} from '@/components/top-bar'
 import {SiteFooter} from '@/components/site-footer'
 import {SharedApp} from '@/components/shared-app'
-import {readShare} from '@/app-builder/mcp-build'
+import {expired, readShare} from '@/app-builder/mcp-build'
+import {LINK_DAYS} from '@/app-builder/email'
+import {BookCall} from '@/components/book-call'
 import {readPrototype} from '@/app-builder/prototypes'
 
 // An app designed from a chat (the MCP server): building, then the deck. Found only from its link.
@@ -19,6 +21,32 @@ export default async function SharedAppPage({params, searchParams}: {params: Pro
   const [{id}, {embed}] = await Promise.all([params, searchParams])
   const share = await readShare(id)
   if (!share) notFound()
+  if (expired(share)) {
+    const settings = await getSettings().catch(() => null)
+    return (
+      <>
+        <TopBar settings={settings} active="app-builder" />
+        <main>
+          <section className="blog">
+            <div className="builder link-expired">
+              <span className="label">This link has expired</span>
+              <h2 className="intro__title">Links to a designed app last {LINK_DAYS} days</h2>
+              <p className="intro__lead">
+                This one has run out. Design it again in a few minutes, or book a free call and I’ll take you through it, and how to build it for real.
+              </p>
+              <div className="interest__actions">
+                <a className="btn btn-primary" href="/app-builder">
+                  Design it again
+                </a>
+                {settings?.bookingUrl && <BookCall url={settings.bookingUrl} label="Book a free call" variant="outline" from="app-builder-expired" />}
+              </div>
+            </div>
+          </section>
+        </main>
+        <SiteFooter settings={settings} />
+      </>
+    )
+  }
   const saved = share.status === 'done' && share.prototype ? await readPrototype(share.prototype) : null
   const settings = await getSettings().catch(() => null)
   const app = (

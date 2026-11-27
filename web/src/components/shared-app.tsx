@@ -66,7 +66,7 @@ export function SharedApp({
           <div>
             <span className="label">Claude is designing your app</span>
             <h2 className="ready__name">{options.name}</h2>
-            <p className="ready__line">Every screen, from your answers. Usually 4 to 6 minutes. You can leave and come back: this link keeps it.</p>
+            <p className="ready__line">Every screen, from your answers. Usually 4 to 6 minutes. You can leave and come back: this link keeps it for a week.</p>
           </div>
         </header>
         <ol className="building__steps" aria-live="polite">

@@ -4,6 +4,8 @@
  * Server only: the key never reaches the browser.
  */
 
+import {meterStore, type Usage} from './cost'
+
 // ANTHROPIC_BASE_URL, as Anthropic's own SDKs read it: a proxy, or a stand-in when testing.
 const API = `${(process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com').replace(/\/+$/, '')}/v1/messages`
 
@@ -71,7 +73,9 @@ export async function askClaude({
       throw new ClaudeError(e instanceof Error ? e.message : 'No answer')
     }
     if (res.ok) {
-      const json = (await res.json()) as {content?: {type: string; text?: string}[]; stop_reason?: string}
+      const json = (await res.json()) as {content?: {type: string; text?: string}[]; stop_reason?: string; usage?: Usage}
+      // Counted for whatever this call is part of (cost.ts), even an answer that's then thrown away.
+      meterStore.getStore()?.add(model, json.usage)
       const text = (json.content ?? []).filter((c) => c.type === 'text').map((c) => c.text ?? '').join('')
       if (!text) throw new ClaudeError('An empty answer')
       if (json.stop_reason === 'max_tokens') console.warn('[claude] stopped at max_tokens', model)

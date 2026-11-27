@@ -4,6 +4,7 @@ import {registerAppResource, registerAppTool, RESOURCE_MIME_TYPE} from '@modelco
 import {z} from 'zod'
 import {INSTRUCTIONS, SERVER_NAME, SERVER_TITLE, answersOf, buildInput, builtText, contactInput, questionsForChat, resolveOptions} from '@/app-builder/mcp'
 import {readShare, runBuild, shareUrl, startShare, tell} from '@/app-builder/mcp-build'
+import {builderPaused} from '@/app-builder/switch'
 import {readPrototype} from '@/app-builder/prototypes'
 import {iconMarkCss, prototypeDocument} from '@/app-builder/prototype-doc'
 import {viewDomains, viewHtml} from '@/app-builder/mcp-view'
@@ -65,6 +66,8 @@ const handler = createMcpHandler(
         if (!allowed(`email:${input.email.toLowerCase()}`, PER_EMAIL) || !allowed('all', PER_HOUR))
           return {isError: true, content: [{type: 'text', text: `That's as many apps as the builder draws for now. Try again later, or design it at ${siteUrl}/app-builder.`}]}
 
+        if (await builderPaused())
+          return {isError: true, content: [{type: 'text', text: `The app builder is paused for now. To design the app with Rob instead, book a call at ${siteUrl}/app-builder.`}]}
         const share = await startShare(answers)
         after(() => runBuild(share, answers, input.photoSearches ?? [], Date.now() + (maxDuration - 20) * 1000))
         const link = shareUrl(share.id)
@@ -133,7 +136,7 @@ const handler = createMcpHandler(
         const share = await readShare(input.prototypeId)
         if (!share) return {isError: true, content: [{type: 'text', text: 'That prototype wasn’t found. Design it again with build_app_prototype, then send it.'}]}
         if (leads(`${input.prototypeId}:${input.email.toLowerCase()}`, {most: 1, window: 10 * 60_000}))
-          await tell('interest', {...share.answers, email: input.email}, share.prototype, share.id, {name: input.name, email: input.email, note: input.note ?? ''})
+          await tell('interest', {...share.answers, email: input.email}, {prototype: share.prototype, share: share.id, source: 'mcp', contact: {name: input.name, email: input.email, note: input.note ?? ''}})
         const name = resolveOptions(share.answers).options.name
         return {
           content: [

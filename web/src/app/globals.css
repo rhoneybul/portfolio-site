@@ -6535,3 +6535,111 @@ details.calls[open] > summary::after {
   gap: 4px;
   min-height: 32px;
 }
+
+/* While the builder is switched off: what it says, and a call to book instead of Start. */
+.intro__paused {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+  margin-top: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  background: #fff;
+}
+
+.intro__paused p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* The building page: the promise of an email (or the link to keep), then what to do while it draws. */
+.building__mail {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--x-accent, var(--accent));
+  color: #fff;
+}
+
+.building__mail-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.18);
+  font-size: 22px;
+}
+
+.building__mail div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.building__mail strong {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.building__mail span {
+  font-size: 15px;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 0.88);
+}
+
+.building__link {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 6px;
+}
+
+.building__link a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #fff;
+}
+
+.building__link .btn {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 0.6);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.building__while {
+  display: grid;
+  gap: 14px;
+}
+
+.building__call {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.building__call p {
+  margin: 0;
+  font-size: 15px;
+}
+
+/* A designed app's link that has run out. */
+.link-expired {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+  max-width: 680px;
+  padding: 40px 0;
+}

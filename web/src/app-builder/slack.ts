@@ -33,7 +33,8 @@ export function appRows(o: Options, raw: Answers): Row[] {
 
 export async function toSlack(lines: string[]) {
   const url = process.env.SLACK_WEBHOOK_URL
-  if (!url) return
+  // In development, without the webhook, the message is logged instead, to see what Slack would hear.
+  if (!url) return void (process.env.NODE_ENV !== 'production' && console.info('[slack, not sent]', lines.join(' | ')))
   try {
     const res = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: lines.join('\n')})})
     if (!res.ok) console.error('[slack]', res.status)
