@@ -271,7 +271,7 @@ function Security() {
     ['Delete my account', 'Removes their data, and forgets them in analytics'],
     ['Dependencies kept patched', 'Dependabot flags a known flaw in a package and opens the fix', 'dependabot'],
     ['Every change tested first', 'Nothing goes live except through a pull request its tests passed', 'github'],
-    ['Keys never in the chat', 'Every integration is off until its key is set in the host', 'vercel'],
+    ['Keys locked away', 'Kept encrypted in Vercel, never in the code or a chat', 'vercel'],
   ]
   return (
     <div className="panel shields">
