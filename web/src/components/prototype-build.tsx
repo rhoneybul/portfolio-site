@@ -5,6 +5,7 @@ import {type Pic} from '@/components/app-prototype'
 import {AppIcon} from '@/components/app-icon'
 import {HeardAsk} from '@/components/heard-ask'
 import {BookCall} from '@/components/book-call'
+import {CallInvite} from '@/components/call-invite'
 import {CopyButton} from '@/components/copy-button'
 import {PrototypeThumb} from '@/components/prototype-frame'
 import type {Answers, Options} from '@/app-builder/options'
@@ -480,6 +481,10 @@ export function PrototypeBuild({
             ))}
           </ul>
         </>
+      )}
+
+      {bookingUrl && builderRef && (
+        <CallInvite url={bookingUrl} name={options.name} accent={options.accent} icon={pickedIcon ?? job?.look.style?.icon} email={answers.email} builderRef={builderRef} />
       )}
 
       <p className="building__next">
