@@ -14,6 +14,7 @@ const ORDER: {key: string; part: 1 | 2 | 3}[] = [
   {key: 'idea', part: 1},
   {key: 'business', part: 1},
   {key: 'template', part: 1},
+  {key: 'platforms', part: 1},
   {key: 'doing', part: 1},
   {key: 'interests', part: 2},
   {key: 'goals', part: 2},

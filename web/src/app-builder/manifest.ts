@@ -1,4 +1,4 @@
-import {interestsOf, type Options} from './options'
+import {inStores, interestsOf, onWeb, type Options} from './options'
 
 /**
  * Everything fohm-scaffold builds into a new app, in the visitor's own names, from the scaffold's
@@ -132,7 +132,7 @@ export function whatYouGet(o: Options): Part[] {
     {
       title: 'Payments',
       items: [
-        `${o.name} Pro${o.price ? ` at ${o.price}` : ''}, the way your members pay: in the apps through the App Store and Google Play (RevenueCat, as in Naz and Etapa), or on the web through Stripe, with a free trial if you want one`,
+        `${o.name} Pro${o.price ? ` at ${o.price}` : ''}, the way your members pay: ${[inStores(o) && 'in the apps through the App Store and Google Play (RevenueCat, as in Naz and Etapa)', onWeb(o) && 'on the web through Stripe'].filter(Boolean).join(', or ')}, with a free trial if you want one`,
         'Pro switches on and off from the store’s own record, and opens wherever they sign in',
       ],
     },
@@ -152,7 +152,7 @@ export function whatYouGet(o: Options): Part[] {
       items: [
         `Email in the app’s look, with a plain-text twin: the ${owner} hears when someone writes, ${members} hear when they get a reply`,
         'Sign-up and password emails in the same look',
-        'Push notifications on iPhone and Android',
+        inStores(o) ? 'Push notifications on iPhone and Android' : 'Notifications in the browser, on a phone’s Home Screen too',
         'Invite links and share links that open the app on a phone (Tapp), with the channel each came from',
       ],
     },
@@ -178,12 +178,12 @@ export function whatYouGet(o: Options): Part[] {
       ],
     },
     {
-      title: 'Tests, deploys and the stores',
+      title: inStores(o) ? 'Tests, deploys and the stores' : 'Tests and deploys',
       items: [
         'Typecheck and tests: access rules, the dashboard’s feed, onboarding, photos and their licences, analytics, migrations, payments',
         'GitHub Actions run every test against a local database on each pull request; nothing reaches main without one',
         'Vercel deploys main to production and a preview for every pull request, with screenshots at phone size',
-        'iPhone and Android builds through Expo, TestFlight, and the App Store listing and its screenshots as data, submitted by a workflow',
+        ...(inStores(o) ? ['iPhone and Android builds through Expo, TestFlight, and the App Store listing and its screenshots as data, submitted by a workflow'] : []),
       ],
     },
     {

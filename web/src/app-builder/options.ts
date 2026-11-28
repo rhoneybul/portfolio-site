@@ -144,6 +144,19 @@ export const CHARGES = [
 
 export const chargeOf = (a: Answers) => CHARGES.find((c) => c.value === a.charge)
 
+/** Where people use it: the store apps, the web app, or both, with what each means for the prototype and the build. */
+export const PLATFORMS = [
+  {value: 'both', label: 'Phone apps and the web', hint: 'In the App Store and Google Play, and the same app in a browser, as Naz is', draws: 'the iPhone and Android apps and the same app on the web: the landing page offers the App Store and Google Play first, with the web app a quiet link under them'},
+  {value: 'mobile', label: 'Phone apps only', hint: 'In the App Store and Google Play; the website sells the app, as Etapa’s does', draws: 'the iPhone and Android apps only: the landing page offers the App Store and Google Play, and there is no web app to sign in to'},
+  {value: 'web', label: 'The web only', hint: 'Opened in a browser on a phone or a laptop, nothing to install, as Aluzam is', draws: 'a web app only, opened in a phone’s or a laptop’s browser: the landing page’s call is Get started in the browser, with no store badges'},
+] as const
+
+export const platformOf = (a: Answers) => PLATFORMS.find((p) => p.value === a.platforms) ?? PLATFORMS[0]
+/** Whether it ships to the App Store and Google Play. */
+export const inStores = (a: Answers) => platformOf(a).value !== 'web'
+/** Whether people can use it in a browser. */
+export const onWeb = (a: Answers) => platformOf(a).value !== 'mobile'
+
 export const SECTIONS = ['The idea', 'The name', 'Onboarding', 'The method', 'Look and feel', 'About you'] as const
 
 /**
@@ -162,6 +175,14 @@ export const QUESTIONS: Question[] = [
     why: 'Pick the closest. Each of these was built on the same foundations, so yours starts where they did.',
     default: 'naz',
     choices: TEMPLATES.map(({value, label, hint, description, shots, url}) => ({value, label, hint, description, shots, url})),
+  },
+  {
+    key: 'platforms',
+    section: 'The idea',
+    ask: 'Where will people use it: phone apps, the web, or both?',
+    why: 'The same app can ship to the App Store and Google Play and open in a browser. It decides the landing page and what we build.',
+    default: 'both',
+    choices: PLATFORMS.map(({value, label, hint}) => ({value, label, hint})),
   },
   {key: 'doing', section: 'The idea', ask: 'What will people do in the app, day to day?', why: 'We write the headline and the landing page from it.', example: 'Following a plan of a few short sessions a week, and logging each one.', long: true},
 
