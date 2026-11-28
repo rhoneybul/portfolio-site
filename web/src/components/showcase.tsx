@@ -362,7 +362,7 @@ function Security() {
 /**
  * The services an app runs on, by layer: where people use it, what runs it, and what watches it and
  * tells you. Each shows the service's own logo (brand-logos.tsx); the web, which is no one's brand, a globe.
- * Every service another slide names (RevenueCat on Payments, PostHog, Sentry and Slack on theirs) is here too.
+ * Every service another slide names (RevenueCat on Payments, GitHub and Dependabot on Security, PostHog, Sentry and Slack on theirs) is here too.
  */
 const STACK: {layer: string; items: {logo: Brand | 'web'; name: string; role: string}[]}[] = [
   {
@@ -381,6 +381,7 @@ const STACK: {layer: string; items: {logo: Brand | 'web'; name: string; role: st
       {logo: 'expo', name: 'Expo', role: 'Builds the iPhone and Android apps and ships updates'},
       {logo: 'revenuecat', name: 'RevenueCat', role: 'Keeps Pro in step across the App Store and Google Play'},
       {logo: 'stripe', name: 'Stripe', role: 'Takes payments for Pro, in your business’s name'},
+      {logo: 'github', name: 'GitHub', role: 'Keeps the code; tests each change before it goes live'},
     ],
   },
   {
@@ -391,6 +392,7 @@ const STACK: {layer: string; items: {logo: Brand | 'web'; name: string; role: st
       {logo: 'slack', name: 'Slack', role: 'Sign-ups, payments and anything that needs you'},
       {logo: 'resend', name: 'Resend', role: 'Sign-in links, welcome and reminder emails'},
       {logo: 'customerio', name: 'Customer.io', role: 'Marketing emails and push campaigns'},
+      {logo: 'dependabot', name: 'Dependabot', role: 'Flags a flawed package and opens the fix'},
     ],
   },
 ]
