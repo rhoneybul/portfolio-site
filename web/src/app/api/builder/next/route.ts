@@ -2,8 +2,10 @@ import {NextResponse} from 'next/server'
 import {askClaude, claudeOn} from '@/app-builder/claude'
 import {Meter, metered} from '@/app-builder/cost'
 import {builderPaused} from '@/app-builder/switch'
+import {readSubject} from '@/app-builder/prototypes'
 import {addressOf, limiter} from '@/app-builder/rate-limit'
-import {cleanRequest, cleanTurn, fallbackNext, needsClaude, rowsFor, saidSoFar, type Next} from '@/app-builder/next-question'
+import {subjectKey, subjectSaid, type Subject} from '@/app-builder/subject'
+import {cleanRequest, cleanTurn, fallbackNext, needsClaude, plain, rowsFor, saidSoFar, type Next} from '@/app-builder/next-question'
 
 /**
  * The app builder's next question, chosen by Claude from what the visitor has said so far
@@ -41,6 +43,11 @@ Word it:
 - "example": for a row answered by typing, one realistic example answer in their world, under 80 characters, shown faintly in the empty box. Never the same as a suggestion.
 - "multi": true when people would pick several of the suggestions together (the parts of the app, goals, kinds of content, the apps they like), false when one answers it (who it's for, a price, a name). With multi give four to six suggestions, without it three or four.
 
+Know the subject:
+- When research on the subject comes with their answers, it is what an expert in their activity knows: the sessions and exercises people really do, how they grade where they are, what they build towards, the tests they measure by, what holds them back, what they log with. Use it on every question: suggestions are its real names and numbers (for climbing: "Limit bouldering", "Hangboard repeaters", "A first V5", "A 7a redpoint", "Max hang on 20 mm"), never vague categories. For interests, offer its disciplines and kinds of training; for goals, its milestones across the levels, beginner to strong; for doing, what a week of its sessions looks like; for connects, what it says people log with.
+- Ask in its words, and when it shows a choice that shapes the app (which discipline, which level they start from, a benchmark to take first), ask that inside the row it belongs to, offering the options.
+- Their own words win: never contradict what they said, and leave out what they said the app doesn't do.
+
 Be a sharp product designer, not a form: each question should show you understood what they said, and move their app forward. Ask about what's specific to their app, not about apps in general.
 
 Reply with JSON only:
@@ -50,12 +57,28 @@ Leave out "prefill", "example", "suggestions", "multi" or "skip" when they don't
 // One instance's memory: the same answers never ask twice.
 const known = new Map<string, Next>()
 
+// The subject research found for an idea (/api/builder/subject), once found; an idea not yet researched is looked for again next time.
+const subjects = new Map<string, Subject>()
+
+async function subjectOf(said = '') {
+  const idea = plain(said, 600)
+  if (idea.length < 12) return null
+  const key = subjectKey(idea)
+  const found = subjects.get(key) ?? (await readSubject(key).catch(() => null))
+  if (found) {
+    if (subjects.size > 200) subjects.clear()
+    subjects.set(key, found)
+  }
+  return found
+}
+
 export async function POST(request: Request) {
   const {answers, done} = cleanRequest(await request.json().catch(() => null))
   const fallback = fallbackNext(answers, done)
   if (!claudeOn() || !needsClaude(answers, done) || (await builderPaused())) return NextResponse.json({...fallback, from: 'order'})
 
-  const cacheKey = JSON.stringify([answers, done])
+  const subject = await subjectOf(answers.idea)
+  const cacheKey = JSON.stringify([answers, done, Boolean(subject)])
   const cached = known.get(cacheKey)
   if (cached) return NextResponse.json({...cached, from: 'claude'})
   if (!allowed(`address:${addressOf(request)}`, PER_ADDRESS)) return NextResponse.json({...fallback, from: 'order'})
@@ -65,7 +88,7 @@ export async function POST(request: Request) {
     const text = await metered(meter, () => askClaude({
       model: MODEL,
       system: [SYSTEM],
-      user: `What they've said so far:\n${saidSoFar(answers, done) || '- Nothing yet'}\n\nThe rows still to ask:\n${rowsFor(answers, done)}`,
+      user: `What they've said so far:\n${saidSoFar(answers, done) || '- Nothing yet'}\n\n${subject ? `Research on the subject their app is about:\n${subjectSaid(subject)}\n\n` : ''}The rows still to ask:\n${rowsFor(answers, done)}`,
       maxTokens: 1_200,
       deadline: Date.now() + THINKING_MS,
     }))

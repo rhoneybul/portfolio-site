@@ -193,6 +193,7 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
   /** On to the next question: Claude's pick from what they've said, or the fixed order's at once. */
   const forward = async (given: Answers) => {
     const done = turns.slice(0, at + 1).flatMap((t) => [t.key, ...(t.skip ?? [])])
+    if (done.includes('idea')) researchSubject(given.idea)
     setThinking(true)
     const next = await nextTurn(given, done)
     setThinking(false)
@@ -798,6 +799,21 @@ const questionOf = (key: string) => QUESTIONS.find((q) => q.key === key) as Ques
 
 /** The first question is always the idea, asked before anything else is known. */
 const firstTurns = (): Turn[] => [fallbackNext(emptyAnswers(), []) as Turn]
+
+/** The ideas whose subject this visit has asked to be researched. */
+const researched = new Set<string>()
+
+/**
+ * The subject the app is about, researched from the web as soon as they've said what it does
+ * (/api/builder/subject): the exercises, milestones and tests people in it really use. Asked once
+ * an idea and never waited for: the questions it reaches in time offer the subject's own picks.
+ */
+function researchSubject(idea = '') {
+  const said = idea.trim()
+  if (said.length < 12 || researched.has(said)) return
+  researched.add(said)
+  fetch('/api/builder/subject', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({idea: said})}).catch(() => {})
+}
 
 /** How long Claude gets to choose before the fixed order's next question is shown instead. */
 const CHOOSING = 26_000

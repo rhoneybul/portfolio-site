@@ -52,6 +52,8 @@ export const fromCommand = (briefJsonUrl: string) => `npx github:rhoneybul/fohm-
 export interface BriefLinks {
   prototype?: string
   briefJson?: string
+  /** The subject researched while they answered (subject.ts's subjectSaid), when it was found. */
+  subject?: string
 }
 
 /** Where people use it, as what to build: the template makes the web app and the store apps from one codebase. */
@@ -63,7 +65,7 @@ function platformsLine(o: Options) {
   return 'People use it in the iPhone and Android apps and on the web: every feature works the same in both, the landing page leads with the App Store and Google Play, and the web app is a quiet link under them.'
 }
 
-export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl, briefJson}: BriefLinks = {}) {
+export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl, briefJson, subject}: BriefLinks = {}) {
   const shown = asked(raw)
   const answered = (key: string) => {
     const q = QUESTIONS.find((x) => x.key === key)!
@@ -121,7 +123,17 @@ My answers to the Discover phase are below. Take them as answered, ask me only w
 ## The app
 
 ${sections.join('\n\n')}
+${
+    subject
+      ? `
+## The subject
 
+The app builder researched the subject my app is about from the web while I answered: what an expert in it knows. Use it through the new-app skill (reference/discovery.md, *Know the subject*): offer its real sessions, goals and tests back to me as picks, and build the programs, onboarding and catalogues from it, checking each against its sources first. My answers above win where they differ.
+
+${subject}
+`
+      : ''
+  }
 ## Still to ask me
 
 ${stillToAsk.map((l) => `- ${l}`).join('\n')}

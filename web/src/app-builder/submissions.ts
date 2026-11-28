@@ -11,6 +11,9 @@ import {claudePrompt, scaffoldOptions} from './prompt'
 import {resolveOptions, type Answers} from './options'
 import {siteUrl} from '@/site-url'
 import {keyedUrl} from './owner'
+import {plain} from './next-question'
+import {readSubject} from './prototypes'
+import {subjectKey, subjectSaid} from './subject'
 
 export interface Contact {
   name: string
@@ -88,9 +91,18 @@ async function linksOf(s: Submission) {
   }
 }
 
+/** The subject researched for a submission's idea (subject.ts), with its sources, for the brief; empty when none was found. */
+async function subjectOf(s: Submission) {
+  const idea = plain(s.answers.idea, 600)
+  const found = idea.length >= 12 ? await readSubject(subjectKey(idea)).catch(() => null) : null
+  if (!found) return ''
+  const sources = found.sources.map((x) => `- [${x.title.replace(/[[\]]/g, '')}](${x.url})`).join('\n')
+  return `${subjectSaid(found)}${sources ? `\n\nSources:\n${sources}` : ''}`
+}
+
 /** The brief to give Claude, made from what was saved. */
 export async function briefOf(s: Submission) {
-  return claudePrompt(resolveOptions(s.answers).options, s.answers, await linksOf(s))
+  return claudePrompt(resolveOptions(s.answers).options, s.answers, {...(await linksOf(s)), subject: await subjectOf(s)})
 }
 
 /** The keyed link to the brief's markdown: what a Claude session is handed to build the app from. */
@@ -113,6 +125,6 @@ export async function briefJson(s: Submission) {
     options: scaffoldOptions(options),
     answers,
     ...(prototype ? {prototype} : {}),
-    brief: claudePrompt(options, s.answers, {prototype}),
+    brief: claudePrompt(options, s.answers, {prototype, subject: await subjectOf(s)}),
   }
 }
