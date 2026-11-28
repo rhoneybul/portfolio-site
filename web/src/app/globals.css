@@ -1690,6 +1690,30 @@ a.proof:hover .proof__arrow {
   border-left: 1px solid var(--line);
 }
 
+/* The logo question's app icons: the same cards as the look and feel question's, led by the icon. */
+.builder__logo {
+  width: 150px;
+}
+
+.builder__logo-icon {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 6px;
+  border-radius: 15px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+}
+
+.builder__logo-letter {
+  display: grid;
+  place-items: center;
+  background: #ececef;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
 /* A reference app's sketch: a tiny phone in its colours and the shape of its home screen. */
 .ref-sketch {
   position: relative;

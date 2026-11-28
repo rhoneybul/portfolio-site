@@ -136,10 +136,12 @@ const SKETCHES: Record<string, {bg: string; parts: ReactNode}> = {
   },
 }
 
-/** The sketch for one reference, or nothing for an app we haven't drawn. */
+/** A blank phone, for an app we haven't drawn, while its App Store screens come (or if they don't). */
+const BLANK = {bg: '#ececef', parts: null}
+
+/** The sketch for one reference: its own, or a blank phone for an app we haven't drawn. */
 export function RefSketch({name}: {name: string}) {
-  const s = SKETCHES[name]
-  if (!s) return null
+  const s = SKETCHES[name] ?? BLANK
   return (
     <span className="ref-sketch" style={{background: s.bg}} aria-hidden>
       {s.parts}
