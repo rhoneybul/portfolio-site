@@ -5874,7 +5874,7 @@ details.calls[open] > summary::after {
   }
 }
 
-/* How it runs: the services by layer, each an icon in its own colour, with its one job. */
+/* How it runs: the services by layer, each its own logo on a white tile, with its one job. */
 .stack {
   gap: 6px;
 }
@@ -5915,9 +5915,9 @@ details.calls[open] > summary::after {
   place-items: center;
   width: 34px;
   height: 34px;
+  border: 1px solid var(--line);
   border-radius: 9px;
-  background: var(--x-service);
-  color: #fff;
+  background: #fff;
 }
 
 .stack__down {
