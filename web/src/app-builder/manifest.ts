@@ -157,6 +157,15 @@ export function whatYouGet(o: Options): Part[] {
       ],
     },
     {
+      title: 'Marketing and support',
+      items: [
+        `Marketing emails from the dashboard through Customer.io, as in Etapa: a welcome series, a nudge when someone goes quiet, news to every ${o.memberWord}`,
+        'Push notifications to iPhone and Android through Expo, sent to everyone, to a group, or as part of a journey',
+        `Support in the dashboard: every message ${members} send lands in one inbox, and your reply reaches them by email (Resend) and push`,
+        `Each ${o.memberWord}’s choice of what they hear about, kept on their account, and an unsubscribe link in every marketing email`,
+      ],
+    },
+    {
       title: 'AI',
       items: [`An AI assistant (Claude) for Pro ${members}, answering any time, with every question and answer on the dashboard`],
     },
@@ -190,4 +199,4 @@ export function whatYouGet(o: Options): Part[] {
 }
 
 /** Every integration starts off and switches on when its key is set, so nothing is paid for until it's wanted. */
-export const OFF_UNTIL_SET = 'Stripe, PostHog, Sentry, Resend, the AI assistant, Google and Apple sign-in, push, share links and maps each switch on when their key is set.'
+export const OFF_UNTIL_SET = 'Stripe, PostHog, Sentry, Resend, Customer.io, the AI assistant, Google and Apple sign-in, push, share links and maps each switch on when their key is set.'
