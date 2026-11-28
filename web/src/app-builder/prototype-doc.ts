@@ -302,8 +302,8 @@ ${iconMarkCss('.app-icon::after', style.icon)}
 .track{height:8px;border-radius:4px;background:var(--track);overflow:hidden}
 .track>span{display:block;height:100%;border-radius:4px;background:var(--ink)}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.day{display:grid;justify-items:center;gap:6px;font:500 12px var(--t);color:var(--faint)}
-.day b{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;font:600 15px var(--d);color:var(--ink);background:var(--surface)}
+.day{display:grid;justify-items:center;gap:6px;min-width:0;font:500 12px var(--t);color:var(--faint)}
+.day b{display:grid;place-items:center;width:100%;max-width:36px;aspect-ratio:1;border-radius:50%;font:600 15px var(--d);color:var(--ink);background:var(--surface)}
 .day.done b{background:var(--ink);color:var(--on-ink)}
 .day.today b{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
 .live{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;background:var(--accent);color:var(--on-accent);font:600 12px var(--d)}
@@ -364,8 +364,8 @@ ${iconMarkCss('.app-icon::after', style.icon)}
 .site-cover.end .site-words .hero-title{font-size:64px}
 .site-phone{position:relative;width:300px;height:620px;border:10px solid #111113;border-radius:48px;background:var(--bg);color:var(--ink);overflow:hidden;padding-top:30px;box-shadow:0 40px 80px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.14)}
 .site-phone::before{content:'';position:absolute;top:9px;left:50%;width:84px;height:22px;margin-left:-42px;border-radius:12px;background:#111113;z-index:3}
-.site-phone .hero{height:220px}
-.site-phone .photo-card img{height:150px}
+/* The phone's screen is laid out at a phone's 390 wide and shown at its 280, as a screenshot is: a week of 36px days or a strip of cards clipped at 280 wide. */
+.site-phone>*{zoom:.718}
 .site-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
 .site-step{display:grid;gap:12px;align-content:start}
 .site-step img{width:100%;height:320px;object-fit:cover;border-radius:var(--r-card);background:var(--track);margin-bottom:8px}
