@@ -6920,3 +6920,93 @@ details.calls[open] > summary::after {
 .name-check li.is-flag .name-check__mark {
   color: #b45309;
 }
+
+/* Names Claude suggests when they aren't sure of theirs, each checked: a tap uses it. */
+.name-ideas {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.name-ideas__head {
+  display: grid;
+  gap: 2px;
+}
+
+.name-ideas__head strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.name-ideas__head span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.name-ideas ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.name-ideas button:not(.text-btn) {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  justify-items: start;
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.name-ideas button:not(.text-btn):hover {
+  border-color: var(--x-accent, var(--ink));
+}
+
+.name-ideas button strong {
+  font-size: 17px;
+}
+
+.name-ideas button span {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.name-ideas button small {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.name-ideas button small.is-clear {
+  color: #1f8a4c;
+}
+
+.name-ideas button small.is-clash {
+  color: #c2410c;
+}
+
+.name-ideas__blank {
+  display: block;
+  height: 104px;
+  border-radius: 14px;
+  background: var(--line);
+  animation: building-blink 1.4s ease-in-out infinite;
+}
+
+.name-ideas__more {
+  justify-self: start;
+  min-height: 44px;
+}
