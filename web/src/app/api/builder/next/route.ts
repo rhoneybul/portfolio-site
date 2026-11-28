@@ -2,7 +2,8 @@ import {NextResponse} from 'next/server'
 import {askClaude, claudeOn} from '@/app-builder/claude'
 import {Meter, metered} from '@/app-builder/cost'
 import {builderPaused} from '@/app-builder/switch'
-import {readSubject} from '@/app-builder/prototypes'
+import {readIdeaMarket, readSubject} from '@/app-builder/prototypes'
+import {marketSaid, type Market} from '@/app-builder/market'
 import {addressOf, limiter} from '@/app-builder/rate-limit'
 import {subjectKey, subjectSaid, type Subject} from '@/app-builder/subject'
 import {cleanRequest, cleanTurn, fallbackNext, needsClaude, plain, rowsFor, saidSoFar, type Next} from '@/app-builder/next-question'
@@ -50,6 +51,9 @@ Know the subject:
 - Ask in its words, and when it shows a choice that shapes the app (which discipline, which level they start from, a benchmark to take first), ask that inside the row it belongs to, offering the options.
 - Their own words win: never contradict what they said, and leave out what they said the app doesn't do.
 
+Know the market:
+- When research on the market comes with their answers, it is the apps already doing something like theirs and what they leave undone. Use it where it shapes the app: when asking what makes it different, its features or who it's for, suggest the gaps it found, and when an app comes close, ask in that row how theirs will be different from it (naming the app). Never tell them to stop because a rival exists.
+
 Be a sharp product designer, not a form: each question should show you understood what they said, and move their app forward. Ask about what's specific to their app, not about apps in general.
 
 Reply with JSON only:
@@ -74,13 +78,28 @@ async function subjectOf(said = '') {
   return found
 }
 
+// The market researched for an idea (/api/builder/market), once found, like its subject.
+const markets = new Map<string, Market>()
+
+async function marketOf(said = '') {
+  const idea = plain(said, 600)
+  if (idea.length < 12) return null
+  const key = subjectKey(idea)
+  const found = markets.get(key) ?? (await readIdeaMarket(key).catch(() => null))
+  if (found) {
+    if (markets.size > 200) markets.clear()
+    markets.set(key, found)
+  }
+  return found
+}
+
 export async function POST(request: Request) {
   const {answers, done} = cleanRequest(await request.json().catch(() => null))
   const fallback = fallbackNext(answers, done)
   if (!claudeOn() || !needsClaude(answers, done) || (await builderPaused())) return NextResponse.json({...fallback, from: 'order'})
 
-  const subject = await subjectOf(answers.idea)
-  const cacheKey = JSON.stringify([answers, done, Boolean(subject)])
+  const [subject, market] = await Promise.all([subjectOf(answers.idea), marketOf(answers.idea)])
+  const cacheKey = JSON.stringify([answers, done, Boolean(subject), Boolean(market)])
   const cached = known.get(cacheKey)
   if (cached) return NextResponse.json({...cached, from: 'claude'})
   if (!allowed(`address:${addressOf(request)}`, PER_ADDRESS)) return NextResponse.json({...fallback, from: 'order'})
@@ -90,7 +109,7 @@ export async function POST(request: Request) {
     const text = await metered(meter, () => askClaude({
       model: MODEL,
       system: [SYSTEM],
-      user: `What they've said so far:\n${saidSoFar(answers, done) || '- Nothing yet'}\n\n${subject ? `Research on the subject their app is about:\n${subjectSaid(subject)}\n\n` : ''}The rows still to ask:\n${rowsFor(answers, done)}`,
+      user: `What they've said so far:\n${saidSoFar(answers, done) || '- Nothing yet'}\n\n${subject ? `Research on the subject their app is about:\n${subjectSaid(subject)}\n\n` : ''}${market ? `Research on the market for their app:\n${marketSaid(market)}\n\n` : ''}The rows still to ask:\n${rowsFor(answers, done)}`,
       maxTokens: 1_200,
       deadline: Date.now() + THINKING_MS,
     }))

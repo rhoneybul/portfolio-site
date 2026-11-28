@@ -17,6 +17,7 @@ import {RefPicture} from '@/components/ref-picture'
 import {Gallery, Lightbox, Strip, type Slide} from '@/components/gallery'
 import {NameCheckPanel, summaryOf} from '@/components/name-check'
 import {NameIdeas} from '@/components/name-ideas'
+import {MarketCard, MarketLooking, useIdeaMarket} from '@/components/market-card'
 import {addSpent, resetSpent, spentSoFar} from '@/components/spent'
 import {useListing} from '@/components/ref-picture'
 import type {Reference} from '@/app-builder/references'
@@ -107,6 +108,19 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
   const turn = turns[at]
   const q = questionOf(turn.key)
   const {options, errors} = resolveOptions(answers)
+  const ideaSaid = turns.slice(0, at + 1).some((t, i) => t.key === 'idea' && (i < at || thinking))
+  const market = useIdeaMarket(answers.idea ?? '', answers.business ?? '', phase === 'asking' && ideaSaid)
+  const [marketAt, setMarketAt] = useState<number | null>(null)
+  useEffect(() => {
+    // A changed idea is searched again, and its card pinned where that one arrives.
+    if (market.state === 'looking') return void setMarketAt(null)
+    if (market.state !== 'found' || marketAt !== null) return
+    setMarketAt(turns.slice(0, thinking ? at + 1 : at).length)
+    const el = log.current
+    if (el) el.scrollTo({top: el.scrollHeight, behavior: 'smooth'})
+    // Pinned once, where the conversation was when it arrived.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [market.state])
 
   useEffect(() => {
     if (phase !== 'asking') return
@@ -385,6 +399,11 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
     .filter(Boolean)
   // While Claude chooses the next question, the one just answered joins the conversation.
   const past = turns.slice(0, thinking ? at + 1 : at)
+  // The market, researched once they've said what the app does: a message at the foot of the
+  // conversation while it searches, then staying where it arrived, between the turns.
+  const marketIndex = marketAt ?? past.length
+  const marketShown = market.state === 'looking' || market.state === 'found'
+  const marketMessage = market.state === 'found' ? <MarketCard market={market.market} name={options.name || 'yours'} /> : <MarketLooking />
   const typed = !q.choices && q.key !== 'photo'
   // The box's faint example: Claude's, in their world; else, once Claude has reworded the question, a
   // neutral line (the row's own example is about surfing, and read oddly under a rowing question).
@@ -415,6 +434,7 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
         </div>
         {past.map((t, i) => (
           <div key={`${t.key}-${i}`} className="chat__pair">
+            {marketShown && i === marketIndex && i > 0 && marketMessage}
             <div className="chat__msg chat__msg--claude">
               <p>{t.ask}</p>
             </div>
@@ -426,6 +446,7 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
             </div>
           </div>
         ))}
+        {marketShown && marketIndex >= past.length && marketMessage}
         {thinking ? (
           <div className="chat__msg chat__msg--claude chat__msg--typing" ref={latest} aria-label="Choosing your next question">
             <span />

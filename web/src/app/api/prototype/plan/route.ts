@@ -4,7 +4,9 @@ import {claudeOn} from '@/app-builder/claude'
 import {PAUSED, builderPaused} from '@/app-builder/switch'
 import {cleanPhotos, planPrototype, signJob, withMark} from '@/app-builder/prototype'
 import {cleanMarkPath} from '@/app-builder/prototype-doc'
-import {saveJob} from '@/app-builder/prototypes'
+import {readIdeaMarket, saveJob, saveMarket} from '@/app-builder/prototypes'
+import {plain} from '@/app-builder/next-question'
+import {subjectKey} from '@/app-builder/subject'
 import {addressOf, limiter} from '@/app-builder/rate-limit'
 
 /**
@@ -39,7 +41,13 @@ export async function POST(request: Request) {
     // The logo they picked from the logo round, when they have none of their own: their icon on every screen.
     const logo = cleanMarkPath(body?.logo)
     const job = logo ? withMark(planned, logo) : planned
-    after(() => saveJob(job))
+    after(async () => {
+      await saveJob(job)
+      // The market researched while they answered (/api/builder/market) goes beside the prototype, for the deck's Market slide.
+      const idea = plain(answers.idea, 600)
+      const market = idea.length >= 12 ? await readIdeaMarket(subjectKey(idea)).catch(() => null) : null
+      if (market) await saveMarket(job.id, market)
+    })
     return NextResponse.json({job, token: signJob(job)})
   } catch (e) {
     console.warn('[prototype] plan', e instanceof Error ? e.message : e)

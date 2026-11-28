@@ -9,15 +9,19 @@ import {addSpent} from '@/components/spent'
 
 /**
  * Names Claude suggests while they decide whether they're sure of theirs (/api/builder/name-ideas),
- * each checked for its domains and the App Store, clear ones first. A tap makes it the app's name,
+ * each checked for its domains and the App Store, clear ones first. They can say what they want from
+ * a name (a feel, a language, a letter), and every round after follows it. A tap makes it the app's name,
  * before anything is drawn, so every screen carries it. Nothing shows when the round is off.
  */
 export function NameIdeas({answers, onPick}: {answers: Answers; onPick: (idea: NameIdea) => void}) {
   const [ideas, setIdeas] = useState<NameIdea[] | 'thinking' | 'off' | 'failed'>('thinking')
   const [more, setMore] = useState(false)
+  const [wants, setWants] = useState('')
+  /** The brief the names on show were asked for, so More names keeps to it. */
+  const [askedFor, setAskedFor] = useState('')
 
-  const ask = async (without: string[]) => {
-    const res = await fetch('/api/builder/name-ideas', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({answers, without})}).catch(() => null)
+  const ask = async (without: string[], brief = askedFor) => {
+    const res = await fetch('/api/builder/name-ideas', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({answers, without, wants: brief})}).catch(() => null)
     if (res?.status === 503) return 'off' as const
     const body = res?.ok ? ((await res.json().catch(() => null)) as {ideas?: NameIdea[]; spent?: Spend} | null) : null
     addSpent(body?.spent)
@@ -43,6 +47,17 @@ export function NameIdeas({answers, onPick}: {answers: Answers; onPick: (idea: N
     setMore(false)
   }
 
+  /** A fresh round to what they asked for: these names replace the ones on show, which aren't suggested again. */
+  const askFor = async () => {
+    const brief = wants.trim()
+    if (!brief || more || ideas === 'thinking') return
+    const had = Array.isArray(ideas) ? ideas : []
+    setAskedFor(brief)
+    setIdeas('thinking')
+    const got = await ask([answers.name, ...had.map((i) => i.name)].filter(Boolean), brief)
+    setIdeas(Array.isArray(got) && got.length ? got : had.length ? had : 'failed')
+  }
+
   if (ideas === 'off') return null
   return (
     <section className="name-ideas" aria-labelledby="name-ideas">
@@ -53,8 +68,31 @@ export function NameIdeas({answers, onPick}: {answers: Answers; onPick: (idea: N
             ? 'Claude is thinking of a few, and checking each one’s domains and the App Store…'
             : ideas === 'failed'
               ? 'They didn’t come through this time.'
-              : 'Tap one to use it instead. Or keep yours and carry on.'}
+              : askedFor
+                ? `Names for: ${askedFor}. Tap one to use it, or keep yours and carry on.`
+                : 'Tap one to use it instead. Or keep yours and carry on.'}
         </span>
+      </div>
+      {/* Inside the question's form, so Enter asks for names here rather than sending the answer. */}
+      <div className="name-ideas__wants">
+        <label htmlFor="name-wants">What do you want from a name?</label>
+        <div>
+          <input
+            id="name-wants"
+            value={wants}
+            onChange={(e) => setWants(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return
+              e.preventDefault()
+              void askFor()
+            }}
+            maxLength={300}
+            placeholder="Short and calm, a Japanese word, starts with K…"
+          />
+          <button type="button" className="btn btn-outline" onClick={askFor} disabled={!wants.trim() || more || ideas === 'thinking'}>
+            Find names
+          </button>
+        </div>
       </div>
       <ul className={ideas === 'thinking' ? 'is-pending' : undefined}>
         {ideas === 'thinking'
