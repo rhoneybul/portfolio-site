@@ -11,6 +11,7 @@ import {PrototypeFrame, PrototypeThumb} from '@/components/prototype-frame'
 import type {Built} from '@/components/prototype-build'
 import {whatYouGet} from '@/app-builder/manifest'
 import {liftedAccent, needsYou, onAccent, soften, type Options} from '@/app-builder/options'
+import type {Market} from '@/app-builder/market'
 
 /**
  * The walkthrough after the questions: a short deck of what the visitor's app comes with, each
@@ -558,6 +559,135 @@ function Stores({o, pic, icon, built}: {o: Options; pic: (n: number) => Pic | un
 /** Moves the deck on a slide, from anywhere on the page (the reveal's "See your landing page"). */
 export const nextSlide = () => window.dispatchEvent(new Event('fohm:deck-next'))
 
+type Research = {state: 'looking'} | {state: 'found'; market: Market} | {state: 'later'; why: string}
+
+/**
+ * The research for this app (/api/builder/market), asked once its prototype is drawn: the server
+ * researches from what that prototype was built from and keeps it, so a share opened again is free.
+ * A sketch with no prototype isn't researched; the slide says it comes with the build.
+ */
+function useMarket(id: string | undefined, on: boolean): Research {
+  const [r, setR] = useState<Research>({state: 'looking'})
+  const asked = useRef('')
+  useEffect(() => {
+    if (!on || !id) return void setR({state: 'later', why: 'It comes with the build: researched with sources before anything is designed.'})
+    if (asked.current === id) return
+    asked.current = id
+    setR({state: 'looking'})
+    fetch('/api/builder/market', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({id})})
+      .then(async (res) => {
+        const json = (await res.json().catch(() => ({}))) as {market?: Market; error?: string}
+        if (asked.current !== id) return
+        setR(json.market ? {state: 'found', market: json.market} : {state: 'later', why: json.error || 'It didn’t come back this time.'})
+      })
+      .catch(() => {
+        if (asked.current === id) setR({state: 'later', why: 'It didn’t come back this time.'})
+      })
+  }, [id, on])
+  return r
+}
+
+const hostOf = (url: string) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
+
+/** Who else does this, how they sell it, and the gaps: the research, as found. */
+function MarketView({o, r}: {o: Options; r: Research}) {
+  if (r.state !== 'found')
+    return (
+      <div className="panel" aria-busy={r.state === 'looking'}>
+        <p className="panel__title">{r.state === 'looking' ? `Searching the web for apps like ${o.name}…` : 'Market research'}</p>
+        <div className="issues">
+          {(r.state === 'looking' ? ['Finding the apps people use today', 'Reading how each one sells itself', 'Looking for what they leave undone'] : [r.why]).map((l) => (
+            <div key={l} className="issues__row">
+              <span>{l}</span>
+              {r.state === 'looking' && <em>Looking</em>}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  const m = r.market
+  return (
+    <div className="panel market">
+      {m.position && (
+        <div className="plan-card reach-card">
+          <span className="reach-card__kind">Where {o.name} could stand</span>
+          <span className="plan-card__name">{m.position}</span>
+        </div>
+      )}
+      <p className="panel__title">Apps like it</p>
+      <div className="issues">
+        {m.rivals.map((a) => (
+          <div key={a.name} className="issues__row market__rival">
+            <span>
+              <strong>{a.url ? <a href={a.url} target="_blank" rel="noopener noreferrer">{a.name}</a> : a.name}</strong>: {a.pitch || a.what}
+            </span>
+            {a.price && <em>{a.price}</em>}
+          </div>
+        ))}
+      </div>
+      <p className="panel__title">The gaps</p>
+      <ul className="market__gaps">
+        {m.gaps.map((g) => (
+          <li key={g}>{g}</li>
+        ))}
+      </ul>
+      {m.sources.length > 0 && (
+        <p className="market__sources">
+          Sources:{' '}
+          {m.sources.slice(0, 6).map((s, i) => (
+            <span key={s.url}>
+              {i > 0 && ' · '}
+              <a href={s.url} target="_blank" rel="noopener noreferrer" title={s.title}>
+                {hostOf(s.url)}
+              </a>
+            </span>
+          ))}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** What Kurve's plans for Etapa covered: the stores first, then search. */
+const KURVE_STORES = ['Keyword research for the App Store and Google Play', 'The name, subtitle, keywords and descriptions, written to be found', 'Screenshot and icon tests, and custom product pages for each campaign', 'Your rivals’ listings, studied']
+const KURVE_SEARCH = ['An audit of the website, and the first pages to build', 'Keyword families, page by page', 'An experiment log, and the order to launch in new countries']
+
+function Growth() {
+  return (
+    <div className="panel">
+      <div className="panel__brand">
+        <span className="growth__mark" aria-hidden>
+          K
+        </span>
+        <strong>Kurve</strong>
+        <span className="live-dot">Add-on</span>
+      </div>
+      <p className="panel__title">What Etapa’s plans covered: the stores</p>
+      <div className="checks">
+        {KURVE_STORES.map((l) => (
+          <span key={l}>
+            <i /> {l}
+          </span>
+        ))}
+      </div>
+      <p className="panel__title">And search</p>
+      <div className="checks">
+        {KURVE_SEARCH.map((l) => (
+          <span key={l}>
+            <i /> {l}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** How much of the deck they've seen, told to the page as it changes (BuildBar waits for the whole tour). */
 export interface DeckProgress {
   seen: number
@@ -570,7 +700,7 @@ export interface DeckProgress {
  * its first slide when given, so the finished app is one deck, not a stage and a deck under it.
  * The reveal's phone is the app, so the deck's own "The app" slide steps aside for it.
  */
-export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]; built?: Built | null; intro?: {name: string; node: ReactNode}}) {
+export function Showcase({o, gallery, built, intro, research = true}: {o: Options; gallery: Pic[]; built?: Built | null; intro?: {name: string; node: ReactNode}; research?: boolean}) {
   const parts = Object.fromEntries(whatYouGet(o).map((p) => [p.title, p.items]))
   const lead = gallery.find((g) => g.url === o.photo)
   const photos: Pic[] = [...(o.photo ? [{url: o.photo, credit: o.photoCredit, author: lead?.author, profile: lead?.profile}] : []), ...gallery.filter((g) => g.url !== o.photo)]
@@ -578,6 +708,7 @@ export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]
   const pick = (title: string, n = 4) => (parts[title] ?? []).slice(0, n)
 
   const landing = built?.units.filter((u) => u.id === 'landing') ?? []
+  const market = useMarket(built?.id, research)
   const all = [
     {
       name: 'Landing page',
@@ -614,6 +745,19 @@ export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]
           items={[...pick('The app', 3), ...pick('Onboarding', 2)]}
         >
           {built ? <PrototypeFrame look={built.look} units={built.units} view="phone" title={`${o.name} on a phone`} notes /> : <AppPrototype o={o} gallery={gallery} />}
+        </Slide>
+      ),
+    },
+    {
+      name: 'Your market',
+      node: (
+        <Slide
+          kicker="03 · Your market"
+          title="Who else does this, and where you win"
+          line={market.state === 'found' && market.market.summary ? market.market.summary : `The apps people use today instead of ${o.name}, how each one sells itself, and what they leave undone, searched for you with sources.`}
+          items={['The apps people use today, with links', 'How each sells itself, and its price where it says', 'The gaps, and one line you could own']}
+        >
+          <MarketView o={o} r={market} />
         </Slide>
       ),
     },
@@ -717,6 +861,19 @@ export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]
       node: (
         <Slide kicker="10 · Launch" title="Wherever your people already are" line="On the web, the App Store and Google Play from one codebase, so everyone gets the same experience, and every step to get there is taken care of." items={[...pick('Tests, deploys and the stores', 3), ...pick('Launch and handover', 2)]}>
           <Stores o={o} pic={pic} icon={built?.look.style?.icon} built={built} />
+        </Slide>
+      ),
+    },
+    {
+      name: 'Growth',
+      node: (
+        <Slide
+          kicker="11 · Growth, with Kurve"
+          title="Get found, then keep growing"
+          line={`An optional add-on once you’re live: Kurve, the growth team we’ve worked with before on Etapa, plans how the right people find ${o.name} in the stores and on search.`}
+          items={['Kurve wrote Etapa’s App Store (ASO) and website search (SEO) plans', 'The same work for your app: store listings and keywords, then the pages search sends people to', 'Optional: added when you want it']}
+        >
+          <Growth />
         </Slide>
       ),
     },

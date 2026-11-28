@@ -92,3 +92,80 @@ export async function askClaude({
     await wait(Math.min(Number.isFinite(after) && after > 0 ? after * 1000 : 2_000 * 2 ** attempt, 20_000))
   }
 }
+
+/** A page web search read, as the answer cites it. */
+export interface Source {
+  title: string
+  url: string
+}
+
+type Block = {type: string; text?: string; citations?: {url?: string; title?: string}[]}
+
+/**
+ * One question Claude answers after searching the web (Anthropic's server-side web search, run on
+ * Anthropic's side, so nothing here fetches a page): the answer's text, and every page it cites. A
+ * search that pauses its turn (pause_turn) is carried on, twice at most, and a busy answer tried again, twice, inside the deadline.
+ */
+export async function askClaudeWithSearch({
+  model,
+  system,
+  user,
+  maxTokens,
+  deadline,
+  searches,
+}: {
+  model: string
+  system: string[]
+  user: string
+  maxTokens: number
+  deadline: number
+  /** The most searches it may run. */
+  searches: number
+}): Promise<{text: string; sources: Source[]}> {
+  const key = process.env.ANTHROPIC_API_KEY
+  if (!key) throw new ClaudeError('ANTHROPIC_API_KEY is not set')
+  const messages: {role: 'user' | 'assistant'; content: unknown}[] = [{role: 'user', content: user}]
+  const blocks: Block[] = []
+  let retries = 0
+  for (let turn = 0; turn < 3; turn++) {
+    const left = deadline - Date.now()
+    if (left < 5_000) throw new ClaudeError('Out of time')
+    let res: Response
+    try {
+      res = await fetch(API, {
+        method: 'POST',
+        headers: {'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json'},
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          system: system.map((text) => ({type: 'text', text, cache_control: {type: 'ephemeral'}})),
+          tools: [{type: 'web_search_20260209', name: 'web_search', max_uses: searches}],
+          messages,
+        }),
+        signal: AbortSignal.timeout(left),
+      })
+    } catch (e) {
+      throw new ClaudeError(e instanceof Error ? e.message : 'No answer')
+    }
+    if (!res.ok) {
+      const busy = res.status === 429 || res.status === 529 || res.status >= 500
+      const detail = await res.text().catch(() => '')
+      if (!busy || retries >= 2) throw new ClaudeError(`Anthropic ${res.status}: ${detail.slice(0, 200)}`, res.status)
+      await wait(Math.min(2_000 * 2 ** retries++, 20_000))
+      turn--
+      continue
+    }
+    const json = (await res.json()) as {content?: Block[]; stop_reason?: string; usage?: Usage}
+    meterStore.getStore()?.add(model, json.usage)
+    blocks.push(...(json.content ?? []))
+    if (json.stop_reason === 'refusal') throw new ClaudeError('Declined')
+    if (json.stop_reason !== 'pause_turn') break
+    messages.push({role: 'assistant', content: json.content ?? []})
+  }
+  const texts = blocks.filter((b) => b.type === 'text')
+  const text = texts.map((b) => b.text ?? '').join('')
+  if (!text.trim()) throw new ClaudeError('An empty answer')
+  const seen = new Map<string, Source>()
+  for (const c of texts.flatMap((b) => b.citations ?? [])) if (c.url && !seen.has(c.url)) seen.set(c.url, {url: c.url, title: c.title || c.url})
+  return {text, sources: [...seen.values()]}
+}

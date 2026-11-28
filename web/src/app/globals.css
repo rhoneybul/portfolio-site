@@ -7208,3 +7208,43 @@ details.calls[open] > summary::after {
     animation: none;
   }
 }
+
+/* The deck's Market slide: the research Claude found (showcase.tsx MarketView). */
+.market__rival a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--x-line);
+  text-underline-offset: 2px;
+}
+
+.market__gaps {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  list-style: disc;
+  padding: 12px 14px 12px 30px;
+  border-radius: 14px;
+  background: var(--x-surface);
+  font-size: 13px;
+}
+
+.market__sources {
+  font-size: 12px;
+  color: var(--x-faint);
+}
+
+.market__sources a {
+  color: inherit;
+}
+
+/* The Growth slide's mark for Kurve: a letter in the app's accent, not a copy of Kurve's own logo. */
+.growth__mark {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--x-accent);
+  color: var(--x-on-accent);
+  font: 700 13px var(--x-d);
+}

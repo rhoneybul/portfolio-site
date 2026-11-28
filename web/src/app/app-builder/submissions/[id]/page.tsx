@@ -109,7 +109,7 @@ export default async function SubmissionPage({params}: {params: Promise<{id: str
                 </div>
               </>
             ) : (
-              <Showcase o={options} gallery={[]} />
+              <Showcase o={options} gallery={[]} research={false} />
             )}
           </div>
 

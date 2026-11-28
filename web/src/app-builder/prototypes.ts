@@ -7,6 +7,7 @@
 import {get, put} from '@vercel/blob'
 import {submissionsOn} from './submissions'
 import type {Drawn, Job} from './prototype-doc'
+import type {Market} from './market'
 
 const dir = (id: string) => `prototypes/${id}`
 // Without the Blob store (development), one map every route sees, as the shares keep theirs (mcp-build.ts).
@@ -60,4 +61,13 @@ export async function readPrototype(id: string): Promise<{job: Job; units: Drawn
   const job = JSON.parse(plan) as Job
   const units = await Promise.all(job.plan.units.map(async (u) => ({id: u.id, html: (await read(`${dir(id)}/${u.id}.html`)) ?? ''})))
   return {job, units: units.filter((u) => u.html)}
+}
+
+/** The market research found for a prototype, once (market.ts); kept so it's searched once per app. */
+export const saveMarket = (id: string, market: Market) => (isPrototypeId(id) ? keep(`${dir(id)}/market.json`, JSON.stringify(market), 'application/json') : Promise.resolve(false))
+
+export async function readMarket(id: string): Promise<Market | null> {
+  if (!isPrototypeId(id)) return null
+  const found = await read(`${dir(id)}/market.json`)
+  return found ? (JSON.parse(found) as Market) : null
 }
