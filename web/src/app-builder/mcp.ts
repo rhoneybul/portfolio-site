@@ -1,5 +1,5 @@
 import {z} from 'zod'
-import {QUESTIONS, TEMPLATES, asked, resolveOptions, type Answers, type Options} from './options'
+import {PLATFORMS, QUESTIONS, TEMPLATES, asked, inStores, onWeb, resolveOptions, type Answers, type Options} from './options'
 import {REFERENCES} from './references'
 import {SCHEMES} from './schemes'
 
@@ -69,6 +69,10 @@ export const buildInput = z.object({
     .enum(TEMPLATES.map((t) => t.value) as [string, ...string[]])
     .optional()
     .describe('The closest app already built: naz (programs and guided sessions), etapa (an AI coach that builds and changes a plan), aluzam (a real teacher or coach with their clients). Games: naz-surf, strawberry-fields.'),
+  platforms: z
+    .enum(PLATFORMS.map((p) => p.value) as [string, ...string[]])
+    .optional()
+    .describe('Where people use it: both (the App Store, Google Play and the web), mobile (the store apps only) or web (a web app only, nothing to install). Ask them; both if they have no preference.'),
   doing: text(600).describe('What people should be doing in the app. The headline is written from it.'),
   nameSure: z.enum(['yes', 'no']).optional().describe('Whether they are sure of the name.'),
   interests: text(300).describe('What people are there for, a few words comma-separated: tiles in onboarding.'),
@@ -129,6 +133,10 @@ function sectorLine(sector?: string) {
   return ''
 }
 
+/** Where the real app ships, in words: the stores, the web, or both. */
+const whereItShips = (o: Options) =>
+  [onWeb(o) && 'the web', inStores(o) && 'the App Store and Google Play'].filter(Boolean).join(', ')
+
 /** What the tool says back: the link, what happens next, and the way to build it. */
 export function builtText(o: Options, link: string, drawing: boolean, sector?: string, location?: string) {
   return [
@@ -138,7 +146,7 @@ export function builtText(o: Options, link: string, drawing: boolean, sector?: s
     `"${o.tagline}"`,
     drawing && 'When it’s done they tap through it as a member would (the landing page, onboarding, home, a session, their goal) and see the owner’s dashboard and what it takes to launch.',
     sectorLine(sector),
-    `To build it for real (the web, the App Store and Google Play), they can book a free call or leave their details on that page, or ask you to send it to Fohm with contact_fohm${isLondon(location) ? ': Fohm is in London and can meet in person' : ''}.`,
+    `To build it for real (${whereItShips(o)}), they can book a free call or leave their details on that page, or ask you to send it to Fohm with contact_fohm${isLondon(location) ? ': Fohm is in London and can meet in person' : ''}.`,
   ]
     .filter(Boolean)
     .join('\n\n')

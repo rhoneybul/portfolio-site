@@ -1,4 +1,4 @@
-import {QUESTIONS, SECTIONS, asked, type Answers, type Options} from './options'
+import {QUESTIONS, SECTIONS, asked, inStores, onWeb, type Answers, type Options} from './options'
 
 /**
  * The prompt the builder hands over: everything answered, ready to paste into Claude with
@@ -54,6 +54,15 @@ export interface BriefLinks {
   briefJson?: string
 }
 
+/** Where people use it, as what to build: the template makes the web app and the store apps from one codebase. */
+function platformsLine(o: Options) {
+  if (!inStores(o))
+    return 'People use it on the web only, in a phone’s or a laptop’s browser: build and deploy the web app, leave the iPhone and Android builds, the store listings and store payments out of the launch, and have the landing page lead with Get started in the browser.'
+  if (!onWeb(o))
+    return 'People use it in the iPhone and Android apps only: the web build is the landing page that sends them to the App Store and Google Play, and the launch puts the store accounts, builds and listings first.'
+  return 'People use it in the iPhone and Android apps and on the web: every feature works the same in both, the landing page leads with the App Store and Google Play, and the web app is a quiet link under them.'
+}
+
 export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl, briefJson}: BriefLinks = {}) {
   const shown = asked(raw)
   const answered = (key: string) => {
@@ -82,6 +91,7 @@ export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl,
     o.photo
       ? `Lead the landing page, onboarding’s opening and Home’s goal card with this photo${o.photoCredit ? ` (${o.photoCredit}${/on Unsplash$/.test(o.photoCredit) ? ', under the Unsplash licence' : ', from Wikimedia Commons'})` : ', once its licence or my permission is recorded'}: ${o.photo}`
       : 'Find open-licence photos for every slot (reference/photos.md).',
+    platformsLine(o),
     `It’s ${o.kind === 'game' ? 'a game' : o.coach === 'yes' ? 'programs to follow, and a real person who answers people: both' : 'programs to follow, with nobody pretending to be a coach'}.`,
   ]
 
@@ -89,7 +99,7 @@ export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl,
   const stillToAsk = [
     'what people are called in the app, and the person who runs it',
     'the business’s details for the privacy policy and terms: who runs it, the country, its registration and registered office',
-    'the support email, the domain and the app id',
+    inStores(o) ? 'the support email, the domain and the app id' : 'the support email and the domain',
     'the naming direction, if the name isn’t final',
     ...(o.kind === 'game' ? [] : ['the one question the app answers for people, which opens onboarding over a photo']),
     ...(o.kind === 'coaching' ? ['the levels people move through, and the skills and drills at each: my method, for the path'] : []),

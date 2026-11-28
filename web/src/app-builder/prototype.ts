@@ -5,7 +5,7 @@
  * for, and never takes the visitor's words straight into a prompt. Server only.
  */
 import {createHash, createHmac, randomBytes, timingSafeEqual} from 'node:crypto'
-import {TEMPLATES, chargeOf, type Answers, type Options} from './options'
+import {TEMPLATES, chargeOf, platformOf, type Answers, type Options} from './options'
 import {CANVASES, CORNERS, HOMES, HOUSE, SHAPES, TYPES, TYPE_FACES, type Drawn, type Job, type Photo, type Plan, type Style, type Unit} from './prototype-doc'
 import {DRAW_MODEL, PLAN_MODEL, askClaude} from './claude'
 import {referencesIn} from './references'
@@ -35,6 +35,7 @@ export function factsOf(o: Options, raw: Answers) {
     line('The business behind it, and what people already pay for', raw.business),
     template && template.value !== 'other' && line('Closest app already built on the same foundations', `${template.label.replace(/^Like /, '')}: ${template.hint}`),
     line('Kind', kind),
+    line('Where people use it', platformOf(raw).draws),
     line('What people should be doing in the app', raw.doing),
     line('The landing page headline', o.tagline),
     line('What people are here for (onboarding’s tiles)', raw.interests),
