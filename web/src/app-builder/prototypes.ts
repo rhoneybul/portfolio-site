@@ -83,3 +83,12 @@ export async function readSubject(key: string): Promise<Subject | null> {
   const found = await read(`subjects/${key}.json`).catch(() => null)
   return found ? (JSON.parse(found) as Subject) : null
 }
+
+/** The market researched for an idea in the conversation (market.ts), kept by the idea's key (subjectKey), like its subject. */
+export const saveIdeaMarket = (key: string, market: Market) => (isSubjectKey(key) ? keep(`markets/${key}.json`, JSON.stringify(market), 'application/json') : Promise.resolve(false))
+
+export async function readIdeaMarket(key: string): Promise<Market | null> {
+  if (!isSubjectKey(key)) return null
+  const found = await read(`markets/${key}.json`).catch(() => null)
+  return found ? (JSON.parse(found) as Market) : null
+}

@@ -12,6 +12,7 @@ import type {Built} from '@/components/prototype-build'
 import {whatYouGet} from '@/app-builder/manifest'
 import {liftedAccent, needsYou, onAccent, soften, type Options} from '@/app-builder/options'
 import type {Market} from '@/app-builder/market'
+import {OVERLAP_WORDS} from '@/components/market-card'
 
 /**
  * The walkthrough after the questions: a short deck of what the visitor's app comes with, each
@@ -620,14 +621,22 @@ function MarketView({o, r}: {o: Options; r: Research}) {
           <span className="plan-card__name">{m.position}</span>
         </div>
       )}
+      {m.flag && (
+        <div className="market__flag" role="note">
+          <strong>Worth knowing</strong> {m.flag}
+        </div>
+      )}
       <p className="panel__title">Apps like it</p>
       <div className="issues">
         {m.rivals.map((a) => (
           <div key={a.name} className="issues__row market__rival">
-            <span>
-              <strong>{a.url ? <a href={a.url} target="_blank" rel="noopener noreferrer">{a.name}</a> : a.name}</strong>: {a.pitch || a.what}
-            </span>
-            {a.price && <em>{a.price}</em>}
+            <div className="market__rival-head">
+              <strong>{a.url ? <a href={a.url} target="_blank" rel="noopener noreferrer">{a.name}</a> : a.name}</strong>
+              {a.overlap && <span className={`market__overlap is-${a.overlap}`}>{OVERLAP_WORDS[a.overlap]}</span>}
+            </div>
+            <p>{a.pitch || a.what}</p>
+            {a.edge && <p className="market__edge">Where yours could differ: {a.edge}</p>}
+            {a.price && <p className="market__price">{a.price}</p>}
           </div>
         ))}
       </div>
