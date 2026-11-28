@@ -362,7 +362,7 @@ function Security() {
 /**
  * The services an app runs on, by layer: where people use it, what runs it, and what watches it and
  * tells you. Each shows the service's own logo (brand-logos.tsx); the web, which is no one's brand, a globe.
- * Every service another slide names (RevenueCat on Payments, GitHub and Dependabot on Security, PostHog, Sentry and Slack on theirs) is here too.
+ * Every service another slide names (RevenueCat on Payments, Customer.io on Marketing, GitHub and Dependabot on Security, PostHog, Sentry and Slack on theirs) is here too.
  */
 const STACK: {layer: string; items: {logo: Brand | 'web'; name: string; role: string}[]}[] = [
   {
