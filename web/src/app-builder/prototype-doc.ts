@@ -332,10 +332,61 @@ ${iconMarkCss('.app-icon::after', style.icon)}
 .site-hero .hero-title{font-size:56px;line-height:1.02}
 .site-hero img{width:100%;height:460px;object-fit:cover;border-radius:var(--r-card);background:var(--track)}
 .site-hero .pill{width:auto;display:inline-flex;gap:20px}
-.site-band{padding:64px 0;border-top:1px solid var(--line)}
+.site-nav .link,.site-nav a{white-space:nowrap}
+.site-nav .link{text-decoration:none}
+.site-nav .pill{width:auto;height:48px;gap:16px}
+.site-nav .pill .disc{width:32px;height:32px}
+.site-band{padding:112px 0}
 .site-band .title{margin-bottom:24px}
+.site-band.tint{border-radius:0;padding:112px 0}
+.site-head{display:grid;gap:14px;max-width:680px;margin-bottom:48px}
+.site-head .title,.site-split .title{font-size:44px;line-height:1.04;letter-spacing:-.02em;margin:0}
 .site-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .site-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+/* The landing page sells: a full-bleed photo with the promise over it, the app itself in a phone, and bands that change pace (Nov 2026: the two-column hero and grey cards read as a brochure). */
+.site-cover{position:relative;display:flex;flex-direction:column;min-height:800px;background:#111113;color:#fff;overflow:hidden}
+.site-cover>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.site-cover::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 38%,rgba(0,0,0,.8) 94%)}
+.site-cover>*:not(img){position:relative;z-index:2}
+.site-cover>.site{width:100%}
+.site-cover .site-nav,.site-cover .site-nav .link{color:#fff}
+.site-cover .site-nav .pill,.site-cover .site-words .pill,.site-statement .pill{background:#fff;color:#111113}
+.site-hold{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:72px;align-items:end;margin-top:auto;padding-top:48px;padding-bottom:64px}
+.site-words{display:grid;gap:22px;justify-items:start;max-width:680px}
+.site-words .hero-title{font-size:72px;line-height:.98;letter-spacing:-.035em;text-wrap:balance}
+.site-words .lead{font-size:21px;max-width:540px;color:rgba(255,255,255,.86)}
+.site-words .pill{width:auto;gap:20px}
+.site-words .link,.site-cover>.credit,.site-words .credit{color:rgba(255,255,255,.8)}
+.site-cover>.credit{position:absolute;right:48px;bottom:18px}
+.site-cover.end{min-height:620px}
+.site-cover.end::before{background:rgba(0,0,0,.5)}
+.site-cover.end .site-words{margin:auto;padding:96px 0;justify-items:center;text-align:center}
+.site-cover.end .site-words .hero-title{font-size:64px}
+.site-phone{position:relative;width:300px;height:620px;border:10px solid #111113;border-radius:48px;background:var(--bg);color:var(--ink);overflow:hidden;padding-top:30px;box-shadow:0 40px 80px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.14)}
+.site-phone::before{content:'';position:absolute;top:9px;left:50%;width:84px;height:22px;margin-left:-42px;border-radius:12px;background:#111113;z-index:3}
+.site-phone .hero{height:220px}
+.site-phone .photo-card img{height:150px}
+.site-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.site-step{display:grid;gap:12px;align-content:start}
+.site-step img{width:100%;height:320px;object-fit:cover;border-radius:var(--r-card);background:var(--track);margin-bottom:8px}
+.site-step .big-num{font-size:56px;letter-spacing:-.03em}
+.site-split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:80px;align-items:center}
+.site-split.flip>:first-child{order:2}
+.site-split>img{width:100%;height:600px;object-fit:cover;border-radius:var(--r-card);background:var(--track)}
+.site-split>.site-phone{justify-self:center}
+.site-split .stack-lg{justify-items:start}
+.site-split .stack-lg>.list,.site-split .stack-lg>.card{justify-self:stretch}
+.site-split .pill{width:auto;gap:20px}
+.site-strip{display:flex;gap:20px;overflow-x:auto;padding:0 calc((100% - 1024px) / 2);scrollbar-width:none}
+.site-strip>*{flex:none;width:360px}
+.site-strip .photo-card img{height:440px}
+.site-statement{border-radius:0;padding:136px 0}
+.site-big{font:600 64px/1.02 var(--d);letter-spacing:-.03em;max-width:960px;text-wrap:balance}
+.site-statement .lead{max-width:620px;margin-top:24px;font-size:20px}
+.site-price{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.site-price>*{padding:32px}
+.site-price .big-num{font-size:56px}
+::selection{background:var(--accent);color:var(--on-accent)}
 .site-foot{display:flex;justify-content:space-between;gap:24px;padding:28px 0 40px;border-top:1px solid var(--line);font-size:14px;color:var(--faint)}
 .screen[data-frame=laptop]{background:var(--g-bg);color:var(--g-text)}
 .dash{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
