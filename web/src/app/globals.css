@@ -2985,6 +2985,11 @@ a.proof:hover .proof__arrow {
   font-size: 13px;
 }
 
+.shields__tick--brand {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+}
+
 .shields p {
   display: grid;
   margin: 0;

@@ -263,20 +263,29 @@ function Payments({o, icon}: {o: Options; icon?: Style['icon']}) {
 }
 
 function Security() {
-  const items: [string, string][] = [
-    ['Access rules on the server', 'Each person reads and writes only their own; coaches see only theirs'],
+  // A service's logo where it does that job (as on Naz and Etapa), else a tick.
+  const items: [string, string, Brand?][] = [
+    ['Access rules on the server', 'Each person reads and writes only their own; coaches see only theirs', 'supabase'],
     ['Private notes stay private', 'What you write about someone never reaches them'],
     ['Consent first', 'A cookie banner, and analytics that never carry names or anything typed'],
     ['Delete my account', 'Removes their data, and forgets them in analytics'],
-    ['Keys never in the chat', 'Every integration is off until its key is set in the host'],
+    ['Dependencies kept patched', 'Dependabot flags a known flaw in a package and opens the fix', 'dependabot'],
+    ['Every change tested first', 'Nothing goes live except through a pull request its tests passed', 'github'],
+    ['Keys never in the chat', 'Every integration is off until its key is set in the host', 'vercel'],
   ]
   return (
     <div className="panel shields">
-      {items.map(([t, l]) => (
+      {items.map(([t, l, brand]) => (
         <div key={t}>
-          <span className="shields__tick" aria-hidden>
-            ✓
-          </span>
+          {brand ? (
+            <span className="shields__tick shields__tick--brand">
+              <BrandLogo brand={brand} size={15} />
+            </span>
+          ) : (
+            <span className="shields__tick" aria-hidden>
+              ✓
+            </span>
+          )}
           <p>
             <strong>{t}</strong>
             <span>{l}</span>
