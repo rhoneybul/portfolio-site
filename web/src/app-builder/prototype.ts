@@ -102,7 +102,7 @@ Rules:
 - ids are short kebab-case words, unique. links name unit ids only. Every unit is reachable from the landing page, and every phone unit leads somewhere.
 - tabs: 3 to 5, each to a phone unit that shows the tab bar; or [] for an app with one hub screen.
 - The journey given for this kind of app is what to cover, not an order or a set of screens: group, order and name the units as this app needs, and lay each out for what it shows. Vary the layouts across the app: not every screen is a bar and a list.
-- Give every photo slot a photo by its number: the strongest for the landing page and the goal, and each where it fits what it shows.
+- Give every photo slot a photo by its number: the strongest for the landing page and the goal, and each where it fits what it shows. Pick by each photo's "what it shows": a photo goes only where it shows this app's own activity, kit or place; a slot no photo fits gets none (it is drawn as a tinted panel), never a photo of something else.
 - Never invent facts about the business (prices, dates, client numbers): write a [placeholder]. The member we follow and the dashboard's people are illustrative, and may have sample activity.
 - Plain English and sentence case. No emoji.`
 

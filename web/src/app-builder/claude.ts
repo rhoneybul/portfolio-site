@@ -15,6 +15,9 @@ export const claudeOn = () => Boolean(process.env.ANTHROPIC_API_KEY)
 export const PLAN_MODEL = () => process.env.PROTOTYPE_PLAN_MODEL || 'claude-opus-5-5'
 export const DRAW_MODEL = () => process.env.PROTOTYPE_MODEL || 'claude-sonnet-5-5'
 
+/** A part of the user's message: text, or an image Anthropic fetches from its URL. */
+export type UserBlock = {type: 'text'; text: string} | {type: 'image'; source: {type: 'url'; url: string}}
+
 export class ClaudeError extends Error {
   constructor(
     message: string,
@@ -41,7 +44,8 @@ export async function askClaude({
 }: {
   model: string
   system: string[]
-  user: string
+  /** The message: text, or content blocks (text and images by URL). */
+  user: string | UserBlock[]
   maxTokens: number
   /** Epoch ms by which an answer is needed. */
   deadline: number

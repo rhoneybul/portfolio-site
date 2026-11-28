@@ -9,10 +9,11 @@
  */
 import {randomBytes} from 'node:crypto'
 import {get, put} from '@vercel/blob'
-import {resolveOptions, type Answers, type Options} from './options'
+import {resolveOptions, type Answers} from './options'
 import {claudeOn} from './claude'
 import {searchPhotos} from './photos'
-import {photoIdeas} from './photo-ideas'
+import {photoSearches} from './photo-searches'
+import {fitting} from './photo-check'
 import {drawUnit, planPrototype, withMark} from './prototype'
 import {saveJob, saveUnit} from './prototypes'
 import {saveSubmission, submissionsOn, type Contact} from './submissions'
@@ -124,37 +125,35 @@ export async function startShare(answers: Answers, source: Share['source'] = 'mc
 }
 
 /**
- * Open-licence photos for the app: the ones they picked first (the website's photo question), then
- * the searches (the chat's, or the answers' own words), then its goals, taking turns.
+ * Photos for the app: the ones they picked first (the website's photo question), then the searches
+ * (the chat's, or Claude's from the answers, photo-searches.ts), taking turns. Every photo found is
+ * looked at first (photo-check.ts) and only those that show this app's world are kept: a slot with
+ * none is drawn as a tinted panel, never with a photo of something else.
  */
-async function findPhotos(answers: Answers, searches: string[], favourites: {url: string; credit: string}[] = []): Promise<Photo[]> {
+async function findPhotos(answers: Answers, searches: string[], deadline: number, favourites: {url: string; credit: string}[] = []): Promise<Photo[]> {
   const {options} = resolveOptions(answers)
-  const terms = [...(searches.length ? searches : photoIdeas(answers)), ...goalsOf(options)].filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
+  const asked = await photoSearches(answers, Math.min(deadline, Date.now() + 20_000))
+  const terms = (searches.length ? searches : asked.terms).filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5)
   const lists = await Promise.all(terms.map((t) => searchPhotos(t).catch(() => [])))
-  const found: Photo[] = []
-  for (let r = 0; found.length < 11 && lists.some((l) => l[r]); r++)
+  // Twice as many as are used, so there are enough left once the ones that don't fit are dropped.
+  const found: (Photo & {thumb: string; about: string})[] = []
+  for (let r = 0; found.length < 22 && lists.some((l) => l[r]); r++)
     lists.forEach((l, i) => {
       const f = l[r]
-      if (f && found.length < 11 && !found.some((x) => x.url === f.url)) found.push({url: f.url, credit: f.credit, about: f.alt ? `${terms[i]}: ${f.alt}` : terms[i]})
+      if (f && found.length < 22 && !found.some((x) => x.url === f.url))
+        found.push({url: f.url, thumb: f.thumb || f.url, credit: f.credit, about: f.alt ? `${terms[i]}: ${f.alt}` : terms[i]})
     })
+  const keep = await fitting(found, answers, asked.activity, Math.min(deadline, Date.now() + 45_000))
+  const fit = keep.map((i) => found[i]).slice(0, 11).map(({thumb: _, ...p}) => p)
+  console.info(`[build] photos: ${fit.length} of ${found.length} found fit "${asked.activity || terms[0] || ''}"`)
   const own = options.photo ? [{url: options.photo, credit: options.photoCredit || 'The owner’s own photo', about: 'the photo the owner picked to lead'}] : []
   const picked = favourites.filter((f) => f.url !== options.photo).map((f) => ({url: f.url, credit: f.credit || 'The owner’s own photo', about: 'a photo the owner picked'}))
   const chosen = [...own, ...picked]
-  return [...chosen, ...found.filter((f) => !chosen.some((c) => c.url === f.url))].slice(0, 12)
+  return [...chosen, ...fit.filter((f) => !chosen.some((c) => c.url === f.url))].slice(0, 12)
 }
 
 // Each part is drawn and then reviewed (prototype.ts), so more at once keeps the whole app to its time.
 const AT_ONCE = 8
-
-/** The goals they named, a few: "Races: Hackney Half, London Marathon" is those two (as app-prototype.tsx's goalsOf, which is client-only). */
-function goalsOf(o: Options) {
-  const g = o.goals || ''
-  return (g.includes(':') ? g.split(':')[1] : g)
-    .split(/,|\n| and /)
-    .map((x) => x.trim())
-    .filter(Boolean)
-    .slice(0, 3)
-}
 
 /** How long the plan waits for the logo round before it goes on with the icon its plan chooses. */
 const LOGOS_WAIT = 75_000
@@ -194,7 +193,7 @@ async function build(share: Share, answers: Answers, searches: string[], deadlin
           .catch((e) => (console.warn('[build] logos', e instanceof Error ? e.message : e), [] as Mark[]))
           .then(async (marks) => (await update({marks}), marks))
       : Promise.resolve([])
-    const photos = await findPhotos(answers, searches, opts.favourites).catch(() => [])
+    const photos = await findPhotos(answers, searches, deadline, opts.favourites).catch(() => [])
     await update({photos})
     if (s.status !== 'sketch') {
       await update({status: 'planning'})
