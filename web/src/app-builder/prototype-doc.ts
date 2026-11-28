@@ -172,6 +172,9 @@ export function kitCss(accent: string, style: Style = HOUSE) {
   const hex = (v?: string) => (v && /^#[0-9a-fA-F]{6}$/.test(v) ? v : '')
   const p = style.palette
   // The scheme's shades over the canvas's; without a scheme, a deep shade and a tint made from the accent.
+  // The tick on a chosen tile or choice: a disc in ink with the check in the colour on ink, drawn for this canvas.
+  const [ink, onInk] = style.canvas === 'dark' ? ['#F2F2F6', '#111113'] : ['#111113', '#FFFFFF']
+  const tick = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='12' fill='${ink}'/><path d='M7 12.5l3.2 3.2L17 9' fill='none' stroke='${onInk}' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>`).replace(/'/g, '%27')}") center/cover no-repeat`
   const shades = [
     hex(p?.bg) && `--bg:${p!.bg}`,
     hex(p?.surface) && `--surface:${p!.surface}`,
@@ -279,13 +282,19 @@ ${iconMarkCss('.app-icon::after', style.icon)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:var(--r-pill);background:var(--raised);font:500 14px var(--t);color:var(--ink)}
 .chip.on{background:var(--ink);color:var(--on-ink)}${p && hex(p.deep) ? '\n.chip.on{background:var(--deep);color:#fff}' : ''}
-.choice{display:flex;align-items:center;gap:14px;width:100%;padding:16px;border-radius:var(--r-tile);background:var(--surface);border:2px solid transparent}
-.choice.on{border-color:var(--ink)}
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tile{display:block;border-radius:var(--r-tile);overflow:hidden;background:var(--surface);border:2px solid transparent}
-.tile img{width:100%;height:112px;object-fit:cover;background:var(--track)}
-.tile .t{padding:10px 12px}
-.tile.on{border-color:var(--ink)}
+.choice{display:flex;align-items:center;gap:14px;width:100%;min-height:64px;padding:14px 16px;border-radius:var(--r-tile);background:var(--surface)}
+.choice::after{content:'';flex:none;margin-left:auto;width:24px;height:24px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--track)}
+.choice.on::after{box-shadow:none;background:${tick}}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{position:relative;display:block;border-radius:var(--r-tile);overflow:hidden;background:var(--surface)}
+.tile img{width:100%;aspect-ratio:1/1;height:auto;object-fit:cover;background:var(--track);transition:filter .2s}
+.tile .t{display:block;padding:12px 14px}
+.tile:has(img)::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,0) 45%,rgba(0,0,0,.62));pointer-events:none}
+.tile:has(img) .t{position:absolute;left:0;right:0;bottom:0;color:#fff}
+.tile::after{content:'';position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.9),0 1px 4px rgba(0,0,0,.25)}
+.tile:not(:has(img))::after{box-shadow:inset 0 0 0 2px var(--track)}
+.tile.on::after{box-shadow:0 1px 4px rgba(0,0,0,.25);background:${tick}}
+.tile.on img{filter:saturate(1.08) brightness(.92)}
 .dots{display:flex;gap:6px;align-items:center}
 .dots i{width:8px;height:8px;border-radius:4px;background:var(--track)}
 .dots i.on{width:22px;background:var(--ink)}

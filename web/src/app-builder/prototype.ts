@@ -265,7 +265,7 @@ Phone screens (390 wide; the top 44px are left clear; long screens scroll):
 - Photos: .photo-card.tall (a 300px photo); img.hero (full width, 340 tall, square edges: a heading photo, never rounded; put class="screen bleed" on the section when the hero starts at the very top); .hero-top (a hero at the very top with the app's bar laid over it: <div class="hero-top"><img class="hero" src="URL" alt="…"><div class="over"><span class="row-x"><span class="app-icon sm"></span><span class="label">App name</span></span><a class="link" data-go="UNIT">Sign in</a></div></div>, in a section with class="screen bleed"); a full-screen photo with the words over it: class="screen cover" on the section, the <img src="URL" alt="…"> as its first child, then <div class="over"> for the top (the app's icon and name, or the dots and Skip), then the words in a .pad .stack (a .hero-title, a .lead), the pill in a .pad, and the .credit in a .pad; nothing else. .photo-card (an img, then <div class="in"> with .heading or .t, .s and .credit); img.thumb (56px); .avatar, .avatar.lg; .credit; .player (an img and <span class="play"></span>) for a video.
 - Actions: the primary <a class="pill" data-go="UNIT"><span>Label</span><span class="disc"></span></a>; .quiet (a grey full-width button); .link; .foot (a fixed bottom area for onboarding's pill and Skip).
 - Marks of other services: <i class="mark mark-SLUG"></i> (a 40px tile; .sm 28, .lg 56), or <i class="mark" data-l="AB"></i>; .sso (a full-width "Continue with" button: .apple for Apple's black one).
-- Picks: .chips of .chip; .choice rows; .tiles of .tile (an img and <span class="t">Label</span>); .on marks the chosen one; wrap a group in data-pick="one" or data-pick="many" and a tap picks.
+- Picks: .chips of .chip; .choice rows (its tick is drawn for you); .tiles of .tile (an img and <span class="t">Label</span>: square photos two to a row with the label over the photo and a tick in the corner, all drawn for you; four or six tiles, never one to a row, never their columns set in a style); .on marks the chosen one; wrap a group in data-pick="one" or data-pick="many" and a tap picks.
 - Progress: .dots with an <i></i> a step (.on for this step); <div class="track"><span style="width:40%"></span></div>; .stat (a .big-num or .num, and a .small); .week of seven .day (<span>M</span><b>12</b>; .done, .today); .live (a small accent badge); .seg (a segmented control; .on on the chosen child); .field (<span>Label</span><div class="input">Placeholder</div>); .bubble and .bubble.me (messages).
 - The tab bar: on a screen that shows the app's tabs, put exactly <nav class="tabbar" data-tab="TAB"></nav> as the section's last child, where TAB is the unit of the tab it belongs to. It is filled in for you.
 The website (frame web: only the landing page, 1280 wide, scrolls; in the app's own look, never graphite and never laid out as a phone screen):
@@ -309,7 +309,53 @@ export async function drawUnit(job: Job, unitId: string, deadline: number): Prom
     maxTokens: 32_000,
     deadline,
   })
-  return {id: unit.id, html: cleanUnit(answer, unit, job.plan)}
+  const draft = cleanUnit(answer, unit, job.plan)
+  return {id: unit.id, html: await reviewUnit(job, unit, draft, deadline)}
+}
+
+// ---------- Reviewing a unit ----------
+
+/** Time a review needs to be worth starting: less than this left, and the draft is shown as drawn. */
+const REVIEW_NEEDS_MS = 75_000
+
+/**
+ * The design review every unit gets before anyone sees it (Robert, Nov 2026: "an impeccable design
+ * review over every app before it gets produced in the prototype"): impeccable's critique, by a
+ * design director who didn't draw it, on the kit and the plan the drawing had, fixing what it finds.
+ */
+const REVIEW = `You are the design director who reviews each part of the prototype before the owner sees it, as Impeccable's critique and polish passes do. Another designer drew it on the kit above; you sign it off. Judge it as an award-winning studio would, then return it fixed.
+
+Look at every screen for:
+- Specificity: is it this app, for these people, in the owner's words, or could any app use it unchanged? Generic copy ("Track your progress", "Achieve your goals") becomes the business's own.
+- Hierarchy: one thing leads each screen (a title, a photo or a number), then what follows, then the one primary action. Nothing competes with the pill.
+- Composition and rhythm: tight groups, generous space between them (.section, .stack-lg), more space above a heading than below it. No screen is a bar and a list when its plan asked for more; no screen is empty below a thin top, or crammed.
+- The house style and the kit: the classes only, inline style only for layout, no colour, border, shadow, font or background in a style. No card in a card, no stack of cards for a list, no eyebrow over a title, sentence case, no emoji. The accent only on what to press and what is live; anything chosen is ink.
+- Picks: .tiles are four or six square photo tiles two to a row (never one to a row, never their columns or heights set in a style), each a photo that shows its label; .choice rows for words without photos; .chips for short options. A pick screen has its title, a line, the picks, and the pill in .foot.
+- Photos: each one shows what its slot is about (read the photos' "about"); a wrong photo is replaced by the right one or by a .tint or .deep panel; every photo that leads has its credit; people are initials, never photos.
+- Cognitive load: no more than four choices competing at a decision point unless it is a list to pick from; one idea a screen in onboarding.
+- Copy: plain, warm and direct, short; buttons name what they do; facts not given are [placeholders].
+- Links: every tap leads to a real id, and steps lead to the next.
+
+Then fix everything you found, in one pass: rewrite what needs it, keep what works, keep the plan's content, ids, links and the tab bar line as they are. Answer in the same OUTPUT format as the drawing: first at most eight short lines of what you changed, as plain text with no angle brackets, then the unit's sections and nothing after them.`
+
+async function reviewUnit(job: Job, unit: Unit, draft: string, deadline: number) {
+  if (deadline - Date.now() < REVIEW_NEEDS_MS) return draft
+  try {
+    const answer = await askClaude({
+      model: DRAW_MODEL(),
+      system: [KIT, context(job), REVIEW],
+      user: `Review the unit "${unit.id}": ${unit.title}, on the ${unit.frame}. Its plan: ${unit.shows}${unit.layout ? ` Layout: ${unit.layout}` : ''} It leads to: ${unit.links.join(', ') || 'where the plan says'}.\n\nAs drawn:\n${draft}`,
+      maxTokens: 32_000,
+      deadline,
+    })
+    const notes = answer.slice(0, Math.max(0, answer.indexOf('<section'))).trim()
+    if (notes) console.info('[prototype] reviewed', unit.id, notes.replace(/\s+/g, ' ').slice(0, 400))
+    return cleanUnit(answer, unit, job.plan)
+  } catch (e) {
+    // A review that fails never costs the owner the screen: they see it as drawn.
+    console.warn('[prototype] review', unit.id, e instanceof Error ? e.message : e)
+    return draft
+  }
 }
 
 // ---------- What comes back ----------
