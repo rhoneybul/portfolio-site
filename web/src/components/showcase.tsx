@@ -184,6 +184,69 @@ function Funnel({o}: {o: Options}) {
   )
 }
 
+/**
+ * Talking to people from the dashboard: marketing emails and push through Customer.io and Expo, and
+ * support, a message in and a reply out, through the dashboard's inbox and Resend. Audiences, never counts.
+ */
+function Reach({o}: {o: Options}) {
+  const members = `${o.memberWord}s`
+  const ways: [Brand[], string, string][] = [
+    [['customerio'], 'Marketing emails', `A welcome series, a nudge when someone goes quiet, news to every ${o.memberWord}`],
+    [['expo', 'customerio'], 'Notifications', 'Push to iPhone and Android: everyone, a group, or a step in a journey'],
+    [['resend'], 'Support', `Messages from ${members} land in one inbox; your reply goes by email and push`],
+  ]
+  return (
+    <div className="panel">
+      <div className="panel__brand">
+        <span className="pay-way__logos">
+          {(['customerio', 'resend', 'expo'] as Brand[]).map((b) => (
+            <BrandLogo key={b} brand={b} size={22} />
+          ))}
+        </span>
+        <strong>From your dashboard</strong>
+      </div>
+      <div className="plan-card reach-card">
+        <span className="reach-card__kind">Email · Draft</span>
+        <span className="plan-card__name">We’ve missed you: here’s what’s new</span>
+        <span>To: {members} who haven’t opened {o.name} in a week</span>
+        <span className="plan-card__pill" style={{background: o.accent, color: onAccent(o.accent)}}>
+          Send
+        </span>
+      </div>
+      <p className="panel__title">One place to reach everyone, and to answer anyone</p>
+      <div className="issues">
+        {ways.map(([brands, t, l]) => (
+          <div key={t} className="issues__row pay-way">
+            <span className="pay-way__logos reach__logos">
+              {brands.map((b) => (
+                <BrandLogo key={b} brand={b} size={20} />
+              ))}
+            </span>
+            <span>
+              <strong>{t}</strong>: {l}
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="panel__title">Inbox</p>
+      <div className="issues">
+        <div className="issues__row">
+          <span>
+            <strong>Priya Shah</strong>: Can I change my goal?
+          </span>
+          <em>Needs a reply</em>
+        </div>
+        <div className="issues__row">
+          <span>
+            <strong>Tom Reilly</strong>: Where do I change my plan?
+          </span>
+          <em>Answered</em>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Monitoring({o}: {o: Options}) {
   const checks: [string, string][] = [
     ['Database', 'ok'],
@@ -322,11 +385,12 @@ const STACK: {layer: string; items: {key: IconKey; name: string; role: string; c
       {key: 'sentry', name: 'Sentry', role: 'Errors on the web, the apps and the server', colour: '#7553C7'},
       {key: 'slack', name: 'Slack', role: 'Sign-ups, payments and anything that needs you', colour: '#E01E5A'},
       {key: 'email', name: 'Resend', role: 'Sign-in links, welcome and reminder emails', colour: '#3F4A5A'},
+      {key: 'campaigns', name: 'Customer.io', role: 'Marketing emails and push campaigns', colour: '#7131FF'},
     ],
   },
 ]
 
-type IconKey = 'web' | 'apple' | 'play' | 'vercel' | 'supabase' | 'expo' | 'stripe' | 'posthog' | 'sentry' | 'slack' | 'email'
+type IconKey = 'web' | 'apple' | 'play' | 'vercel' | 'supabase' | 'expo' | 'stripe' | 'posthog' | 'sentry' | 'slack' | 'email' | 'campaigns'
 
 /** A simple glyph for each service: drawn here, never the service's own logo. */
 const GLYPHS: Record<IconKey, ReactNode> = {
@@ -364,6 +428,12 @@ const GLYPHS: Record<IconKey, ReactNode> = {
     <>
       <rect x="4" y="6" width="16" height="12" rx="2" />
       <path d="M4 8l8 5 8-5" />
+    </>
+  ),
+  campaigns: (
+    <>
+      <path d="M4 10v4h3l7 4V6l-7 4z" />
+      <path d="M18 9.5a4 4 0 0 1 0 5" />
     </>
   ),
 }
@@ -602,6 +672,19 @@ export function Showcase({o, gallery, built, intro}: {o: Options; gallery: Pic[]
       node: (
         <Slide kicker="04 · Alerts" title="Reply while it still matters" line="Sign-ups, payments and anything that needs you reach Slack, email and push the moment they happen, so people hear back while they’re still keen." items={pick('Email, notifications and sharing')}>
           <Slack o={o} icon={built?.look.style?.icon} />
+        </Slide>
+      ),
+    },
+    {
+      name: 'Marketing and support',
+      node: (
+        <Slide
+          kicker="05 · Marketing and support"
+          title="Keep people coming back, and never leave one waiting"
+          line="Marketing emails, notifications and support, all from your dashboard: welcome people in, bring back the ones who drift, and answer every question in one inbox."
+          items={pick('Marketing and support')}
+        >
+          <Reach o={o} />
         </Slide>
       ),
     },
