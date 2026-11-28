@@ -8,6 +8,7 @@ import {get, put} from '@vercel/blob'
 import {submissionsOn} from './submissions'
 import type {Drawn, Job} from './prototype-doc'
 import type {Market} from './market'
+import type {Subject} from './subject'
 
 const dir = (id: string) => `prototypes/${id}`
 // Without the Blob store (development), one map every route sees, as the shares keep theirs (mcp-build.ts).
@@ -70,4 +71,15 @@ export async function readMarket(id: string): Promise<Market | null> {
   if (!isPrototypeId(id)) return null
   const found = await read(`${dir(id)}/market.json`)
   return found ? (JSON.parse(found) as Market) : null
+}
+
+/** The subject researched for an idea (subject.ts), kept by its key so each idea is searched once, whoever asks. */
+const isSubjectKey = (key: string) => /^[a-f0-9]{32}$/.test(key)
+
+export const saveSubject = (key: string, subject: Subject) => (isSubjectKey(key) ? keep(`subjects/${key}.json`, JSON.stringify(subject), 'application/json') : Promise.resolve(false))
+
+export async function readSubject(key: string): Promise<Subject | null> {
+  if (!isSubjectKey(key)) return null
+  const found = await read(`subjects/${key}.json`).catch(() => null)
+  return found ? (JSON.parse(found) as Subject) : null
 }

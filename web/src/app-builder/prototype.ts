@@ -11,6 +11,9 @@ import {DRAW_MODEL, PLAN_MODEL, askClaude} from './claude'
 import {referencesIn} from './references'
 import {MARK_SLUGS} from './brand-marks'
 import {schemeById} from './schemes'
+import {plain} from './next-question'
+import {readSubject} from './prototypes'
+import {subjectKey, subjectSaid} from './subject'
 
 export type {Job}
 
@@ -205,8 +208,15 @@ export function parsePlan(answer: string): Plan {
   }
 }
 
-export async function planPrototype(o: Options, raw: Answers, photos: Photo[], deadline: number): Promise<Job> {
+/** The facts, with the subject researched while they answered (subject.ts) when it was found: the prototype's sessions, goals and numbers are the subject's own. */
+async function factsWithSubject(o: Options, raw: Answers) {
   const facts = factsOf(o, raw)
+  const subject = raw.idea?.trim() ? await readSubject(subjectKey(plain(raw.idea, 600))).catch(() => null) : null
+  return subject ? `${facts}\n\nResearch on the subject the app is about, for its real sessions, goals, numbers and words (the owner's answers above win where they differ):\n${subjectSaid(subject)}` : facts
+}
+
+export async function planPrototype(o: Options, raw: Answers, photos: Photo[], deadline: number): Promise<Job> {
+  const facts = await factsWithSubject(o, raw)
   const ask = () =>
     askClaude({
       model: PLAN_MODEL(),
