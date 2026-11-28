@@ -143,7 +143,8 @@ async function findPhotos(answers: Answers, searches: string[], favourites: {url
   return [...chosen, ...found.filter((f) => !chosen.some((c) => c.url === f.url))].slice(0, 12)
 }
 
-const AT_ONCE = 5
+// Each part is drawn and then reviewed (prototype.ts), so more at once keeps the whole app to its time.
+const AT_ONCE = 8
 
 /** The goals they named, a few: "Races: Hackney Half, London Marathon" is those two (as app-prototype.tsx's goalsOf, which is client-only). */
 function goalsOf(o: Options) {
