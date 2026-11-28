@@ -7,6 +7,7 @@
  */
 import {askClaude, ClaudeError, DRAW_MODEL} from './claude'
 import {cleanMarkPath} from './prototype-doc'
+import {logoLines} from './references'
 import type {Answers, Options} from './options'
 
 export interface Mark {
@@ -67,6 +68,8 @@ export async function drawMarks(o: Options, answers: Answers, deadline: number):
     answers.doing && `What people do in it: ${answers.doing}`,
     answers.goals && `What they work towards: ${answers.goals}`,
     answers.inspiration && `Apps the owner likes the look of: ${answers.inspiration}`,
+    logoLines(answers.logoLikes).length &&
+      `App icons the owner likes, so lean the four concepts towards these kinds of mark (never their shapes):\n${logoLines(answers.logoLikes).join('\n')}`,
   ]
     .filter(Boolean)
     .join('\n')

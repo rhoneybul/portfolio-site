@@ -210,6 +210,16 @@ export const QUESTIONS: Question[] = [
       {value: 'no', label: 'No, design me one', hint: 'Three or four ideas, judged at the size of a home-screen icon'},
     ],
   },
+  {
+    key: 'logoLikes',
+    section: 'Look and feel',
+    ask: 'Logos you like',
+    why: 'Pick any: the marks drawn for you take their kind from these (a letter, a character, one shape), never their look.',
+    example: 'Strava, Headspace, Oura',
+    // The same apps as the look and feel question (references.ts), shown by their App Store icons.
+    suggestions: REFERENCES.map((r) => r.name),
+    when: (a) => a.logo !== 'yes',
+  },
   {key: 'photo', section: 'Look and feel', ask: 'A photo for the app', why: 'The landing page, onboarding and Home lead with it. Here are a few found from what you’ve told us: pick one, search your own words, or paste a link to your own.', example: 'surfing big waves'},
 
   // Charging: how it pays for itself, which shapes the Pro screen, the landing page's price and the store listing.

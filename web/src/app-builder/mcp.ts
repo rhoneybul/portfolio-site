@@ -22,7 +22,7 @@ export const INSTRUCTIONS = `Fohm App Builder designs a first look at a health, 
 Fohm is Rob Honeybul's app studio in London. Its apps include Etapa (an AI cycling coach in the App Store and Google Play) and Naz (training and breathwork for big-wave surfers). The prototype is built on the same foundations.
 
 How to use it:
-1. Call app_builder_questions, then ask the person its questions in your own words, one or two at a time. Fill in what they have already told you; never make up their business. When you ask for their colour, offer its colour schemes by name, with how each feels, leading with those like the apps they said they like, and put the one they pick in scheme and its accent in accent. When they aren't sure of the app's name, suggest a few short, ownable names from what they've told you, each with why it fits, and use the one they pick (with nameSure yes); otherwise keep theirs as a working name. When you ask which apps they like the look of, show its references: each app's name as a link to its Mobbin screen, and its look in a few words, so they can open them and pick, or name their own.
+1. Call app_builder_questions, then ask the person its questions in your own words, one or two at a time. Fill in what they have already told you; never make up their business. When you ask for their colour, offer its colour schemes by name, with how each feels, leading with those like the apps they said they like, and put the one they pick in scheme and its accent in accent. When they aren't sure of the app's name, suggest a few short, ownable names from what they've told you, each with why it fits, and use the one they pick (with nameSure yes); otherwise keep theirs as a working name. When you ask which apps they like the look of, show its references: each app's name as a link to its Mobbin screen, and its look in a few words, so they can open them and pick, or name their own. When someone has no logo, ask which app icons they like from its logos the same way: each name as a link to its Mobbin screen, and its mark in a few words.
 2. Ask for their email last (they type it; never guess one), then call build_app_prototype with their answers. Claude designs every screen in about five minutes: show them the link straight away; the page fills in as it's drawn, and stays there to come back to.
 3. If they want it built, offer to pass it to Fohm with contact_fohm. Call it only once they have asked for that. Never invent or guess an email.
 
@@ -46,6 +46,7 @@ export function questionsForChat() {
         ...(q.suggestions ? {suggestions: q.suggestions} : {}),
         ...(q.key === 'accent' ? {schemes: SCHEMES.map(({id, name, accent, canvas, feel, like}) => ({id, name, accent, canvas, feel, ...(like.length ? {like} : {})}))} : {}),
         ...(q.key === 'inspiration' ? {references: REFERENCES.map(({name, look, mobbin}) => ({name, look, mobbin}))} : {}),
+        ...(q.key === 'logoLikes' ? {logos: REFERENCES.map(({name, mark, mobbin}) => ({name, mark, mobbin}))} : {}),
         ...(q.required ? {required: true} : {}),
       })),
       {key: 'sector', section: 'The idea', ask: 'Is it a fitness, health or wellness app?', choices: SECTORS.map((value) => ({value, label: value}))},
@@ -86,6 +87,7 @@ export const buildInput = z.object({
     .optional()
     .describe('The colour scheme they picked, by id (its accent goes in accent): a light or dark canvas with that accent.'),
   logo: z.enum(['yes', 'no']).optional().describe('Whether they have a logo already.'),
+  logoLikes: text(300).describe('For someone without a logo: app icons they like, comma-separated by name from the logos list, e.g. Strava, Headspace.'),
   audience: text(300).describe('How big their audience is today.'),
   ambition: text(600).describe('What success would look like in a year.'),
   sector: z.enum(SECTORS).optional().describe('Fitness, health or wellness (or other).'),

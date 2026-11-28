@@ -78,7 +78,7 @@ export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl,
     ...(o.connects?.trim()
       ? [`Connect to what my members already track with (${o.connects.trim()}): find each one's API and its terms, import what they've done with its source, and keep each off until its keys are set.`]
       : []),
-    o.logo === 'yes' ? 'I have a logo: ask me for the artwork and trace it into assets/brand/.' : 'I have no logo: run the logo round (the app-design skill’s reference/logo.md) once the name is settled.',
+    o.logo === 'yes' ? 'I have a logo: ask me for the artwork and trace it into assets/brand/.' : `I have no logo: run the logo round (the app-design skill’s reference/logo.md) once the name is settled.${o.logoLikes ? ` Logos I like, for the kind of mark (not its shape): ${o.logoLikes}.` : ''}`,
     o.photo
       ? `Lead the landing page, onboarding’s opening and Home’s goal card with this photo${o.photoCredit ? ` (${o.photoCredit}${/on Unsplash$/.test(o.photoCredit) ? ', under the Unsplash licence' : ', from Wikimedia Commons'})` : ', once its licence or my permission is recorded'}: ${o.photo}`
       : 'Find open-licence photos for every slot (reference/photos.md).',

@@ -504,6 +504,14 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
                 return <RefCard key={r.name} reference={r} on={on} onToggle={toggle} />
               })}
             </Strip>
+          ) : q.key === 'logoLikes' ? (
+            <Strip className="builder__refs builder__logos" label="App icons to pick from: swipe for more">
+              {REFERENCES.map((r) => {
+                const on = chosen.some((x) => x.toLowerCase() === r.name.toLowerCase())
+                const toggle = () => set((on ? chosen.filter((x) => x.toLowerCase() !== r.name.toLowerCase()) : [...chosen, r.name]).join(', '))
+                return <LogoCard key={r.name} reference={r} on={on} onToggle={toggle} />
+              })}
+            </Strip>
           ) : suggestions && (
             <div className="builder__picks" role="group" aria-label={several ? 'Pick any of these' : 'Pick one of these'}>
               {suggestions.map((s) => {
@@ -733,6 +741,35 @@ function RefCard({reference: r, on, onToggle}: {reference: Reference; on: boolea
           }
         />
       )}
+    </li>
+  )
+}
+
+/**
+ * One app icon on the logo question: its icon as the App Store shows it (the mark Mobbin lists the
+ * app under), its name and its mark in words; a tap picks it, Mobbin opens the app there.
+ */
+function LogoCard({reference: r, on, onToggle}: {reference: Reference; on: boolean; onToggle: () => void}) {
+  const icon = useListing(r.name)?.icon
+  const [broken, setBroken] = useState(false)
+  return (
+    <li className={`builder__ref builder__logo${on ? ' is-on' : ''}`}>
+      <button type="button" aria-pressed={on} onClick={onToggle}>
+        {icon && !broken ? (
+          <img className="builder__logo-icon" src={icon} alt="" width={64} height={64} loading="lazy" decoding="async" onError={() => setBroken(true)} />
+        ) : (
+          <span className="builder__logo-icon builder__logo-letter" aria-hidden>
+            {r.name.charAt(0).toUpperCase()}
+          </span>
+        )}
+        <strong>{r.name}</strong>
+        <span>{r.mark.charAt(0).toUpperCase() + r.mark.slice(1)}</span>
+      </button>
+      <div className="builder__ref-links">
+        <a href={r.mobbin} target="_blank" rel="noopener noreferrer" aria-label={`${r.name} on Mobbin (opens in a new tab)`}>
+          Mobbin <Arrow />
+        </a>
+      </div>
     </li>
   )
 }
