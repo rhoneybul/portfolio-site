@@ -82,7 +82,7 @@ export default async function SharedAppPage({params, searchParams}: {params: Pro
       parts={share.parts ?? 0}
       drawn={share.drawn?.length ?? 0}
       photos={share.photos.map(({url, credit}) => ({url, credit}))}
-      built={saved ? {id: saved.job.id, look: saved.job.look, plan: saved.job.plan, units: saved.units} : null}
+      built={saved ? {id: saved.job.id, look: saved.job.look, plan: saved.job.plan, units: saved.units, build: share.id, marks: share.marks ?? []} : null}
       embed={Boolean(embed)}
       whatsapp={settings?.whatsapp}
       bookingUrl={settings?.bookingUrl}

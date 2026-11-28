@@ -10,6 +10,9 @@ import type {Built} from '@/components/prototype-build'
 import {onAccent, type Options} from '@/app-builder/options'
 import {TYPE_FACES} from '@/app-builder/prototype-doc'
 import {referencesIn} from '@/app-builder/references'
+import {LogoChange} from '@/components/logo-change'
+import type {Answers} from '@/app-builder/options'
+import type {Style} from '@/app-builder/prototype-doc'
 
 /**
  * The moment the visitor first sees their app: a dark stage where its icon, its name and then the
@@ -24,6 +27,8 @@ export function AppReveal({
   note,
   onChange,
   onNew,
+  answers,
+  onIcon,
 }: {
   options: Options
   app: Built | null
@@ -32,6 +37,10 @@ export function AppReveal({
   onChange?: () => void
   /** Forgets this app and starts another from the first question. */
   onNew?: () => void
+  /** The answers the logo ideas are drawn from: with `onIcon`, the logo can still be changed here. */
+  answers?: Answers
+  /** A new icon picked: the page shows it on every screen. */
+  onIcon?: (icon: Style['icon']) => void
 }) {
   const stage = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -57,6 +66,9 @@ export function AppReveal({
           <span className="reveal__icon">
             <AppIcon name={options.name} accent={options.accent} icon={style?.icon} size={88} />
           </span>
+          {app && answers && onIcon && (
+            <LogoChange options={options} answers={answers} build={app.build} marks={app.marks} icon={style?.icon} onIcon={onIcon} />
+          )}
           <h2 id="reveal-name" className="reveal__name reveal__in" style={{'--i': 1} as CSSProperties}>
             {options.name}
           </h2>

@@ -5053,6 +5053,80 @@ details.calls[open] > summary::after {
   color: #fff;
 }
 
+/* Change the logo, under the icon: the logo round's marks, a tap putting one on every screen. */
+.reveal .reveal__logo-open {
+  margin-top: -10px;
+  font-size: 14px;
+}
+
+.reveal__logos {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.reveal__logos ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reveal__logos li button {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 6px;
+  border: 1px solid #34343b;
+  border-radius: 14px;
+  background: #16161a;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.25;
+  text-align: center;
+  color: #d8d8de;
+  cursor: pointer;
+}
+
+.reveal__logos li button:hover,
+.reveal__logos li button:focus-visible {
+  border-color: #6a6a74;
+}
+
+.reveal__logos li button.is-on {
+  border-color: #fff;
+  box-shadow: 0 0 0 1px #fff;
+  color: #fff;
+}
+
+.reveal__logo-blank {
+  display: block;
+  height: 92px;
+  border-radius: 14px;
+  background: #222228;
+  animation: building-blink 1.4s ease-in-out infinite;
+}
+
+.reveal__logos-line {
+  margin: 0;
+  font-size: 14px;
+  color: #a6a6b0;
+}
+
+.reveal__logos-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+}
+
+.reveal .reveal__logos-actions .reveal__change {
+  font-size: 14px;
+}
+
 .reveal__phone {
   display: grid;
   justify-items: center;
@@ -5123,6 +5197,10 @@ details.calls[open] > summary::after {
   .reveal__phone {
     animation: none;
     opacity: 1;
+  }
+
+  .reveal__logo-blank {
+    animation: none;
   }
 }
 

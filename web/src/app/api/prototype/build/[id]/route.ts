@@ -1,6 +1,7 @@
 import {NextResponse} from 'next/server'
 import {expired, readChoices, readShare, saveChoices} from '@/app-builder/mcp-build'
-import {readJob, readUnit} from '@/app-builder/prototypes'
+import {readJob, readUnit, saveJob} from '@/app-builder/prototypes'
+import {withMark} from '@/app-builder/prototype'
 import {cleanMarkPath} from '@/app-builder/prototype-doc'
 import {DEVICE, SESSION, mayOpen} from '@/app-builder/visitor'
 import {cookies} from 'next/headers'
@@ -16,7 +17,8 @@ const allowed = async (share: NonNullable<Awaited<ReturnType<typeof readShare>>>
  * the logo round's marks and the one picked, the plan once there is one) and hands over the parts
  * drawn since the page last asked (`have` lists the ones it has). POST saves what the visitor
  * chooses while it builds: the mark they pick (used from the next part drawn) and where they heard
- * about Fohm. Found only by its id.
+ * about Fohm. A mark picked once it's done (the reveal's Change the logo) is saved into the finished
+ * plan too, so its link and Your apps show it. Found only by its id.
  */
 
 export const dynamic = 'force-dynamic'
@@ -62,5 +64,9 @@ export async function POST(request: Request, {params}: {params: Promise<{id: str
   if (body?.mark !== undefined && !mark) return NextResponse.json({error: 'Not a logo.'}, {status: 400})
   const heard = typeof body?.heard === 'string' ? body.heard.replace(/[<>]/g, '').trim().slice(0, 200) : undefined
   await saveChoices(id, {...(mark ? {mark} : {}), ...(heard !== undefined ? {heard} : {})})
+  if (mark && share.status === 'done' && share.prototype) {
+    const job = await readJob(share.prototype)
+    if (job) await saveJob(withMark(job, mark))
+  }
   return NextResponse.json({ok: true})
 }
