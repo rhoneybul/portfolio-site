@@ -5,7 +5,7 @@
  * sends back is checked here, and without Claude the next row comes from a fixed order with its
  * own words. Plain: used in the browser and on the server.
  */
-import {QUESTIONS, TEMPLATES, asked, type Answers, type Question} from './options'
+import {FEATURE_FOLLOW_UPS, QUESTIONS, TEMPLATES, asked, hasFeatures, type Answers, type Question} from './options'
 
 export const PARTS = ['The idea', 'How it works', 'How it looks, and the practical bits'] as const
 
@@ -16,6 +16,10 @@ const ORDER: {key: string; part: 1 | 2 | 3}[] = [
   {key: 'template', part: 1},
   {key: 'platforms', part: 1},
   {key: 'doing', part: 1},
+  {key: 'features', part: 2},
+  {key: 'featureHow', part: 2},
+  {key: 'featureLooks', part: 2},
+  {key: 'featureData', part: 2},
   {key: 'interests', part: 2},
   {key: 'goals', part: 2},
   {key: 'connects', part: 2},
@@ -37,10 +41,14 @@ export const FIRST = 'idea'
 export const LAST = 'email'
 
 /** Answers kept as a comma-separated list, where a suggestion adds itself rather than replacing the answer. */
-export const LISTS = new Set(['interests', 'goals', 'connects', 'inspiration', 'content', 'logoLikes'])
+export const LISTS = new Set(['interests', 'goals', 'connects', 'inspiration', 'content', 'logoLikes', 'features', 'featureLooks', 'featureData'])
 
 /** Rows Claude may never skip: the anchors, and what the app can't be drawn without. */
 const UNSKIPPABLE = new Set([FIRST, LAST, 'name'])
+
+/** A row Claude may not skip given the answers: once a feature is named, its follow-ups are how it gets designed. */
+const mustAsk = (key: string, answers: Answers) =>
+  UNSKIPPABLE.has(key) || !!questionOf(key).required || ((FEATURE_FOLLOW_UPS as readonly string[]).includes(key) && hasFeatures(answers))
 
 export interface Turn {
   done: false
@@ -138,7 +146,7 @@ export function cleanTurn(raw: unknown, answers: Answers, done: readonly string[
   const prefill = cleanPrefill(q, r.prefill)
   const example = typed && key !== 'email' ? plain(r.example, 90).replace(/^e\.g\.\s*/i, '') : ''
   const skip = Array.isArray(r.skip)
-    ? r.skip.filter((k): k is string => typeof k === 'string' && k !== key && rows.includes(k) && !UNSKIPPABLE.has(k) && !questionOf(k).required)
+    ? r.skip.filter((k): k is string => typeof k === 'string' && k !== key && rows.includes(k) && !mustAsk(k, answers))
     : []
 
   const left = rows.filter((k) => k !== key && !skip.includes(k)).length + (pending(answers, done).includes(LAST) ? 1 : 0)
@@ -179,7 +187,7 @@ export function rowsFor(answers: Answers, done: readonly string[]) {
       const choices = q.choices ? ` Choices (prefill must be one of these values): ${q.choices.map((c) => `${c.value} = ${c.label}`).join('; ')}.` : ''
       const own = q.suggestions ? ' Has its own suggestions: give none.' : ''
       const fixed = key === 'photo' || key === 'accent' ? ' Picked on its own control: give no suggestions or prefill.' : ''
-      const must = UNSKIPPABLE.has(key) || q.required ? ' Never skip.' : ''
+      const must = mustAsk(key, answers) ? ' Never skip.' : ''
       return `- ${key} (part ${partOf(key)}): "${q.ask}"${q.why ? ` Why: ${q.why}` : ''}${choices}${own}${fixed}${must}`
     })
     .join('\n')

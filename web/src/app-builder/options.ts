@@ -129,9 +129,20 @@ export interface Question {
   flag?: string
   /** Asked only when this is true of the answers so far. */
   when?: (a: Answers) => boolean
+  /** The same condition in words, for a chat that sees every question at once (mcp.ts). */
+  onlyWhen?: string
 }
 
 const notGame = (a: Answers) => kindOf(a) !== 'game'
+
+/** The features only this app has: the follow-ups are asked once one is named. */
+export const FEATURE_FOLLOW_UPS = ['featureHow', 'featureLooks', 'featureData'] as const
+export const hasFeatures = (a: Answers) => {
+  const said = a.features?.trim() ?? ''
+  return !!said && !/^(no|none|nothing|nope|not really|not yet|n\/a|na|-)(?![a-z])/i.test(said)
+}
+/** Planning routes on a map, said in their features or how they look: the template's `--routes` (Mapbox) then comes with it. */
+export const wantsRoutes = (a: Answers) => hasFeatures(a) && /\b(routes?|maps?|paddle line|trails?)\b/i.test(`${a.features} ${a.featureLooks ?? ''}`)
 
 /** The ways to charge, for the charging question, with what each means for the prototype. */
 export const CHARGES = [
@@ -157,7 +168,7 @@ export const inStores = (a: Answers) => platformOf(a).value !== 'web'
 /** Whether people can use it in a browser. */
 export const onWeb = (a: Answers) => platformOf(a).value !== 'mobile'
 
-export const SECTIONS = ['The idea', 'The name', 'Onboarding', 'The method', 'Look and feel', 'About you'] as const
+export const SECTIONS = ['The idea', 'The name', 'Its own features', 'Onboarding', 'The method', 'Look and feel', 'About you'] as const
 
 /**
  * Only what a first look at the app needs. Everything else the scaffold takes (the words for the
@@ -197,6 +208,43 @@ export const QUESTIONS: Question[] = [
       {value: 'yes', label: 'Yes, that’s the name'},
       {value: 'no', label: 'No, find me a better one', hint: 'A naming round: names checked for domains, store clashes and trade marks'},
     ],
+  },
+
+  // Its own features: what this app does that the foundations don't (a route planner, a trip planner, a booking calendar), followed up until it can be drawn and built.
+  {
+    key: 'features',
+    section: 'Its own features',
+    ask: 'Is there something your app must do that’s specific to it?',
+    why: 'A route planner, a trip planner, a booking calendar: we design it with you, and the prototype draws it. None is fine too.',
+    example: 'A route planner, and a trip planner for trips of several days',
+  },
+  {
+    key: 'featureHow',
+    section: 'Its own features',
+    ask: 'Walk me through using it: where does someone start, what do they choose, and what do they end up with?',
+    why: 'Step by step, so the prototype draws it the way it really works.',
+    example: 'They pick a launch spot and a finish, the route follows the water, and they see the distance and the time it takes',
+    long: true,
+    when: hasFeatures,
+    onlyWhen: 'features names one',
+  },
+  {
+    key: 'featureLooks',
+    section: 'Its own features',
+    ask: 'What should it look like?',
+    why: 'A map, a list of days, a calendar: the screen it’s drawn on.',
+    example: 'A map with the route drawn on it, and the trip as a list of days',
+    when: hasFeatures,
+    onlyWhen: 'features names one',
+  },
+  {
+    key: 'featureData',
+    section: 'Its own features',
+    ask: 'What does it need to know to work?',
+    why: 'Tides, the weather, places to stop: what it reads from the world, so we check each can be had before it’s built.',
+    example: 'Tide times, the wind forecast, launch spots and campsites',
+    when: hasFeatures,
+    onlyWhen: 'features names one',
   },
 
   // Onboarding (Naz's)
@@ -330,7 +378,7 @@ export function resolveOptions(input: Answers): {options: Options; errors: Recor
     slug,
     kind,
     coach: coach ? 'yes' : 'no',
-    routes: t('routes') === 'yes' ? 'yes' : 'no',
+    routes: t('routes') === 'yes' || wantsRoutes(input) ? 'yes' : 'no',
     inspiration: t('inspiration')
       .split(',')
       .map((x) => x.trim())

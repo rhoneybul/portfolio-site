@@ -1,4 +1,4 @@
-import {inStores, interestsOf, onWeb, type Options} from './options'
+import {hasFeatures, inStores, interestsOf, onWeb, type Options} from './options'
 
 /**
  * Everything fohm-scaffold builds into a new app, in the visitor's own names, from the scaffold's
@@ -39,6 +39,7 @@ export function whatYouGet(o: Options): Part[] {
             ? ['A game to play in the browser and the apps, with scores saved', 'Feedback from players, answered from the dashboard']
             : [`${members.charAt(0).toUpperCase() + members.slice(1)} write things and get replies`]),
         ...(o.routes === 'yes' ? ['Routes planned on a map, snapped to real roads and paths (Mapbox)'] : []),
+        ...(hasFeatures(o) ? [`Your own features, designed with you before they’re built: ${o.features.trim()}`] : []),
         'Saves and a to-do list: the goals and courses a member hearts come back on Home',
         'Demo mode: the whole app runs before anything is set up',
       ],
