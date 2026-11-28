@@ -15,7 +15,8 @@ import {schemeById, schemesFor} from '@/app-builder/schemes'
 import {onAccent} from '@/app-builder/options'
 import {RefPicture} from '@/components/ref-picture'
 import {Gallery, Lightbox, Strip, type Slide} from '@/components/gallery'
-import {NameCheckPanel} from '@/components/name-check'
+import {NameCheckPanel, summaryOf} from '@/components/name-check'
+import {NameIdeas} from '@/components/name-ideas'
 import {addSpent, resetSpent, spentSoFar} from '@/components/spent'
 import {useListing} from '@/components/ref-picture'
 import type {Reference} from '@/app-builder/references'
@@ -434,6 +435,18 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
         <form className="chat__reply builder__ask" onSubmit={next} aria-labelledby={`ask-${q.key}`}>
           {q.key === 'nameSure' && answers.name?.trim() && (
             <NameCheckPanel name={answers.name.trim()} onChecked={(summary) => setAnswers((a) => ({...a, nameCheck: summary}))} />
+          )}
+          {q.key === 'nameSure' && (
+            <NameIdeas
+              answers={answers}
+              onPick={(idea) => {
+                if (thinking) return
+                const given = {...answers, name: idea.name, nameSure: 'yes', nameCheck: idea.check ? summaryOf(idea.check) : ''}
+                setAnswers(given)
+                setError(null)
+                void forward(given)
+              }}
+            />
           )}
           {q.choices ? (
             <div className="builder__kinds" role={q.multi ? 'group' : 'radiogroup'} aria-labelledby={`ask-${q.key}`}>

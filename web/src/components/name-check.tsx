@@ -115,7 +115,7 @@ export function NameCheckPanel({name, onChecked}: {name: string; onChecked?: (su
 }
 
 /** The check in a line, as the browser sends it with the answers. */
-const summaryOf = (c: NameCheck) =>
+export const summaryOf = (c: NameCheck) =>
   [
     c.verdict,
     `Domains: ${c.domains.map((d) => `${d.domain} ${d.taken === null ? 'unknown' : d.taken ? 'taken' : 'free'}`).join(', ')}.`,
