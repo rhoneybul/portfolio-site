@@ -30,7 +30,14 @@ export interface Built {
   look: Look
   plan: Plan
   units: Drawn[]
+  /** The build on the server (its share id), which keeps a logo picked later. */
+  build?: string
+  /** The logo round's marks, to change the logo once the app is shown. */
+  marks?: Mark[]
 }
+
+/** The app with another icon: on every screen, as the server's withMark sets it. */
+export const withIcon = (b: Built, icon: Style['icon']): Built => ({...b, look: {...b.look, style: {...(b.look.style ?? HOUSE), icon}}})
 
 type State = 'waiting' | 'drawing' | 'done' | 'failed'
 
@@ -145,6 +152,11 @@ export function PrototypeBuild({
   // The build on the server: its id once started, whether it will email them, and how long its link lasts.
   const [build, setBuild] = useState<{id: string; emailing: boolean; days: number; private?: boolean} | null>(null)
   const pickedRef = useRef(-1)
+  // The marks as they stand, for the finished app: the reveal offers them again.
+  const marksNow = useRef<Mark[]>([])
+  useEffect(() => {
+    marksNow.current = Array.isArray(marks) ? marks : []
+  }, [marks])
   // The mark they picked last, as a path: the finished app is handed over with it, even one picked just before the end.
   const pickedMark = useRef('')
   const started = useRef(false)
@@ -230,7 +242,7 @@ export function PrototypeBuild({
           if (p.status === 'done' && p.job && allIn) {
             const units = p.job.plan.units.map((u) => got[u.id]).filter((u): u is Drawn => Boolean(u))
             const look = pickedMark.current ? withLogo({...p.job, facts: '', photos: []} as Job, pickedMark.current).look : p.job.look
-            return built({id: p.job.id, look, plan: p.job.plan, units})
+            return built({id: p.job.id, look, plan: p.job.plan, units, build: started.id, marks: marksNow.current.length ? marksNow.current : (p.marks ?? [])})
           }
         }
         timer.current = setTimeout(follow, EVERY)

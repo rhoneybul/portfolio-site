@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, type CSSProperties} from 'react'
+import {useEffect, useState, type CSSProperties} from 'react'
 import {useRouter} from 'next/navigation'
 import {Arrow} from '@/components/arrow'
 import {AppIcon} from '@/components/app-icon'
@@ -11,7 +11,7 @@ import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
 import {PrototypeFrame} from '@/components/prototype-frame'
 import {Interest, callNote} from '@/components/app-builder'
-import type {Built} from '@/components/prototype-build'
+import {withIcon, type Built} from '@/components/prototype-build'
 import {resolveOptions, type Answers} from '@/app-builder/options'
 import type {ShareStatus} from '@/app-builder/mcp-build'
 
@@ -28,7 +28,7 @@ export function SharedApp({
   parts,
   drawn,
   photos,
-  built,
+  built: given,
   embed,
   whatsapp,
   bookingUrl,
@@ -45,6 +45,9 @@ export function SharedApp({
   bookingUrl?: string | null
 }) {
   const router = useRouter()
+  // The app as shown: a logo changed on the reveal shows on every screen at once.
+  const [built, setBuilt] = useState(given)
+  useEffect(() => setBuilt(given), [given])
   const {options} = resolveOptions(answers)
   const building = status === 'photos' || status === 'planning' || status === 'drawing'
 
@@ -120,7 +123,7 @@ export function SharedApp({
 
   return (
     <div className="builder builder--built">
-      <Showcase o={options} gallery={photos} built={built} intro={{name: 'Your app', node: <AppReveal options={options} app={built} sketch={<AppPrototype o={options} gallery={photos} />} />}} />
+      <Showcase o={options} gallery={photos} built={built} intro={{name: 'Your app', node: <AppReveal options={options} app={built} answers={answers} onIcon={(icon) => setBuilt((b) => (b ? withIcon(b, icon) : b))} sketch={<AppPrototype o={options} gallery={photos} />} />}} />
       {interest}
       <BuildDialog answers={answers} prototype={built?.id} name={options.name} accent={options.accent} icon={built?.look.style?.icon} tagline={options.tagline} bookingUrl={bookingUrl} builderRef={id} from="app-builder-mcp" />
       <BuildBar name={options.name} accent={options.accent} />

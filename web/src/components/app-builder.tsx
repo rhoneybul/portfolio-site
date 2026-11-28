@@ -8,7 +8,7 @@ import {BuildDialog} from '@/components/build-dialog'
 import {PhotoSearch, ideasFor, mixed, search, type Picked} from '@/components/photo-search'
 import {Showcase} from '@/components/showcase'
 import {BookCall} from '@/components/book-call'
-import {PrototypeBuild, type Built} from '@/components/prototype-build'
+import {PrototypeBuild, withIcon, type Built} from '@/components/prototype-build'
 import {QUESTIONS, emptyAnswers, resolveOptions, type Answers, type Question, type Shots} from '@/app-builder/options'
 import {REFERENCES} from '@/app-builder/references'
 import {schemeById, schemesFor} from '@/app-builder/schemes'
@@ -322,7 +322,18 @@ export function AppBuilder({whatsapp, bookingUrl, className, paused}: {
           built={app}
           intro={{
             name: 'Your app',
-            node: <AppReveal options={options} app={app} note={note} onChange={() => setPhase('asking')} onNew={startNew} sketch={<AppPrototype o={options} gallery={gallery} />} />,
+            node: (
+              <AppReveal
+                options={options}
+                app={app}
+                note={note}
+                onChange={() => setPhase('asking')}
+                onNew={startNew}
+                answers={answers}
+                onIcon={(icon) => setBuilt((b) => (b?.app ? {...b, app: withIcon(b.app, icon)} : b))}
+                sketch={<AppPrototype o={options} gallery={gallery} />}
+              />
+            ),
           }}
         />
 
