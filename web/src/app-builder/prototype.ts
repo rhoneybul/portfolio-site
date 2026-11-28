@@ -5,7 +5,7 @@
  * for, and never takes the visitor's words straight into a prompt. Server only.
  */
 import {createHash, createHmac, randomBytes, timingSafeEqual} from 'node:crypto'
-import {TEMPLATES, chargeOf, platformOf, type Answers, type Options} from './options'
+import {TEMPLATES, chargeOf, hasFeatures, platformOf, type Answers, type Options} from './options'
 import {CANVASES, CORNERS, HOMES, HOUSE, SHAPES, TYPES, TYPE_FACES, type Drawn, type Job, type Photo, type Plan, type Style, type Unit} from './prototype-doc'
 import {DRAW_MODEL, PLAN_MODEL, askClaude} from './claude'
 import {referencesIn} from './references'
@@ -41,6 +41,14 @@ export function factsOf(o: Options, raw: Answers) {
     line('Where people use it', platformOf(raw).draws),
     line('What people should be doing in the app', raw.doing),
     line('The landing page headline', o.tagline),
+    ...(hasFeatures(raw)
+      ? [
+          line('What this app must do that’s specific to it (draw each)', raw.features),
+          line('How each of those works, step by step, in the owner’s words', raw.featureHow),
+          line('What each of those looks like', raw.featureLooks),
+          line('What each of those reads from the world', raw.featureData),
+        ]
+      : []),
     line('What people are here for (onboarding’s tiles)', raw.interests),
     line('What people work towards: places, events or trips', raw.goals),
     line('The apps and devices people already track with (the app connects to them)', raw.connects),
@@ -68,12 +76,23 @@ const JOURNEY: Record<string, string> = {
   game: 'the landing page; how to play, in one or two screens; the first round in play; the score at the end of a round; Home, the way back in (where you are, the next challenge, the places to play, with photos); a leaderboard or progress; Account.',
 }
 
+/**
+ * The owner's own features (a route planner, a trip planner), each drawn as they described it:
+ * where it's opened from, its steps as they walked them through, the screen they asked for and
+ * what it reads (tides, the weather) shown with its source. They're the part of the prototype
+ * nothing else draws, so each gets its own unit or units, never a line on another screen.
+ */
+const featuresOf = (o: Options) =>
+  hasFeatures(o)
+    ? `; and the app's own features, as the owner described them (${o.features.trim()}): each its own unit or units, where it is opened from, its steps from start to what they end up with as the owner walked them through, the screen it is drawn on as the owner asked for it, what it reads from the world shown with its source, and a saved one coming back on Home${o.routes === 'yes' ? '; a route drawn on a map, its line following the water, paths or roads as the activity does, with its distance and time' : ''}.`
+    : ''
+
 /** The journey for its kind; a free app has no Pro screen, and one sold once has a purchase screen instead. */
 const journeyOf = (o: Options) => {
-  const journey = o.kind === 'game' ? JOURNEY.game : o.kind === 'app' ? JOURNEY.app : o.coach === 'yes' ? JOURNEY.coachYes : JOURNEY.coachNo
-  if (o.charge === 'free') return journey.replace(/;?\s*Pro \([^)]*\)/, '')
-  if (o.charge === 'one-off') return journey.replace(/Pro \([^)]*\)/, 'buying a program or a pass (what is free, what it costs as a [placeholder], bought once and kept)')
-  return journey
+  let journey = o.kind === 'game' ? JOURNEY.game : o.kind === 'app' ? JOURNEY.app : o.coach === 'yes' ? JOURNEY.coachYes : JOURNEY.coachNo
+  if (o.charge === 'free') journey = journey.replace(/;?\s*Pro \([^)]*\)/, '')
+  if (o.charge === 'one-off') journey = journey.replace(/Pro \([^)]*\)/, 'buying a program or a pass (what is free, what it costs as a [placeholder], bought once and kept)')
+  return journey.replace(/\.$/, '') + (featuresOf(o) || '.')
 }
 
 // ---------- The plan ----------
@@ -100,6 +119,7 @@ The look:
 - The apps the owner likes are the strongest guide: recall how each looks and feels (its canvas, type, corners, density, how its home and its sessions are laid out, its signature screens) and carry that into the look and the units' layouts, within the house style's family. Say what you took from each in "from". With none named, choose from the business, its audience and the photos.
 
 Rules:
+- The owner's own features, when the journey names any, are what they will judge hardest: draw each as they described it, its own unit with 2 or 3 steps where it has steps, linked from where it's opened, never left out to fit the count.
 - 10 to 15 units. First the landing page ("frame": "web"); then the member's journey on the phone, in the order they meet it ("frame": "phone"); then 2 to 4 units of the owner's dashboard ("frame": "laptop").
 - The first unit is always the landing page, id "landing", "frame": "web": the business's website that sells the app, seen on a laptop at full width, not a phone screen: a page that sells, not a brochure. Top to bottom: the strongest photo full-bleed with one promise over it as the headline, a line under it, Get started, and the app itself in a phone beside it showing Home; how it works in three steps, each with its photo; one band in the accent's deep shade with the app's key value as one big line; a photo beside what people get; what people work towards as a sideways strip of big photos; the price as a [placeholder]; a last call to start over a second photo; a footer. The headline is one promise about where people get to (\"Paddle your first multi-day trip by summer\"), never a list of features. The owner judges it on its own, so it is never skipped or folded into another unit.
 - Onboarding is one unit of 4 to 7 steps. A session from start to done may be 2 or 3 steps. Every other unit is 1 step.

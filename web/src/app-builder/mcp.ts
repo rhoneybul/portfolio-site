@@ -22,7 +22,7 @@ export const INSTRUCTIONS = `Fohm App Builder designs a first look at a health, 
 Fohm is Rob Honeybul's app studio in London. Its apps include Etapa (an AI cycling coach in the App Store and Google Play) and Naz (training and breathwork for big-wave surfers). The prototype is built on the same foundations.
 
 How to use it:
-1. Call app_builder_questions, then ask the person its questions in your own words, one or two at a time. Fill in what they have already told you; never make up their business. Once they've said what the app does, find out the subject it's about before the questions that need it (search the web if you can): the sessions and exercises people in it really do, how they grade where they are, the milestones they build towards, the tests they measure by and what they log with. Then offer those back as picks in its own words: for a climbing app, limit bouldering and hangboard repeaters, a first V5 or a 7a redpoint, a max hang on a 20 mm edge, never vague categories. When you ask for their colour, offer its colour schemes by name, with how each feels, leading with those like the apps they said they like, and put the one they pick in scheme and its accent in accent. When they aren't sure of the app's name, suggest a few short, ownable names from what they've told you, each with why it fits, and use the one they pick (with nameSure yes); otherwise keep theirs as a working name. When you ask which apps they like the look of, show its references: each app's name as a link to its Mobbin screen, and its look in a few words, so they can open them and pick, or name their own. When someone has no logo, ask which app icons they like from its logos the same way: each name as a link to its Mobbin screen, and its mark in a few words.
+1. Call app_builder_questions, then ask the person its questions in your own words, one or two at a time. Fill in what they have already told you; never make up their business. Once they've said what the app does, find out the subject it's about before the questions that need it (search the web if you can): the sessions and exercises people in it really do, how they grade where they are, the milestones they build towards, the tests they measure by and what they log with. Then offer those back as picks in its own words: for a climbing app, limit bouldering and hangboard repeaters, a first V5 or a 7a redpoint, a max hang on a 20 mm edge, never vague categories. When you ask for their colour, offer its colour schemes by name, with how each feels, leading with those like the apps they said they like, and put the one they pick in scheme and its accent in accent. When they aren't sure of the app's name, suggest a few short, ownable names from what they've told you, each with why it fits, and use the one they pick (with nameSure yes); otherwise keep theirs as a working name. When you ask which apps they like the look of, show its references: each app's name as a link to its Mobbin screen, and its look in a few words, so they can open them and pick, or name their own. Ask whether the app must do something specific to it (a route planner, a trip planner): when it must, ask how it works step by step, what it looks like and what it needs to know, so the prototype draws it. When someone has no logo, ask which app icons they like from its logos the same way: each name as a link to its Mobbin screen, and its mark in a few words.
 2. Ask for their email last (they type it; never guess one), then call build_app_prototype with their answers. Claude designs every screen in about five minutes: show them the link straight away; the page fills in as it's drawn, and stays there to come back to.
 3. If they want it built, offer to pass it to Fohm with contact_fohm. Call it only once they have asked for that. Never invent or guess an email.
 
@@ -30,11 +30,12 @@ Be plain about what this is: a free prototype from Fohm, a studio that builds ap
 
 /** The questions, as the assistant should ask them: the website's, the email last, without the photo step (the chat picks searches). */
 export function questionsForChat() {
-  const qs = asked({}).filter((q) => q.key !== 'photo' && q.key !== 'email')
+  // Every question at once, those asked only after an earlier answer marked with onlyWhen.
+  const qs = QUESTIONS.filter((q) => (q.onlyWhen || asked({}).includes(q)) && q.key !== 'photo' && q.key !== 'email')
   const email = QUESTIONS.find((q) => q.key === 'email')!
   return {
     intro:
-      'Ask these in your own words, one or two at a time, skipping any the person has already answered. `name` and `email` are required (ask for the email last, and use only one the person types); everything else has a sensible default.',
+      'Ask these in your own words, one or two at a time, skipping any the person has already answered. `name` and `email` are required (ask for the email last, and use only one the person types); everything else has a sensible default. Ask `features` for every app, suggesting the ones real to their activity (for sea kayaking: a route planner, a trip planner, a tide and wind check); when they name one, ask its follow-ups (`onlyWhen`) one at a time about that feature, until you could draw it: how it works step by step, what it looks like, and what it needs to know.',
     questions: [
       ...qs.map((q) => ({
         key: q.key,
@@ -47,6 +48,7 @@ export function questionsForChat() {
         ...(q.key === 'accent' ? {schemes: SCHEMES.map(({id, name, accent, canvas, feel, like}) => ({id, name, accent, canvas, feel, ...(like.length ? {like} : {})}))} : {}),
         ...(q.key === 'inspiration' ? {references: REFERENCES.map(({name, look, mobbin}) => ({name, look, mobbin}))} : {}),
         ...(q.key === 'logoLikes' ? {logos: REFERENCES.map(({name, mark, mobbin}) => ({name, mark, mobbin}))} : {}),
+        ...(q.onlyWhen ? {onlyWhen: q.onlyWhen} : {}),
         ...(q.required ? {required: true} : {}),
       })),
       {key: 'sector', section: 'The idea', ask: 'Is it a fitness, health or wellness app?', choices: SECTORS.map((value) => ({value, label: value}))},
@@ -77,6 +79,10 @@ export const buildInput = z.object({
   nameSure: z.enum(['yes', 'no']).optional().describe('Whether they are sure of the name.'),
   interests: text(300).describe('What people are there for, a few words comma-separated: tiles in onboarding.'),
   connects: text(300).describe('The apps or devices people already track with, comma-separated, e.g. "Concept2 Logbook, Garmin, Apple Health".').optional(),
+  features: text(300).describe('What the app must do that’s specific to it, comma-separated, e.g. "Route planner, Trip planner". Empty or "none" if nothing.'),
+  featureHow: text(600).describe('How each of those works, step by step, in their words: where someone starts, what they choose, what they end up with.'),
+  featureLooks: text(300).describe('What each of those looks like, e.g. "A map with the route drawn, the trip as a list of days".'),
+  featureData: text(300).describe('What each of those needs to know from the world, e.g. "Tide times, wind forecast, launch spots, campsites".'),
   goals: text(300).describe('What people work towards: places, events or milestones, e.g. "Races: London Marathon, Hackney Half".'),
   content: text(600).describe('Links to videos, posts and courses they already publish.'),
   inspiration: text(300).describe('Apps they like the look of, comma-separated, e.g. Runna, Strava, Headspace.'),

@@ -1,4 +1,4 @@
-import {QUESTIONS, SECTIONS, asked, inStores, onWeb, type Answers, type Options} from './options'
+import {QUESTIONS, SECTIONS, asked, hasFeatures, inStores, onWeb, type Answers, type Options} from './options'
 
 /**
  * The prompt the builder hands over: everything answered, ready to paste into Claude with
@@ -86,6 +86,12 @@ export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl,
       ? `The name is final: ${o.name}.`
       : `The name isn't final: run the naming round first (reference/naming.md), in the direction above, and put **Name not final** on the checklist until I pick one.`,
     ...(raw.nameCheck?.trim() ? [`The builder checked the name as I gave it: ${raw.nameCheck.trim()}`] : []),
+    ...(hasFeatures(o)
+      ? [
+          `My app's own features (${o.features.trim()}) are what it's for: before the prototype, check each against the skill's reference/borrow.md and tell me in a line which comes with the template, which is ported from Naz or Etapa, and which is built new, and that every source it reads (${o.featureData?.trim() || 'tides, weather, places'}) can be had, with its terms. Then design each as I walked it through, on the prototype, as its own screens, and build it as a feature (the skill's step 9) only once I've approved them.`,
+          ...(o.routes === 'yes' ? ['Routes come with the template: create it with `--routes`, and set the line to follow what my members move along (water, paths or roads).'] : []),
+        ]
+      : []),
     ...(o.connects?.trim()
       ? [`Connect to what my members already track with (${o.connects.trim()}): find each one's API and its terms, import what they've done with its source, and keep each off until its keys are set.`]
       : []),
@@ -105,6 +111,9 @@ export function claudePrompt(o: Options, raw: Answers, {prototype: prototypeUrl,
     'the naming direction, if the name isn’t final',
     ...(o.kind === 'game' ? [] : ['the one question the app answers for people, which opens onboarding over a photo']),
     ...(o.kind === 'coaching' ? ['the levels people move through, and the skills and drills at each: my method, for the path'] : []),
+    ...(hasFeatures(o)
+      ? ['for each of my own features, what the builder didn’t ask: what happens when it goes wrong (no signal, the plan changes, a source is down), what is saved and shared, what my dashboard sees of it, and whether it’s free or Pro']
+      : ['whether there’s anything my app must do that’s specific to it, and if so, how it works and what it looks like']),
     'the design questions: the navigation, and apps I don’t like',
     ...(o.kind === 'game' ? [] : ['how much time people can give it each week, and a first number they can measure', 'the questions that place someone at a level']),
     'what Pro costs',
