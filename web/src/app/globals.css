@@ -1073,6 +1073,7 @@ a.proof:hover .proof__arrow {
 .booking-dialog {
   width: min(1000px, calc(100vw - 32px));
   height: min(780px, calc(100dvh - 32px));
+  max-height: calc(100dvh - 32px);
   padding: 0;
   border: 1.5px solid var(--ink);
   background: #fff;
@@ -7122,6 +7123,45 @@ details.calls[open] > summary::after {
   animation: building-blink 1.4s ease-in-out infinite;
 }
 
+.name-ideas__wants {
+  display: grid;
+  gap: 6px;
+}
+
+.name-ideas__wants label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.name-ideas__wants div {
+  display: flex;
+  gap: 8px;
+}
+
+.name-ideas__wants input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.name-ideas__wants input:focus {
+  outline: 2px solid var(--x-accent, var(--ink));
+  outline-offset: 1px;
+}
+
+.name-ideas__wants .btn {
+  flex: none;
+  min-height: 44px;
+}
+
 .name-ideas__more {
   justify-self: start;
   min-height: 44px;
@@ -7143,6 +7183,17 @@ details.calls[open] > summary::after {
 
 .call-invite[open]:not(.is-picking) {
   animation: booked-in 0.3s ease-out;
+}
+
+/* Pick a time: the small window grows into the booking window's full size, held inside the screen, the calendar scrolling within it. */
+.call-invite.is-picking {
+  width: min(1000px, calc(100vw - 32px));
+  height: min(780px, calc(100dvh - 32px));
+}
+
+.call-invite:not(.is-picking) {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
 }
 
 .call-invite__card {
